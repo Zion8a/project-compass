@@ -119,7 +119,14 @@ export default function ProjectRisksPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
+            <Link
+              href="/"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Startsida
+            </Link>
+
             <Link
               href="/project-board"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
@@ -146,6 +153,13 @@ export default function ProjectRisksPage() {
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
               Till projektkarta
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Redigera intervju
             </Link>
           </div>
         </div>

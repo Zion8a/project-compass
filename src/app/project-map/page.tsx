@@ -39,12 +39,21 @@ export default function ProjectMapPage() {
             Börja med att skapa ett nytt projekt genom projektintervjun.
           </p>
 
-          <Link
-            href="/new-project"
-            className="mt-8 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-          >
-            Skapa nytt projekt
-          </Link>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/"
+              className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
+            >
+              Startsida
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Skapa nytt projekt
+            </Link>
+          </div>
         </section>
       </main>
     );
@@ -64,7 +73,14 @@ export default function ProjectMapPage() {
             </h1>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
+            <Link
+              href="/"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Startsida
+            </Link>
+
             <Link
               href="/project-board"
               className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
