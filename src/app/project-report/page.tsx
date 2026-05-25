@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppHeader from "../../components/AppHeader";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -86,316 +86,330 @@ export default function ProjectReportPage() {
   const report = useMemo(() => {
     const doneTasks = tasks.filter((task) => task.status === "done");
     const blockedTasks = tasks.filter((task) => task.status === "blocked");
+
     const openRisks = risks.filter((risk) => risk.status !== "handled");
     const highRisks = risks.filter(
       (risk) => risk.probability === "high" || risk.impact === "high",
     );
+
     const openDecisions = decisions.filter(
       (decision) => decision.status === "open",
     );
 
-    let status: "Grön" | "Gul" | "Röd" = "Grön";
+    const decidedDecisions = decisions.filter(
+      (decision) => decision.status === "decided",
+    );
 
-    if (
-      blockedTasks.length > 0 ||
-      openDecisions.length > 0 ||
-      highRisks.length > 0
-    ) {
-      status = "Gul";
+    let statusLabel = "Stabil";
+    let statusText =
+      "Projektet har inga tydliga varningssignaler utifrån registrerade uppgifter, risker och beslut.";
+    let statusTone = "emerald";
+
+    if (blockedTasks.length > 0 || highRisks.length > 0 || openDecisions.length > 0) {
+      statusLabel = "Kräver uppmärksamhet";
+      statusText =
+        "Projektet har blockerade uppgifter, höga risker eller öppna beslut som bör följas upp.";
+      statusTone = "amber";
     }
 
-    if (blockedTasks.length >= 2 || highRisks.length >= 2) {
-      status = "Röd";
+    if (blockedTasks.length > 1 || highRisks.length > 1) {
+      statusLabel = "Riskfyllt";
+      statusText =
+        "Projektet har flera signaler som kan påverka framdrift, kvalitet eller leverans.";
+      statusTone = "rose";
     }
 
     return {
       totalTasks: tasks.length,
       doneTasks: doneTasks.length,
       blockedTasks: blockedTasks.length,
-      openRisks: openRisks.length,
-      highRisks: highRisks.length,
-      openDecisions: openDecisions.length,
-      status,
-      openRiskItems: openRisks,
-      openDecisionItems: openDecisions,
-      blockedTaskItems: blockedTasks,
+      openRisks,
+      highRisks,
+      openDecisions,
+      decidedDecisions,
+      statusLabel,
+      statusText,
+      statusTone,
     };
   }, [tasks, risks, decisions]);
 
-  if (!project) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-white">
-        <section className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <AppHeader currentPage="project-report" />
+
+      <section className="mx-auto max-w-6xl px-6 py-12">
+        <div className="mb-10">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">
-            Ingen rapport kan skapas ännu.
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight">Statusrapport</h1>
 
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-            Börja med att skapa ett projekt genom projektintervjun.
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+            Samla projektets nuläge på ett ställe. Följ upp uppgifter, risker,
+            beslut och rekommenderade nästa steg.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/"
-              className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
-            >
-              Startsida
-            </Link>
-
-            <Link
-              href="/new-project"
-              className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-            >
-              Skapa nytt projekt
-            </Link>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-              Project Compass
-            </p>
-
-            <h1 className="text-4xl font-bold tracking-tight">
-              Statusrapport
-            </h1>
-
-            <p className="mt-3 text-slate-300">
-              Projekt: {project.projectName}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
-            <Link
-              href="/"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Startsida
-            </Link>
-
-            <Link
-              href="/project-map"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Projektkarta
-            </Link>
-
-            <Link
-              href="/project-board"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Arbetsyta
-            </Link>
-
-            <Link
-              href="/project-risks"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Riskvy
-            </Link>
-
-            <Link
-              href="/project-decisions"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Beslutsvy
-            </Link>
-
-            <Link
-              href="/new-project"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Redigera intervju
-            </Link>
-          </div>
+          <p className="mt-3 text-slate-400">
+            {project?.projectName
+              ? `Projekt: ${project.projectName}`
+              : "Inget projekt hittades ännu."}
+          </p>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+        <section
+          className={`mb-8 rounded-3xl border p-6 shadow-2xl ${
+            report.statusTone === "emerald"
+              ? "border-emerald-500/30 bg-emerald-500/10"
+              : report.statusTone === "amber"
+                ? "border-amber-500/30 bg-amber-500/10"
+                : "border-rose-500/30 bg-rose-500/10"
+          }`}
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
             Samlad projektstatus
           </p>
 
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-5xl font-bold">{report.status}</h2>
+              <h2 className="text-3xl font-bold">{report.statusLabel}</h2>
 
-              <p className="mt-3 max-w-3xl leading-7 text-slate-300">
-                Statusen baseras på blockerade uppgifter, öppna beslut och
-                risker med hög sannolikhet eller hög konsekvens.
+              <p className="mt-3 max-w-3xl leading-7 text-slate-200">
+                {report.statusText}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 px-5 py-4 text-sm text-slate-300">
-              Lokal rapport från webbläsarens sparade projektdata.
+            <div className="rounded-2xl border border-slate-700/70 bg-slate-950/70 px-5 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Rapportläge
+              </p>
+
+              <p className="mt-2 font-semibold text-white">
+                {new Date().toLocaleDateString("sv-SE")}
+              </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-3 lg:grid-cols-6">
-          <ReportMetric label="Uppgifter" value={report.totalTasks.toString()} />
-          <ReportMetric label="Klara" value={report.doneTasks.toString()} />
-          <ReportMetric
-            label="Blockerade"
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <SummaryCard
+            title="Uppgifter"
+            value={report.totalTasks.toString()}
+            text="Totalt antal uppgifter."
+          />
+
+          <SummaryCard
+            title="Klart"
+            value={report.doneTasks.toString()}
+            text="Färdiga uppgifter."
+          />
+
+          <SummaryCard
+            title="Blockerat"
             value={report.blockedTasks.toString()}
-          />
-          <ReportMetric
-            label="Öppna risker"
-            value={report.openRisks.toString()}
-          />
-          <ReportMetric
-            label="Höga risker"
-            value={report.highRisks.toString()}
-          />
-          <ReportMetric
-            label="Öppna beslut"
-            value={report.openDecisions.toString()}
-          />
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <ReportSection title="Projektets syfte" content={project.purpose} />
-
-          <ReportSection title="Mål / önskad effekt" content={project.goal} />
-
-          <ReportSection
-            title="Leveranser"
-            content={project.deliverables || "Inga leveranser angivna ännu."}
+            text="Uppgifter som hindras."
           />
 
-          <ReportSection
-            title="Nästa rekommenderade steg"
-            content={createNextStepText(
-              report.blockedTasks,
-              report.openRisks,
-              report.openDecisions,
-            )}
-          />
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <ReportList
-            title="Blockerade uppgifter"
-            emptyText="Inga blockerade uppgifter."
-            items={report.blockedTaskItems.map((task) => task.title)}
-          />
-
-          <ReportList
+          <SummaryCard
             title="Öppna risker"
-            emptyText="Inga öppna risker."
-            items={report.openRiskItems.map((risk) => risk.title)}
+            value={report.openRisks.length.toString()}
+            text="Risker som inte är hanterade."
           />
 
-          <ReportList
-            title="Öppna beslut"
-            emptyText="Inga öppna beslut."
-            items={report.openDecisionItems.map((decision) => decision.title)}
+          <SummaryCard
+            title="Höga risker"
+            value={report.highRisks.length.toString()}
+            text="Risker med hög nivå."
           />
+
+          <SummaryCard
+            title="Öppna beslut"
+            value={report.openDecisions.length.toString()}
+            text="Beslut som återstår."
+          />
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <ReportSection title="Projektets syfte">
+            <p className="whitespace-pre-line leading-7 text-slate-300">
+              {project?.purpose || "Inget syfte är angivet ännu."}
+            </p>
+          </ReportSection>
+
+          <ReportSection title="Projektets mål">
+            <p className="whitespace-pre-line leading-7 text-slate-300">
+              {project?.goal || "Inget mål är angivet ännu."}
+            </p>
+          </ReportSection>
+
+          <ReportSection title="Leveranser">
+            <p className="whitespace-pre-line leading-7 text-slate-300">
+              {project?.deliverables || "Inga leveranser är angivna ännu."}
+            </p>
+          </ReportSection>
+
+          <ReportSection title="Rekommenderade nästa steg">
+            <ul className="space-y-3 text-slate-300">
+              <li>• Följ upp blockerade uppgifter.</li>
+              <li>• Prioritera risker med hög sannolikhet eller konsekvens.</li>
+              <li>• Fatta eller förtydliga öppna beslut.</li>
+              <li>• Uppdatera arbetsytan efter nästa avstämning.</li>
+            </ul>
+          </ReportSection>
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <ReportSection title="Öppna risker">
+            {report.openRisks.length === 0 ? (
+              <p className="text-slate-300">Inga öppna risker finns registrerade.</p>
+            ) : (
+              <div className="space-y-4">
+                {report.openRisks.map((risk) => (
+                  <article
+                    key={risk.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <h3 className="font-semibold text-white">{risk.title}</h3>
+
+                    {risk.description && (
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        {risk.description}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Sannolikhet: {translateRiskLevel(risk.probability)}
+                      </span>
+
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Konsekvens: {translateRiskLevel(risk.impact)}
+                      </span>
+
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Status: {translateRiskStatus(risk.status)}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </ReportSection>
+
+          <ReportSection title="Öppna beslut">
+            {report.openDecisions.length === 0 ? (
+              <p className="text-slate-300">Inga öppna beslut finns registrerade.</p>
+            ) : (
+              <div className="space-y-4">
+                {report.openDecisions.map((decision) => (
+                  <article
+                    key={decision.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <h3 className="font-semibold text-white">
+                      {decision.title}
+                    </h3>
+
+                    {decision.description && (
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        {decision.description}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Ansvarig: {decision.owner || "Ej angivet"}
+                      </span>
+
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Deadline: {decision.deadline || "Ej angivet"}
+                      </span>
+
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Status: {translateDecisionStatus(decision.status)}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </ReportSection>
         </div>
       </section>
     </main>
   );
 }
 
-function ReportMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-        {label}
-      </p>
-
-      <p className="mt-3 text-3xl font-bold text-white">{value}</p>
-    </div>
-  );
-}
-
-function ReportSection({ title, content }: { title: string; content: string }) {
-  return (
-    <article className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-      <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
-        {title}
-      </h2>
-
-      <p className="mt-4 whitespace-pre-line leading-7 text-slate-200">
-        {content}
-      </p>
-    </article>
-  );
-}
-
-function ReportList({
+function SummaryCard({
   title,
-  emptyText,
-  items,
+  value,
+  text,
 }: {
   title: string;
-  emptyText: string;
-  items: string[];
+  value: string;
+  text: string;
 }) {
   return (
-    <article className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-      <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+    <article className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
         {title}
-      </h2>
+      </p>
 
-      {items.length === 0 ? (
-        <p className="mt-4 text-slate-300">{emptyText}</p>
-      ) : (
-        <ul className="mt-4 space-y-3">
-          {items.map((item) => (
-            <li
-              key={item}
-              className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-200"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+      <p className="mt-3 text-4xl font-bold text-white">{value}</p>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
     </article>
   );
 }
 
-function createNextStepText(
-  blockedTasks: number,
-  openRisks: number,
-  openDecisions: number,
-) {
-  const nextSteps: string[] = [];
+function ReportSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+      <h2 className="text-xl font-bold">{title}</h2>
 
-  if (blockedTasks > 0) {
-    nextSteps.push(
-      "Följ upp blockerade uppgifter och bestäm vem som tar bort hindren.",
-    );
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function translateRiskLevel(level: RiskLevel) {
+  if (level === "low") {
+    return "Låg";
   }
 
-  if (openRisks > 0) {
-    nextSteps.push(
-      "Gå igenom öppna risker och säkerställ att varje risk har en åtgärd.",
-    );
+  if (level === "medium") {
+    return "Medel";
   }
 
-  if (openDecisions > 0) {
-    nextSteps.push(
-      "Fatta eller tidsätt öppna beslut så att arbetet inte bromsas.",
-    );
+  return "Hög";
+}
+
+function translateRiskStatus(status: RiskStatus) {
+  if (status === "open") {
+    return "Öppen";
   }
 
-  if (nextSteps.length === 0) {
-    nextSteps.push(
-      "Fortsätt följa upp arbetsytan, riskerna och besluten regelbundet.",
-    );
+  if (status === "watching") {
+    return "Bevakas";
   }
 
-  return nextSteps.join("\n");
+  return "Hanterad";
+}
+
+function translateDecisionStatus(status: DecisionStatus) {
+  if (status === "open") {
+    return "Öppet";
+  }
+
+  if (status === "decided") {
+    return "Beslutat";
+  }
+
+  return "Bordlagt";
 }
