@@ -27,8 +27,6 @@ It demonstrates:
 - A written test strategy and manual test run documentation
 
 The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression and automation.
----
----
 
 ## Portfolio value
 
