@@ -1,3 +1,5 @@
+![Playwright Tests](https://github.com/Zion8a/project-compass/actions/workflows/playwright.yml/badge.svg)
+
 # Project Compass
 
 Project Compass is a small project management MVP built with Next.js, TypeScript and Tailwind CSS.
