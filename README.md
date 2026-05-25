@@ -10,6 +10,25 @@ The application guides the user from an initial project interview to a project m
 
 ---
 
+## QA highlights
+
+This project is built as both a product MVP and a software testing portfolio case.
+
+It demonstrates:
+
+- Manual regression testing of the full MVP flow
+- Exploratory testing with documented bug findings
+- Bug fixing and regression verification
+- Playwright end-to-end testing
+- Cross-browser landing page testing
+- Chromium-based main user flow testing
+- GitHub Actions CI pipeline
+- Playwright report artifact upload
+- A written test strategy and manual test run documentation
+
+The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression and automation.
+---
+
 ## Purpose
 
 Many project tools start with tasks.
