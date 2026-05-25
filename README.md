@@ -331,6 +331,9 @@ Completed:
 - Playwright setup
 - Landing page automated test
 - Main flow automated test in Chromium
+- Shared application header and improved navigation
+- UX improvements across the full main flow
+- Improved page introductions, help texts and visual hierarchy
 
 Planned next steps:
 
@@ -357,3 +360,5 @@ It demonstrates:
 - Installing and using Playwright
 - Writing automated end-to-end tests
 - Using Git commits to document progress
+- Refactoring repeated navigation into a shared component
+- Improving usability and visual consistency across an application
