@@ -96,7 +96,11 @@ export default function ProjectReportPage() {
 
     let status: "Grön" | "Gul" | "Röd" = "Grön";
 
-    if (blockedTasks.length > 0 || openDecisions.length > 0 || highRisks.length > 0) {
+    if (
+      blockedTasks.length > 0 ||
+      openDecisions.length > 0 ||
+      highRisks.length > 0
+    ) {
       status = "Gul";
     }
 
@@ -134,12 +138,21 @@ export default function ProjectReportPage() {
             Börja med att skapa ett projekt genom projektintervjun.
           </p>
 
-          <Link
-            href="/new-project"
-            className="mt-8 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-          >
-            Skapa nytt projekt
-          </Link>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/"
+              className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
+            >
+              Startsida
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Skapa nytt projekt
+            </Link>
+          </div>
         </section>
       </main>
     );
@@ -163,7 +176,14 @@ export default function ProjectReportPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
+            <Link
+              href="/"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Startsida
+            </Link>
+
             <Link
               href="/project-map"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
@@ -190,6 +210,13 @@ export default function ProjectReportPage() {
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
               Beslutsvy
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Redigera intervju
             </Link>
           </div>
         </div>
@@ -218,10 +245,22 @@ export default function ProjectReportPage() {
         <div className="mt-8 grid gap-5 md:grid-cols-3 lg:grid-cols-6">
           <ReportMetric label="Uppgifter" value={report.totalTasks.toString()} />
           <ReportMetric label="Klara" value={report.doneTasks.toString()} />
-          <ReportMetric label="Blockerade" value={report.blockedTasks.toString()} />
-          <ReportMetric label="Öppna risker" value={report.openRisks.toString()} />
-          <ReportMetric label="Höga risker" value={report.highRisks.toString()} />
-          <ReportMetric label="Öppna beslut" value={report.openDecisions.toString()} />
+          <ReportMetric
+            label="Blockerade"
+            value={report.blockedTasks.toString()}
+          />
+          <ReportMetric
+            label="Öppna risker"
+            value={report.openRisks.toString()}
+          />
+          <ReportMetric
+            label="Höga risker"
+            value={report.highRisks.toString()}
+          />
+          <ReportMetric
+            label="Öppna beslut"
+            value={report.openDecisions.toString()}
+          />
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -335,19 +374,27 @@ function createNextStepText(
   const nextSteps: string[] = [];
 
   if (blockedTasks > 0) {
-    nextSteps.push("Följ upp blockerade uppgifter och bestäm vem som tar bort hindren.");
+    nextSteps.push(
+      "Följ upp blockerade uppgifter och bestäm vem som tar bort hindren.",
+    );
   }
 
   if (openRisks > 0) {
-    nextSteps.push("Gå igenom öppna risker och säkerställ att varje risk har en åtgärd.");
+    nextSteps.push(
+      "Gå igenom öppna risker och säkerställ att varje risk har en åtgärd.",
+    );
   }
 
   if (openDecisions > 0) {
-    nextSteps.push("Fatta eller tidsätt öppna beslut så att arbetet inte bromsas.");
+    nextSteps.push(
+      "Fatta eller tidsätt öppna beslut så att arbetet inte bromsas.",
+    );
   }
 
   if (nextSteps.length === 0) {
-    nextSteps.push("Fortsätt följa upp arbetsytan, riskerna och besluten regelbundet.");
+    nextSteps.push(
+      "Fortsätt följa upp arbetsytan, riskerna och besluten regelbundet.",
+    );
   }
 
   return nextSteps.join("\n");
