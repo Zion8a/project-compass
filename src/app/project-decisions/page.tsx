@@ -133,6 +133,13 @@ export default function ProjectDecisionsPage() {
             </Link>
 
             <Link
+              href="/project-report"
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Statusrapport
+            </Link>
+
+            <Link
               href="/project-map"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
@@ -283,7 +290,10 @@ export default function ProjectDecisionsPage() {
                       className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-white"
                     >
                       {decisionStatuses.map((decisionStatus) => (
-                        <option key={decisionStatus.id} value={decisionStatus.id}>
+                        <option
+                          key={decisionStatus.id}
+                          value={decisionStatus.id}
+                        >
                           {decisionStatus.title}
                         </option>
                       ))}
@@ -306,10 +316,7 @@ export default function ProjectDecisionsPage() {
                       value={translateDecisionStatus(decision.status)}
                     />
 
-                    <DecisionMeta
-                      label="Typ"
-                      value="Beslut"
-                    />
+                    <DecisionMeta label="Typ" value="Beslut" />
                   </div>
 
                   {decision.consequence && (
@@ -317,6 +324,7 @@ export default function ProjectDecisionsPage() {
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                         Konsekvens
                       </p>
+
                       <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
                         {decision.consequence}
                       </p>
@@ -338,6 +346,7 @@ function DecisionMeta({ label, value }: { label: string; value: string }) {
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
         {label}
       </p>
+
       <p className="mt-2 font-semibold text-slate-100">{value}</p>
     </div>
   );

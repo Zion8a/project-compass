@@ -135,6 +135,13 @@ export default function ProjectRisksPage() {
             </Link>
 
             <Link
+              href="/project-report"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Statusrapport
+            </Link>
+
+            <Link
               href="/project-map"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
@@ -363,6 +370,7 @@ function RiskMeta({ label, value }: { label: string; value: string }) {
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
         {label}
       </p>
+
       <p className="mt-2 font-semibold text-slate-100">{value}</p>
     </div>
   );

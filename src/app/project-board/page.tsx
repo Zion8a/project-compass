@@ -94,9 +94,7 @@ export default function ProjectBoardPage() {
               Project Compass
             </p>
 
-            <h1 className="text-4xl font-bold tracking-tight">
-              Arbetsyta
-            </h1>
+            <h1 className="text-4xl font-bold tracking-tight">Arbetsyta</h1>
 
             <p className="mt-3 text-slate-300">
               {project?.projectName
@@ -125,6 +123,13 @@ export default function ProjectBoardPage() {
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
               Beslutsvy
+            </Link>
+
+            <Link
+              href="/project-report"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Statusrapport
             </Link>
 
             <Link
