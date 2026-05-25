@@ -64,12 +64,21 @@ export default function ProjectMapPage() {
             </h1>
           </div>
 
-          <Link
-            href="/new-project"
-            className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-          >
-            Redigera intervju
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/project-board"
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Gå till arbetsyta
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Redigera intervju
+            </Link>
+          </div>
         </div>
 
         <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl">
@@ -83,7 +92,10 @@ export default function ProjectMapPage() {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <ProjectMapCard title="Varför gör vi projektet?" content={project.purpose} />
+          <ProjectMapCard
+            title="Varför gör vi projektet?"
+            content={project.purpose}
+          />
 
           <ProjectMapCard
             title="Vad ska ha blivit bättre?"
