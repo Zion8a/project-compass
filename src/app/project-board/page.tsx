@@ -114,6 +114,13 @@ export default function ProjectBoardPage() {
             </Link>
 
             <Link
+              href="/project-risks"
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Riskvy
+            </Link>
+
+            <Link
               href="/new-project"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
