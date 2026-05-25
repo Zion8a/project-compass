@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import AppHeader from "../../components/AppHeader";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -27,13 +27,37 @@ type Task = {
   status: TaskStatus;
 };
 
-const columns: { id: TaskStatus; title: string }[] = [
-  { id: "backlog", title: "Backlog" },
-  { id: "planned", title: "Planerat" },
-  { id: "in-progress", title: "Pågår" },
-  { id: "blocked", title: "Blockerat" },
-  { id: "review", title: "Granskning" },
-  { id: "done", title: "Klart" },
+const columns: { id: TaskStatus; title: string; description: string }[] = [
+  {
+    id: "backlog",
+    title: "Backlog",
+    description: "Idéer och uppgifter som ännu inte är planerade.",
+  },
+  {
+    id: "planned",
+    title: "Planerat",
+    description: "Uppgifter som är valda och redo att påbörjas.",
+  },
+  {
+    id: "in-progress",
+    title: "Pågår",
+    description: "Arbete som just nu är igång.",
+  },
+  {
+    id: "blocked",
+    title: "Blockerat",
+    description: "Uppgifter som hindras av något.",
+  },
+  {
+    id: "review",
+    title: "Granskning",
+    description: "Arbete som behöver kontrolleras eller godkännas.",
+  },
+  {
+    id: "done",
+    title: "Klart",
+    description: "Färdiga uppgifter.",
+  },
 ];
 
 export default function ProjectBoardPage() {
@@ -85,74 +109,70 @@ export default function ProjectBoardPage() {
     );
   }
 
+  const totalTasks = tasks.length;
+  const doneTasks = tasks.filter((task) => task.status === "done").length;
+  const blockedTasks = tasks.filter((task) => task.status === "blocked").length;
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
+      <AppHeader currentPage="project-board" />
+
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-              Project Compass
-            </p>
+        <div className="mb-10">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">
+            Project Compass
+          </p>
 
-            <h1 className="text-4xl font-bold tracking-tight">Arbetsyta</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Arbetsyta</h1>
 
-            <p className="mt-3 text-slate-300">
-              {project?.projectName
-                ? `Projekt: ${project.projectName}`
-                : "Inget projekt hittades ännu."}
-            </p>
-          </div>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+            Bryt ner projektet i konkreta uppgifter, följ status och synliggör
+            vad som är planerat, pågående, blockerat och klart.
+          </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
-            <Link
-              href="/"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Startsida
-            </Link>
+          <p className="mt-3 text-slate-400">
+            {project?.projectName
+              ? `Projekt: ${project.projectName}`
+              : "Inget projekt hittades ännu."}
+          </p>
+        </div>
 
-            <Link
-              href="/project-map"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Till projektkarta
-            </Link>
+        <div className="mb-8 grid gap-4 md:grid-cols-3">
+          <SummaryCard
+            title="Totalt antal uppgifter"
+            value={totalTasks.toString()}
+            text="Alla uppgifter som finns på arbetsytan."
+          />
 
-            <Link
-              href="/project-risks"
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-            >
-              Riskvy
-            </Link>
+          <SummaryCard
+            title="Klart"
+            value={doneTasks.toString()}
+            text="Uppgifter som är färdiga."
+          />
 
-            <Link
-              href="/project-decisions"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Beslutsvy
-            </Link>
-
-            <Link
-              href="/project-report"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Statusrapport
-            </Link>
-
-            <Link
-              href="/new-project"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Redigera intervju
-            </Link>
-          </div>
+          <SummaryCard
+            title="Blockerat"
+            value={blockedTasks.toString()}
+            text="Uppgifter som behöver uppmärksamhet."
+          />
         </div>
 
         <form
           onSubmit={handleCreateTask}
-          className="mb-10 rounded-3xl border border-slate-800 bg-slate-900 p-6"
+          className="mb-10 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
         >
-          <h2 className="text-2xl font-bold">Skapa uppgift</h2>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+              Ny uppgift
+            </p>
+
+            <h2 className="text-2xl font-bold">Skapa uppgift</h2>
+
+            <p className="max-w-3xl text-sm leading-6 text-slate-400">
+              Skriv en tydlig uppgift som någon i projektet kan förstå, ta tag i
+              och flytta vidare genom arbetsflödet.
+            </p>
+          </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             <div>
@@ -164,7 +184,7 @@ export default function ProjectBoardPage() {
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
                 placeholder="Exempel: Skriv första rapportutkastet"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
             </div>
@@ -178,7 +198,7 @@ export default function ProjectBoardPage() {
                 value={taskDescription}
                 onChange={(event) => setTaskDescription(event.target.value)}
                 placeholder="Kort beskrivning av uppgiften"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
@@ -191,7 +211,7 @@ export default function ProjectBoardPage() {
                 onChange={(event) =>
                   setTaskStatus(event.target.value as TaskStatus)
                 }
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               >
                 {columns.map((column) => (
                   <option key={column.id} value={column.id}>
@@ -219,12 +239,18 @@ export default function ProjectBoardPage() {
             return (
               <section
                 key={column.id}
-                className="min-h-64 rounded-3xl border border-slate-800 bg-slate-900/70 p-4"
+                className="min-h-72 rounded-3xl border border-slate-800 bg-slate-900/70 p-4"
               >
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    {column.title}
-                  </h2>
+                <div className="mb-4 flex items-start justify-between gap-2">
+                  <div>
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
+                      {column.title}
+                    </h2>
+
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      {column.description}
+                    </p>
+                  </div>
 
                   <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
                     {columnTasks.length}
@@ -257,7 +283,7 @@ export default function ProjectBoardPage() {
                             event.target.value as TaskStatus,
                           )
                         }
-                        className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-white"
+                        className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
                       >
                         {columns.map((option) => (
                           <option key={option.id} value={option.id}>
@@ -274,5 +300,27 @@ export default function ProjectBoardPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function SummaryCard({
+  title,
+  value,
+  text,
+}: {
+  title: string;
+  value: string;
+  text: string;
+}) {
+  return (
+    <article className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+        {title}
+      </p>
+
+      <p className="mt-3 text-4xl font-bold text-white">{value}</p>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
   );
 }
