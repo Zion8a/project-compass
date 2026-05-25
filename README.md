@@ -28,7 +28,25 @@ It demonstrates:
 
 The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression and automation.
 ---
+---
 
+## Portfolio value
+
+This repository is intended to show practical QA and test automation skills in a realistic product context.
+
+It demonstrates that I can:
+
+- Understand and structure a product idea
+- Identify important user flows
+- Document scope, user stories and test strategy
+- Perform manual regression testing
+- Find and document usability issues
+- Verify bug fixes through regression testing
+- Write Playwright end-to-end tests
+- Connect automated tests to GitHub Actions
+- Use Git commits to document progress and technical decisions
+
+The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 ## Purpose
 
 Many project tools start with tasks.
