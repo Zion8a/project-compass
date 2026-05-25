@@ -30,7 +30,21 @@ export default function Home() {
             href="/project-map"
             className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
           >
-            Läs mer
+            Öppna projektkarta
+          </Link>
+
+          <Link
+            href="/project-board"
+            className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
+          >
+            Öppna arbetsyta
+          </Link>
+
+          <Link
+            href="/project-report"
+            className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
+          >
+            Statusrapport
           </Link>
         </div>
       </section>
