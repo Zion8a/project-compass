@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -17,13 +19,19 @@ export default function Home() {
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <button className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200">
+          <Link
+            href="/new-project"
+            className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+          >
             Skapa nytt projekt
-          </button>
+          </Link>
 
-          <button className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900">
+          <Link
+            href="/project-map"
+            className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
+          >
             Läs mer
-          </button>
+          </Link>
         </div>
       </section>
     </main>
