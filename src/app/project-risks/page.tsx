@@ -128,6 +128,13 @@ export default function ProjectRisksPage() {
             </Link>
 
             <Link
+              href="/project-decisions"
+              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Beslutsvy
+            </Link>
+
+            <Link
               href="/project-map"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
@@ -308,10 +315,25 @@ export default function ProjectRisksPage() {
                   </div>
 
                   <div className="mt-5 grid gap-4 md:grid-cols-4">
-                    <RiskMeta label="Sannolikhet" value={translateRiskLevel(risk.probability)} />
-                    <RiskMeta label="Konsekvens" value={translateRiskLevel(risk.impact)} />
-                    <RiskMeta label="Ansvarig" value={risk.owner || "Ej angivet"} />
-                    <RiskMeta label="Status" value={translateRiskStatus(risk.status)} />
+                    <RiskMeta
+                      label="Sannolikhet"
+                      value={translateRiskLevel(risk.probability)}
+                    />
+
+                    <RiskMeta
+                      label="Konsekvens"
+                      value={translateRiskLevel(risk.impact)}
+                    />
+
+                    <RiskMeta
+                      label="Ansvarig"
+                      value={risk.owner || "Ej angivet"}
+                    />
+
+                    <RiskMeta
+                      label="Status"
+                      value={translateRiskStatus(risk.status)}
+                    />
                   </div>
 
                   {risk.action && (
@@ -319,6 +341,7 @@ export default function ProjectRisksPage() {
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                         Åtgärd
                       </p>
+
                       <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
                         {risk.action}
                       </p>

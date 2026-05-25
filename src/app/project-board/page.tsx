@@ -121,6 +121,13 @@ export default function ProjectBoardPage() {
             </Link>
 
             <Link
+              href="/project-decisions"
+              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
+            >
+              Beslutsvy
+            </Link>
+
+            <Link
               href="/new-project"
               className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
             >
