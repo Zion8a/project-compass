@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import AppHeader from "../../components/AppHeader";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -101,74 +101,78 @@ export default function ProjectRisksPage() {
     );
   }
 
+  const openRisks = risks.filter((risk) => risk.status !== "handled").length;
+  const highRisks = risks.filter(
+    (risk) => risk.probability === "high" || risk.impact === "high",
+  ).length;
+  const handledRisks = risks.filter((risk) => risk.status === "handled").length;
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
+      <AppHeader currentPage="project-risks" />
+
       <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-              Project Compass
-            </p>
+        <div className="mb-10">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">
+            Project Compass
+          </p>
 
-            <h1 className="text-4xl font-bold tracking-tight">Riskvy</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Riskvy</h1>
 
-            <p className="mt-3 text-slate-300">
-              {project?.projectName
-                ? `Projekt: ${project.projectName}`
-                : "Inget projekt hittades ännu."}
-            </p>
-          </div>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+            Synliggör sådant som kan påverka projektet innan det blir akut.
+            Bedöm sannolikhet, konsekvens och vad ni kan göra åt risken.
+          </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
-            <Link
-              href="/"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Startsida
-            </Link>
+          <p className="mt-3 text-slate-400">
+            {project?.projectName
+              ? `Projekt: ${project.projectName}`
+              : "Inget projekt hittades ännu."}
+          </p>
+        </div>
 
-            <Link
-              href="/project-board"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Till arbetsyta
-            </Link>
+        <div className="mb-8 grid gap-4 md:grid-cols-4">
+          <SummaryCard
+            title="Totalt antal risker"
+            value={risks.length.toString()}
+            text="Alla risker i riskregistret."
+          />
 
-            <Link
-              href="/project-decisions"
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-            >
-              Beslutsvy
-            </Link>
+          <SummaryCard
+            title="Öppna risker"
+            value={openRisks.toString()}
+            text="Risker som ännu inte är hanterade."
+          />
 
-            <Link
-              href="/project-report"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Statusrapport
-            </Link>
+          <SummaryCard
+            title="Hög risknivå"
+            value={highRisks.toString()}
+            text="Risker med hög sannolikhet eller konsekvens."
+          />
 
-            <Link
-              href="/project-map"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Till projektkarta
-            </Link>
-
-            <Link
-              href="/new-project"
-              className="rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-900"
-            >
-              Redigera intervju
-            </Link>
-          </div>
+          <SummaryCard
+            title="Hanterade"
+            value={handledRisks.toString()}
+            text="Risker som är avslutade eller åtgärdade."
+          />
         </div>
 
         <form
           onSubmit={handleCreateRisk}
-          className="rounded-3xl border border-slate-800 bg-slate-900 p-6"
+          className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
         >
-          <h2 className="text-2xl font-bold">Skapa risk</h2>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+              Ny risk
+            </p>
+
+            <h2 className="text-2xl font-bold">Skapa risk</h2>
+
+            <p className="max-w-3xl text-sm leading-6 text-slate-400">
+              Beskriv risken så konkret att någon annan kan förstå vad som kan
+              hända, varför det spelar roll och vilken åtgärd som behövs.
+            </p>
+          </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
             <div>
@@ -180,7 +184,7 @@ export default function ProjectRisksPage() {
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Exempel: Gruppen hinner inte klart i tid"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
             </div>
@@ -194,7 +198,7 @@ export default function ProjectRisksPage() {
                 value={owner}
                 onChange={(event) => setOwner(event.target.value)}
                 placeholder="Exempel: Johan"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
@@ -207,7 +211,7 @@ export default function ProjectRisksPage() {
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Beskriv vad som kan gå fel och varför det spelar roll."
                 rows={3}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
@@ -220,7 +224,7 @@ export default function ProjectRisksPage() {
                 onChange={(event) =>
                   setProbability(event.target.value as RiskLevel)
                 }
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               >
                 {riskLevels.map((level) => (
                   <option key={level.id} value={level.id}>
@@ -237,7 +241,7 @@ export default function ProjectRisksPage() {
               <select
                 value={impact}
                 onChange={(event) => setImpact(event.target.value as RiskLevel)}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               >
                 {riskLevels.map((level) => (
                   <option key={level.id} value={level.id}>
@@ -256,7 +260,7 @@ export default function ProjectRisksPage() {
                 onChange={(event) => setAction(event.target.value)}
                 placeholder="Vad gör vi för att minska risken eller hantera den om den inträffar?"
                 rows={3}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
@@ -267,7 +271,7 @@ export default function ProjectRisksPage() {
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value as RiskStatus)}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               >
                 {riskStatuses.map((riskStatus) => (
                   <option key={riskStatus.id} value={riskStatus.id}>
@@ -287,17 +291,24 @@ export default function ProjectRisksPage() {
         </form>
 
         <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Riskregister</h2>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+                Riskregister
+              </p>
 
-            <span className="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
+              <h2 className="mt-2 text-2xl font-bold">Aktuella risker</h2>
+            </div>
+
+            <span className="w-fit rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
               {risks.length} risker
             </span>
           </div>
 
           {risks.length === 0 ? (
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-slate-300">
-              Inga risker är skapade ännu.
+              Inga risker är skapade ännu. Lägg till första risken ovan för att
+              börja bygga projektets riskbild.
             </div>
           ) : (
             <div className="grid gap-5">
@@ -325,7 +336,7 @@ export default function ProjectRisksPage() {
                           event.target.value as RiskStatus,
                         )
                       }
-                      className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-white"
+                      className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
                     >
                       {riskStatuses.map((riskStatus) => (
                         <option key={riskStatus.id} value={riskStatus.id}>
@@ -375,6 +386,28 @@ export default function ProjectRisksPage() {
         </section>
       </section>
     </main>
+  );
+}
+
+function SummaryCard({
+  title,
+  value,
+  text,
+}: {
+  title: string;
+  value: string;
+  text: string;
+}) {
+  return (
+    <article className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+        {title}
+      </p>
+
+      <p className="mt-3 text-4xl font-bold text-white">{value}</p>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
   );
 }
 
