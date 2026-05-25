@@ -135,3 +135,72 @@ Initial testing will be done locally on:
 - VS Code
 - Node.js
 - Next.js
+---
+
+## Automated regression testing
+
+Project Compass uses Playwright for end-to-end testing.
+
+The purpose of the automated tests is to verify that the most important user flows continue to work after changes in the application.
+
+Current automated tests:
+
+- `tests/landing-page.spec.ts`
+- `tests/main-flow.spec.ts`
+
+### Landing page test
+
+The landing page test verifies that the start page loads correctly and that the main navigation options are visible.
+
+This test is currently run across:
+
+- Chromium
+- Firefox
+- WebKit
+
+### Main user flow test
+
+The main user flow test verifies the core MVP journey:
+
+1. Open the landing page
+2. Create a new project
+3. Fill in the project interview
+4. Generate the project map
+5. Create a task on the project board
+6. Create a risk in the risk register
+7. Create a decision in the decision log
+8. Open the status report
+9. Verify that project data is displayed
+
+This test has been verified successfully in Chromium.
+
+The test is currently treated as a Chromium smoke/end-to-end test because the full flow is longer and more sensitive to browser-specific timing differences, especially around form handling and localStorage updates.
+
+Cross-browser stability for the full main flow will be improved in a later step.
+
+### Current test approach
+
+The current test approach is:
+
+- Manual regression testing for the full MVP
+- Automated landing page regression across Chromium, Firefox and WebKit
+- Automated main user flow testing in Chromium
+- Further cross-browser hardening planned for future iterations
+
+### Commands
+
+Run all Playwright tests:
+
+`npx playwright test`
+
+Run the landing page test:
+
+`npx playwright test tests/landing-page.spec.ts`
+
+Run the main flow test in Chromium:
+
+`npx playwright test tests/main-flow.spec.ts --project=chromium`
+
+Show the latest Playwright HTML report:
+
+`npx playwright show-report`

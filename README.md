@@ -34,3 +34,32 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Testing
+
+Project Compass includes both manual and automated testing.
+
+Manual regression testing is documented in:
+
+- `docs/manual-test-run.md`
+
+The manual regression test covers the full MVP flow from project creation to status report.
+
+Automated end-to-end tests are written with Playwright and are located in:
+
+- `tests/landing-page.spec.ts`
+- `tests/main-flow.spec.ts`
+
+The landing page test is verified across Chromium, Firefox and WebKit.
+
+The main user flow test is currently verified in Chromium and covers the core MVP journey:
+
+Landing page → project interview → project map → project board → risk view → decision view → status report.
+
+Run tests with:
+
+`npx playwright test`
+
+Run the main flow test in Chromium:
+
+`npx playwright test tests/main-flow.spec.ts --project=chromium`
