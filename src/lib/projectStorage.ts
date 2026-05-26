@@ -173,3 +173,40 @@ export function updateProject(
     ),
   };
 }
+export function createProjectMember(
+  name: string,
+  role?: string,
+  responsibility?: string,
+  comment?: string
+): ProjectMember {
+  const now = new Date().toISOString();
+
+  return {
+    id: crypto.randomUUID(),
+    name,
+    role,
+    responsibility,
+    comment,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function addMemberToProject(
+  state: ProjectCompassState,
+  projectId: string,
+  member: ProjectMember
+): ProjectCompassState {
+  return {
+    ...state,
+    projects: state.projects.map((project) =>
+      project.id === projectId
+        ? {
+            ...project,
+            members: [...project.members, member],
+            updatedAt: new Date().toISOString(),
+          }
+        : project
+    ),
+  };
+}

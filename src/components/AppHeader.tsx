@@ -9,6 +9,10 @@ import {
   Project,
 } from "@/lib/projectStorage";
 
+type AppHeaderProps = {
+  currentPage?: string;
+};
+
 const navItems = [
   {
     href: "/",
@@ -19,9 +23,9 @@ const navItems = [
     label: "My Projects",
   },
   {
-    href: "/project-interview",
-    label: "Interview",
-  },
+  href: "/new-project",
+  label: "Interview",
+},
   {
     href: "/project-map",
     label: "Project Map",
@@ -44,7 +48,7 @@ const navItems = [
   },
 ];
 
-export default function AppHeader() {
+export default function AppHeader({ currentPage: _currentPage }: AppHeaderProps) {
   const pathname = usePathname();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
 
