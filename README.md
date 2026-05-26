@@ -17,7 +17,17 @@ Many project tools start with tasks, boards and cards. Project Compass starts on
 - Who is responsible?
 - What should happen next?
 
-Project Compass has grown from a single-project MVP into a small project platform with support for saved projects, active project selection, project members and responsibility across tasks, risks and decisions.
+Project Compass has grown from a single-project MVP into a small project platform with support for saved projects, active project selection, project members, responsibility across tasks, risks and decisions, status reporting and Markdown export.
+
+---
+
+## Live demo
+
+Project Compass is deployed on Vercel:
+
+https://project-compass-seven.vercel.app/
+
+The app currently uses localStorage, which means saved projects are stored locally in the browser used for testing.
 
 ---
 
@@ -34,11 +44,12 @@ It demonstrates:
 - Playwright end-to-end testing
 - Cross-browser landing page testing
 - Chromium-based core flow testing
-- Focused Playwright tests for project overview, members and responsibility
+- Focused Playwright tests for project overview, members, responsibility and Markdown export
 - GitHub Actions CI pipeline
 - Playwright report artifact upload
 - Written test strategy and manual test documentation
 - Incremental feature development with clear commits
+- Deployment to Vercel as a live portfolio demo
 
 The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression, automation and maintainability.
 
@@ -59,7 +70,9 @@ It demonstrates that I can:
 - Verify bug fixes through regression testing
 - Write Playwright end-to-end tests
 - Make tests more precise when UI changes create ambiguity
+- Mock browser APIs when needed for reliable E2E testing
 - Connect automated tests to GitHub Actions
+- Deploy a Next.js app to Vercel
 - Use Git commits to document progress and technical decisions
 - Build a product while continuously evaluating quality and risk
 
@@ -83,6 +96,7 @@ The app focuses on:
 - Responsibility
 - Status
 - Next steps
+- Shareable reporting
 
 Project Compass is not intended to be a copy of Trello, Jira or Taiga. The strength of the product is that it helps the user structure and understand the project, not only track cards on a board.
 
@@ -108,9 +122,11 @@ The current version includes:
 - Status report
 - Project members shown in status report
 - Responsibility overview in status report
+- Copy status report as Markdown
 - Local data persistence with localStorage
 - Manual regression test documentation
 - Automated end-to-end tests with Playwright
+- Live deployment on Vercel
 
 ---
 
@@ -201,7 +217,7 @@ The user can:
 
 ### Status report responsibility overview
 
-The status report now includes a responsibility overview for:
+The status report includes a responsibility overview for:
 
 - Tasks
 - Risks
@@ -214,6 +230,27 @@ Each section shows:
 - Responsible member
 
 Unassigned items are shown clearly.
+
+### Markdown report export
+
+The status report can be copied as Markdown.
+
+The exported report includes:
+
+- Project name
+- Date
+- Overall project status
+- Summary metrics
+- Purpose
+- Goal
+- Deliverables
+- Project members
+- Task responsibility
+- Risk responsibility
+- Decision responsibility
+- Recommended next steps
+
+This makes the report usable outside the app, for example in GitHub, Teams, documentation, school assignments or project meetings.
 
 ---
 
@@ -235,6 +272,7 @@ The current main product flow is:
 12. Assign decision responsibility
 13. Open the status report
 14. Review project status, members, responsibilities, risks, decisions and next steps
+15. Copy the status report as Markdown
 
 The original MVP flow from project interview to project map and status report still exists, but the current product direction is the project platform flow.
 
@@ -249,6 +287,7 @@ The original MVP flow from project interview to project map and status report st
 - Playwright
 - Git / GitHub
 - GitHub Actions
+- Vercel
 - localStorage
 
 ---
@@ -286,6 +325,7 @@ project-compass
 │   ├── project-members.spec.ts
 │   ├── projects-overview.spec.ts
 │   ├── risk-responsibility.spec.ts
+│   ├── status-report-markdown.spec.ts
 │   └── task-responsibility.spec.ts
 ├── playwright.config.ts
 └── README.md
@@ -398,7 +438,7 @@ The status report summarizes:
 - Decision responsibility
 - Recommended next steps
 
-The status report is intended to become the main communication artifact for a project.
+The status report can also be copied as Markdown and is intended to become the main communication artifact for a project.
 
 ---
 
@@ -452,6 +492,8 @@ Manual testing has been used to verify:
 - Decision responsibility in decision view
 - Decision responsibility after reload
 - Responsibility overview in status report
+- Markdown copy from status report
+- Vercel deployment smoke test
 
 During manual exploratory testing, several usability and navigation issues were found and fixed, including:
 
@@ -462,6 +504,7 @@ During manual exploratory testing, several usability and navigation issues were 
 - Tests that were too tightly coupled to old UI text
 - Ambiguous Playwright locators when several elements had similar text
 - Navigation timing issues in the old main flow test
+- Clipboard limitations in Playwright requiring a mocked clipboard implementation
 
 ### Automated testing
 
@@ -475,6 +518,7 @@ tests/project-members.spec.ts
 tests/task-responsibility.spec.ts
 tests/risk-responsibility.spec.ts
 tests/decision-responsibility.spec.ts
+tests/status-report-markdown.spec.ts
 ```
 
 Current automated tests include:
@@ -486,6 +530,7 @@ Current automated tests include:
 - Task responsibility test
 - Risk responsibility test
 - Decision responsibility test
+- Status report Markdown copy test
 
 The landing page test is verified across:
 
@@ -570,6 +615,16 @@ Verifies that:
 - Decision card shows the responsible member
 - Responsibility persists after reload
 
+### Status report Markdown export
+
+Verifies that:
+
+- Status report loads with stored project data
+- Copy status report as Markdown button is visible
+- User can trigger Markdown copy
+- Confirmation message is shown
+- Exported Markdown contains project name, members, task, risk and decision data
+
 ---
 
 ## Test commands
@@ -622,6 +677,12 @@ Run the decision responsibility test:
 npx playwright test tests/decision-responsibility.spec.ts --project=chromium
 ```
 
+Run the status report Markdown test:
+
+```bash
+npx playwright test tests/status-report-markdown.spec.ts --project=chromium
+```
+
 Run the focused regression suite:
 
 ```bash
@@ -630,6 +691,7 @@ npx playwright test tests/project-members.spec.ts --project=chromium
 npx playwright test tests/task-responsibility.spec.ts --project=chromium
 npx playwright test tests/risk-responsibility.spec.ts --project=chromium
 npx playwright test tests/decision-responsibility.spec.ts --project=chromium
+npx playwright test tests/status-report-markdown.spec.ts --project=chromium
 npx playwright test tests/landing-page.spec.ts
 npx playwright test tests/main-flow.spec.ts --project=chromium
 ```
@@ -670,9 +732,19 @@ npm run build
 
 ---
 
+## Deployment
+
+Project Compass is deployed on Vercel:
+
+https://project-compass-seven.vercel.app/
+
+The project is connected to GitHub, so future pushes to the main branch can be deployed automatically by Vercel.
+
+---
+
 ## Current status
 
-The project is functional and has passed repeated manual and automated regression testing.
+The project is functional, deployed and has passed repeated manual and automated regression testing.
 
 Completed:
 
@@ -703,17 +775,19 @@ Completed:
 - Decision responsibility in decision view
 - Decision responsibility Playwright coverage
 - Responsibility overview in status report
+- Copy status report as Markdown
+- Status report Markdown Playwright coverage
 - Responsibility model plan
+- Vercel deployment
+- Live demo link in README
 
 Planned next steps:
 
-- Export or copy status report as Markdown
 - Improve data migration from older localStorage keys to the new project platform structure
 - Improve validation and error handling
 - Add more focused Playwright tests per module
 - Improve accessibility
-- Deploy to Vercel
-- Add live demo link to README
+- Add delete and duplicate project actions
 - Consider persistent backend storage in a later version
 
 ---
@@ -737,4 +811,6 @@ It demonstrates:
 - Creating focused E2E tests for new features
 - Adjusting tests when UI changes
 - Using regression testing before commits
+- Mocking clipboard behavior in Playwright
+- Deploying a Next.js project to Vercel
 - Thinking about responsibility, ownership and status reporting in projects
