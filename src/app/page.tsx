@@ -4,28 +4,28 @@ import AppHeader from "@/components/AppHeader";
 const workflowSteps = [
   {
     number: "01",
-    title: "Intervju",
-    description: "Fånga varför projektet finns och vad som ska bli bättre.",
+    title: "Interview",
+    description: "Capture why the project exists and what should improve.",
   },
   {
     number: "02",
-    title: "Projektkarta",
-    description: "Samla syfte, mål, leveranser, risker och beslut.",
+    title: "Project Map",
+    description: "Collect purpose, goals, deliverables, risks and decisions.",
   },
   {
     number: "03",
-    title: "Arbetsyta",
-    description: "Bryt ner arbetet i uppgifter och följ status.",
+    title: "Workspace",
+    description: "Break the work into tasks and follow status.",
   },
   {
     number: "04",
-    title: "Risker och beslut",
-    description: "Synliggör hinder, osäkerheter och beslutspunkter.",
+    title: "Risks and decisions",
+    description: "Make obstacles, uncertainties and decision points visible.",
   },
   {
     number: "05",
-    title: "Statusrapport",
-    description: "Få en samlad bild av projektets läge och nästa steg.",
+    title: "Status Report",
+    description: "Get a shared view of the project status and next steps.",
   },
 ];
 
@@ -41,12 +41,12 @@ export default function Home() {
           </p>
 
           <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-tight tracking-tight text-white md:text-6xl">
-            Från idé till styrbart projekt.
+            From idea to a manageable project.
           </h1>
 
           <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-300">
-            Fånga syfte, mål, risker och beslut innan projektet bara blir en
-            lista med uppgifter.
+            Capture purpose, goals, risks and decisions before the project
+            becomes just a list of tasks.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">
@@ -54,35 +54,35 @@ export default function Home() {
               href="/projects"
               className="rounded-2xl bg-white px-7 py-4 font-semibold text-slate-950 transition hover:bg-cyan-300"
             >
-              Skapa nytt projekt
+              Create new project
             </Link>
 
             <Link
               href="/project-map"
               className="rounded-2xl border border-slate-700 px-7 py-4 font-semibold text-white transition hover:border-cyan-400 hover:text-cyan-300"
             >
-              Öppna projektkarta
+              Open project map
             </Link>
 
             <Link
               href="/project-board"
               className="rounded-2xl border border-slate-700 px-7 py-4 font-semibold text-white transition hover:border-cyan-400 hover:text-cyan-300"
             >
-              Öppna arbetsyta
+              Open workspace
             </Link>
 
             <Link
               href="/project-report"
               className="rounded-2xl border border-slate-700 px-7 py-4 font-semibold text-white transition hover:border-cyan-400 hover:text-cyan-300"
             >
-              Statusrapport
+              Open status report
             </Link>
           </div>
         </div>
 
         <aside className="rounded-3xl border border-slate-800 bg-slate-900/70 p-7 shadow-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-300">
-            Arbetsflöde
+            Workflow
           </p>
 
           <div className="mt-8 space-y-5">

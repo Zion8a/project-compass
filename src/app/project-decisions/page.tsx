@@ -32,9 +32,9 @@ type ProjectDecision = {
 };
 
 const decisionStatuses: { id: DecisionStatus; title: string }[] = [
-  { id: "open", title: "Öppet" },
-  { id: "decided", title: "Beslutat" },
-  { id: "postponed", title: "Bordlagt" },
+  { id: "open", title: "Open" },
+  { id: "decided", title: "Decided" },
+  { id: "postponed", title: "Postponed" },
 ];
 
 export default function ProjectDecisionsPage() {
@@ -152,45 +152,45 @@ export default function ProjectDecisionsPage() {
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">Beslutsvy</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Decision View</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Samla viktiga beslut, ansvariga personer och konsekvenser så att
-            projektet inte fastnar i otydlighet.
+            Collect important decisions, responsible people and consequences so
+            the project does not get stuck in uncertainty.
           </p>
 
           <p className="mt-3 text-slate-400">
             {project?.projectName
-              ? `Projekt: ${project.projectName}`
+              ? `Project: ${project.projectName}`
               : activeProject?.name
-                ? `Projekt: ${activeProject.name}`
-                : "Inget projekt hittades ännu."}
+                ? `Project: ${activeProject.name}`
+                : "No project found yet."}
           </p>
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           <SummaryCard
-            title="Totalt antal beslut"
+            title="Total decisions"
             value={decisions.length.toString()}
-            text="Alla beslut i beslutsloggen."
+            text="All decisions in the decision log."
           />
 
           <SummaryCard
-            title="Öppna beslut"
+            title="Open decisions"
             value={openDecisions.toString()}
-            text="Beslut som fortfarande behöver hanteras."
+            text="Decisions that still need to be handled."
           />
 
           <SummaryCard
-            title="Beslutade"
+            title="Decided"
             value={decidedDecisions.toString()}
-            text="Beslut som är fattade."
+            text="Decisions that have been made."
           />
 
           <SummaryCard
-            title="Bordlagda"
+            title="Postponed"
             value={postponedDecisions.toString()}
-            text="Beslut som väntar eller har skjutits fram."
+            text="Decisions that are waiting or have been moved forward."
           />
         </div>
 
@@ -200,14 +200,15 @@ export default function ProjectDecisionsPage() {
         >
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-              Nytt beslut
+              New decision
             </p>
 
-            <h2 className="text-2xl font-bold">Skapa beslut</h2>
+            <h2 className="text-2xl font-bold">Create decision</h2>
 
             <p className="max-w-3xl text-sm leading-6 text-slate-400">
-              Beskriv beslutet så att det blir tydligt vad som behöver avgöras,
-              vem som ansvarar och vad beslutet påverkar.
+              Describe the decision clearly so it is easy to understand what
+              needs to be decided, who is responsible and what the decision
+              affects.
             </p>
 
             {projectMembers.length === 0 && (
@@ -224,7 +225,7 @@ export default function ProjectDecisionsPage() {
                 htmlFor="decision-title"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Titel
+                Title
               </label>
 
               <input
@@ -232,7 +233,7 @@ export default function ProjectDecisionsPage() {
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Exempel: Välja presentationsupplägg"
+                placeholder="Example: Choose presentation structure"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
@@ -292,7 +293,7 @@ export default function ProjectDecisionsPage() {
                 type="text"
                 value={deadline}
                 onChange={(event) => setDeadline(event.target.value)}
-                placeholder="Exempel: 2026-06-07"
+                placeholder="Example: 2026-06-07"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
@@ -326,14 +327,14 @@ export default function ProjectDecisionsPage() {
                 htmlFor="decision-description"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Beskrivning
+                Description
               </label>
 
               <textarea
                 id="decision-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Beskriv vilket beslut som behöver fattas."
+                placeholder="Describe which decision needs to be made."
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -344,14 +345,14 @@ export default function ProjectDecisionsPage() {
                 htmlFor="decision-consequence"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Konsekvens
+                Consequence
               </label>
 
               <textarea
                 id="decision-consequence"
                 value={consequence}
                 onChange={(event) => setConsequence(event.target.value)}
-                placeholder="Vad påverkas av beslutet? Tid, kvalitet, ansvar, omfattning eller nästa steg?"
+                placeholder="What is affected by this decision? Time, quality, responsibility, scope or next steps?"
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -362,7 +363,7 @@ export default function ProjectDecisionsPage() {
             type="submit"
             className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
           >
-            Lägg till beslut
+            Add decision
           </button>
         </form>
 
@@ -370,21 +371,21 @@ export default function ProjectDecisionsPage() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-                Beslutslogg
+                Decision log
               </p>
 
-              <h2 className="mt-2 text-2xl font-bold">Aktuella beslut</h2>
+              <h2 className="mt-2 text-2xl font-bold">Current decisions</h2>
             </div>
 
             <span className="w-fit rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
-              {decisions.length} beslut
+              {decisions.length} decision{decisions.length === 1 ? "" : "s"}
             </span>
           </div>
 
           {decisions.length === 0 ? (
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-slate-300">
-              Inga beslut är skapade ännu. Lägg till första beslutet ovan för
-              att börja bygga projektets beslutslogg.
+              No decisions have been created yet. Add the first decision above
+              to start building the project decision log.
             </div>
           ) : (
             <div className="grid gap-5">
@@ -433,7 +434,7 @@ export default function ProjectDecisionsPage() {
 
                     <DecisionMeta
                       label="Deadline"
-                      value={decision.deadline || "Ej angivet"}
+                      value={decision.deadline || "Not specified"}
                     />
 
                     <DecisionMeta
@@ -441,13 +442,13 @@ export default function ProjectDecisionsPage() {
                       value={translateDecisionStatus(decision.status)}
                     />
 
-                    <DecisionMeta label="Typ" value="Beslut" />
+                    <DecisionMeta label="Type" value="Decision" />
                   </div>
 
                   {decision.consequence && (
                     <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                        Konsekvens
+                        Consequence
                       </p>
 
                       <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
@@ -501,12 +502,12 @@ function DecisionMeta({ label, value }: { label: string; value: string }) {
 
 function translateDecisionStatus(status: DecisionStatus) {
   if (status === "open") {
-    return "Öppet";
+    return "Open";
   }
 
   if (status === "decided") {
-    return "Beslutat";
+    return "Decided";
   }
 
-  return "Bordlagt";
+  return "Postponed";
 }

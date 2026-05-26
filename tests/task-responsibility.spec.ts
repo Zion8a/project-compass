@@ -46,20 +46,20 @@ test.describe("Task responsibility", () => {
     await page.getByRole("link", { name: "Workspace" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "Arbetsyta" })
+      page.getByRole("heading", { name: "Workspace" })
     ).toBeVisible();
 
-    await page.getByLabel("Titel").fill("Write first project follow-up");
+    await page.getByLabel("Title").fill("Write first project follow-up");
 
     await page
-      .getByLabel("Beskrivning")
+      .getByLabel("Description")
       .fill("Create a short written follow-up for the project.");
 
     await page.getByLabel("Responsible member").selectOption({
       label: "Johan Larsson",
     });
 
-    await page.getByRole("button", { name: "Lägg till uppgift" }).click();
+    await page.getByRole("button", { name: "Add task" }).click();
 
     const taskCard = page
       .locator("article")

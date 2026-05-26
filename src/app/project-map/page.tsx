@@ -35,18 +35,18 @@ export default function ProjectMapPage() {
           </p>
 
           <h1 className="text-4xl font-bold tracking-tight">
-            Ingen projektkarta hittades.
+            No project map found.
           </h1>
 
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-            Börja med att skapa ett nytt projekt genom projektintervjun.
+            Start by creating a new project through the project interview.
           </p>
 
           <Link
             href="/new-project"
             className="mt-8 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
           >
-            Skapa nytt projekt
+            Create new project
           </Link>
         </section>
       </main>
@@ -63,86 +63,82 @@ export default function ProjectMapPage() {
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">
-            Projektkarta
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight">Project Map</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            En samlad överblick över projektets syfte, mål, leveranser, risker
-            och beslut innan arbetet bryts ner i uppgifter.
+            A shared overview of the project purpose, goals, deliverables,
+            risks and decisions before the work is broken down into tasks.
           </p>
         </div>
 
         <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-            Projektnamn
+            Project name
           </p>
 
-          <h2 className="mt-3 text-3xl font-bold">
-            {project.projectName}
-          </h2>
+          <h2 className="mt-3 text-3xl font-bold">{project.projectName}</h2>
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <ProjectMapCard
             number="01"
-            title="Varför gör vi projektet?"
-            helpText="Projektets bakgrund, behov eller problem."
+            title="Why are we doing this project?"
+            helpText="The project background, need or problem."
             content={project.purpose}
           />
 
           <ProjectMapCard
             number="02"
-            title="Vad ska ha blivit bättre?"
-            helpText="Den effekt eller förändring som ska märkas när projektet är klart."
+            title="What should be better?"
+            helpText="The effect or change that should be visible when the project is complete."
             content={project.goal}
           />
 
           <ProjectMapCard
             number="03"
-            title="Vad ska levereras?"
-            helpText="Konkreta resultat, dokument, aktiviteter eller beslut."
-            content={project.deliverables || "Inte angivet ännu."}
+            title="What should be delivered?"
+            helpText="Concrete results, documents, activities or decisions."
+            content={project.deliverables || "Not specified yet."}
           />
 
           <ProjectMapCard
             number="04"
-            title="Vad kan gå fel?"
-            helpText="Risker, hinder eller osäkerheter som kan påverka projektet."
-            content={project.risks || "Inga risker angivna ännu."}
+            title="What can go wrong?"
+            helpText="Risks, obstacles or uncertainties that could affect the project."
+            content={project.risks || "No risks specified yet."}
           />
 
           <ProjectMapCard
             number="05"
-            title="Vilka beslut behövs?"
-            helpText="Beslut som projektet är beroende av för att kunna gå framåt."
-            content={project.decisions || "Inga beslut angivna ännu."}
+            title="Which decisions are needed?"
+            helpText="Decisions the project depends on in order to move forward."
+            content={project.decisions || "No decisions specified yet."}
           />
 
           <ProjectMapCard
             number="06"
-            title="Nästa steg"
-            helpText="Vad användaren bör göra efter projektkartan."
-            content="Skapa första uppgifterna, identifiera ansvariga och börja bygga projektets arbetsyta."
+            title="Next step"
+            helpText="What the user should do after the project map."
+            content="Create the first tasks, identify responsible members and start building the project workspace."
           />
         </div>
 
         <div className="mt-10 rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-6">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-300">
-            Rekommenderat nästa steg
+            Recommended next step
           </p>
 
           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-2xl text-base leading-7 text-slate-200">
-              När projektkartan känns tillräckligt tydlig är nästa steg att
-              bryta ner arbetet i konkreta uppgifter på arbetsytan.
+              When the project map is clear enough, the next step is to break
+              the work down into concrete tasks in the workspace.
             </p>
 
             <Link
               href="/project-board"
               className="w-fit rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
             >
-              Gå till arbetsyta
+              Go to workspace
             </Link>
           </div>
         </div>
@@ -174,9 +170,7 @@ function ProjectMapCard({
             {title}
           </h3>
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            {helpText}
-          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{helpText}</p>
 
           <p className="mt-4 whitespace-pre-line text-base leading-7 text-slate-200">
             {content}

@@ -35,15 +35,15 @@ type ProjectRisk = {
 };
 
 const riskLevels: { id: RiskLevel; title: string }[] = [
-  { id: "low", title: "Låg" },
-  { id: "medium", title: "Medel" },
-  { id: "high", title: "Hög" },
+  { id: "low", title: "Low" },
+  { id: "medium", title: "Medium" },
+  { id: "high", title: "High" },
 ];
 
 const riskStatuses: { id: RiskStatus; title: string }[] = [
-  { id: "open", title: "Öppen" },
-  { id: "watching", title: "Bevakas" },
-  { id: "handled", title: "Hanterad" },
+  { id: "open", title: "Open" },
+  { id: "watching", title: "Watching" },
+  { id: "handled", title: "Handled" },
 ];
 
 export default function ProjectRisksPage() {
@@ -150,45 +150,46 @@ export default function ProjectRisksPage() {
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">Riskvy</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Risk View</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Synliggör sådant som kan påverka projektet innan det blir akut.
-            Bedöm sannolikhet, konsekvens och vad ni kan göra åt risken.
+            Make visible what could affect the project before it becomes urgent.
+            Assess probability, impact and what can be done to reduce or handle
+            the risk.
           </p>
 
           <p className="mt-3 text-slate-400">
             {project?.projectName
-              ? `Projekt: ${project.projectName}`
+              ? `Project: ${project.projectName}`
               : activeProject?.name
-                ? `Projekt: ${activeProject.name}`
-                : "Inget projekt hittades ännu."}
+                ? `Project: ${activeProject.name}`
+                : "No project found yet."}
           </p>
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           <SummaryCard
-            title="Totalt antal risker"
+            title="Total risks"
             value={risks.length.toString()}
-            text="Alla risker i riskregistret."
+            text="All risks in the risk register."
           />
 
           <SummaryCard
-            title="Öppna risker"
+            title="Open risks"
             value={openRisks.toString()}
-            text="Risker som ännu inte är hanterade."
+            text="Risks that have not been handled yet."
           />
 
           <SummaryCard
-            title="Hög risknivå"
+            title="High risk level"
             value={highRisks.toString()}
-            text="Risker med hög sannolikhet eller konsekvens."
+            text="Risks with high probability or impact."
           />
 
           <SummaryCard
-            title="Hanterade"
+            title="Handled"
             value={handledRisks.toString()}
-            text="Risker som är avslutade eller åtgärdade."
+            text="Risks that have been closed or handled."
           />
         </div>
 
@@ -198,14 +199,14 @@ export default function ProjectRisksPage() {
         >
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-              Ny risk
+              New risk
             </p>
 
-            <h2 className="text-2xl font-bold">Skapa risk</h2>
+            <h2 className="text-2xl font-bold">Create risk</h2>
 
             <p className="max-w-3xl text-sm leading-6 text-slate-400">
-              Beskriv risken så konkret att någon annan kan förstå vad som kan
-              hända, varför det spelar roll och vilken åtgärd som behövs.
+              Describe the risk clearly enough for someone else to understand
+              what could happen, why it matters and what action is needed.
             </p>
 
             {projectMembers.length === 0 && (
@@ -222,14 +223,14 @@ export default function ProjectRisksPage() {
                 htmlFor="risk-title"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Titel
+                Title
               </label>
               <input
                 id="risk-title"
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Exempel: Gruppen hinner inte klart i tid"
+                placeholder="Example: The team may not finish on time"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
@@ -300,13 +301,13 @@ export default function ProjectRisksPage() {
                 htmlFor="risk-description"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Beskrivning
+                Description
               </label>
               <textarea
                 id="risk-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Beskriv vad som kan gå fel och varför det spelar roll."
+                placeholder="Describe what could go wrong and why it matters."
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -317,7 +318,7 @@ export default function ProjectRisksPage() {
                 htmlFor="risk-probability"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Sannolikhet
+                Probability
               </label>
               <select
                 id="risk-probability"
@@ -340,7 +341,7 @@ export default function ProjectRisksPage() {
                 htmlFor="risk-impact"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Konsekvens
+                Impact
               </label>
               <select
                 id="risk-impact"
@@ -361,13 +362,13 @@ export default function ProjectRisksPage() {
                 htmlFor="risk-action"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Åtgärd
+                Action
               </label>
               <textarea
                 id="risk-action"
                 value={action}
                 onChange={(event) => setAction(event.target.value)}
-                placeholder="Vad gör vi för att minska risken eller hantera den om den inträffar?"
+                placeholder="What should be done to reduce the risk or handle it if it happens?"
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -378,7 +379,7 @@ export default function ProjectRisksPage() {
             type="submit"
             className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
           >
-            Lägg till risk
+            Add risk
           </button>
         </form>
 
@@ -386,21 +387,21 @@ export default function ProjectRisksPage() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-                Riskregister
+                Risk register
               </p>
 
-              <h2 className="mt-2 text-2xl font-bold">Aktuella risker</h2>
+              <h2 className="mt-2 text-2xl font-bold">Current risks</h2>
             </div>
 
             <span className="w-fit rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
-              {risks.length} risker
+              {risks.length} risk{risks.length === 1 ? "" : "s"}
             </span>
           </div>
 
           {risks.length === 0 ? (
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-slate-300">
-              Inga risker är skapade ännu. Lägg till första risken ovan för att
-              börja bygga projektets riskbild.
+              No risks have been created yet. Add the first risk above to start
+              building the project risk picture.
             </div>
           ) : (
             <div className="grid gap-5">
@@ -440,12 +441,12 @@ export default function ProjectRisksPage() {
 
                   <div className="mt-5 grid gap-4 md:grid-cols-4">
                     <RiskMeta
-                      label="Sannolikhet"
+                      label="Probability"
                       value={translateRiskLevel(risk.probability)}
                     />
 
                     <RiskMeta
-                      label="Konsekvens"
+                      label="Impact"
                       value={translateRiskLevel(risk.impact)}
                     />
 
@@ -460,7 +461,7 @@ export default function ProjectRisksPage() {
                   {risk.action && (
                     <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                        Åtgärd
+                        Action
                       </p>
 
                       <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
@@ -514,24 +515,24 @@ function RiskMeta({ label, value }: { label: string; value: string }) {
 
 function translateRiskLevel(level: RiskLevel) {
   if (level === "low") {
-    return "Låg";
+    return "Low";
   }
 
   if (level === "medium") {
-    return "Medel";
+    return "Medium";
   }
 
-  return "Hög";
+  return "High";
 }
 
 function translateRiskStatus(status: RiskStatus) {
   if (status === "open") {
-    return "Öppen";
+    return "Open";
   }
 
   if (status === "watching") {
-    return "Bevakas";
+    return "Watching";
   }
 
-  return "Hanterad";
+  return "Handled";
 }

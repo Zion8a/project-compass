@@ -97,7 +97,7 @@ export default function ProjectsPage() {
       <section className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-10">
           <p className="text-sm font-semibold uppercase tracking-wide text-cyan-300">
-            Project platform
+            Project Platform
           </p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight">
             My Projects

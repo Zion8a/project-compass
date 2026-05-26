@@ -45,26 +45,28 @@ test.describe("Risk responsibility", () => {
 
     await page.getByRole("link", { name: "Risks" }).click();
 
-    await expect(page.getByRole("heading", { name: "Riskvy" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Risk View" })
+    ).toBeVisible();
 
-    await page.getByLabel("Titel").fill("Supplier delay risk");
+    await page.getByLabel("Title").fill("Supplier delay risk");
 
     await page
       .getByLabel("Responsible member")
       .selectOption({ label: "Johan Larsson" });
 
     await page
-      .getByLabel("Beskrivning")
+      .getByLabel("Description")
       .fill("The supplier may not deliver the needed material in time.");
 
-    await page.getByLabel("Sannolikhet").selectOption("high");
-    await page.getByLabel("Konsekvens").selectOption("high");
+    await page.getByLabel("Probability").selectOption("high");
+    await page.getByLabel("Impact").selectOption("high");
 
     await page
-      .getByLabel("Åtgärd")
+      .getByLabel("Action")
       .fill("Follow up with supplier weekly and prepare an alternative plan.");
 
-    await page.getByRole("button", { name: "Lägg till risk" }).click();
+    await page.getByRole("button", { name: "Add risk" }).click();
 
     const riskCard = page
       .locator("article")
@@ -80,7 +82,7 @@ test.describe("Risk responsibility", () => {
       riskCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
 
-    await expect(riskCard.getByText("Hög")).toHaveCount(2);
+    await expect(riskCard.getByText("High")).toHaveCount(2);
 
     await page.reload();
 
@@ -98,7 +100,7 @@ test.describe("Risk responsibility", () => {
       reloadedRiskCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
 
-    await expect(reloadedRiskCard.getByText("Hög")).toHaveCount(2);
+    await expect(reloadedRiskCard.getByText("High")).toHaveCount(2);
 
     await expect(
       reloadedRiskCard.getByText(

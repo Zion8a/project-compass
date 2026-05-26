@@ -38,32 +38,32 @@ const columns: { id: TaskStatus; title: string; description: string }[] = [
   {
     id: "backlog",
     title: "Backlog",
-    description: "Idéer och uppgifter som ännu inte är planerade.",
+    description: "Ideas and tasks that have not been planned yet.",
   },
   {
     id: "planned",
-    title: "Planerat",
-    description: "Uppgifter som är valda och redo att påbörjas.",
+    title: "Planned",
+    description: "Tasks that are selected and ready to start.",
   },
   {
     id: "in-progress",
-    title: "Pågår",
-    description: "Arbete som just nu är igång.",
+    title: "In progress",
+    description: "Work that is currently being done.",
   },
   {
     id: "blocked",
-    title: "Blockerat",
-    description: "Uppgifter som hindras av något.",
+    title: "Blocked",
+    description: "Tasks that are currently blocked by something.",
   },
   {
     id: "review",
-    title: "Granskning",
-    description: "Arbete som behöver kontrolleras eller godkännas.",
+    title: "Review",
+    description: "Work that needs to be checked or approved.",
   },
   {
     id: "done",
-    title: "Klart",
-    description: "Färdiga uppgifter.",
+    title: "Done",
+    description: "Completed tasks.",
   },
 ];
 
@@ -152,39 +152,39 @@ export default function ProjectBoardPage() {
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">Arbetsyta</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Workspace</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Bryt ner projektet i konkreta uppgifter, följ status och synliggör
-            vad som är planerat, pågående, blockerat och klart.
+            Break the project down into concrete tasks, follow status and make
+            planned, ongoing, blocked and completed work visible.
           </p>
 
           <p className="mt-3 text-slate-400">
             {project?.projectName
-              ? `Projekt: ${project.projectName}`
+              ? `Project: ${project.projectName}`
               : activeProject?.name
-                ? `Projekt: ${activeProject.name}`
-                : "Inget projekt hittades ännu."}
+                ? `Project: ${activeProject.name}`
+                : "No project found yet."}
           </p>
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-3">
           <SummaryCard
-            title="Totalt antal uppgifter"
+            title="Total tasks"
             value={totalTasks.toString()}
-            text="Alla uppgifter som finns på arbetsytan."
+            text="All tasks currently in the workspace."
           />
 
           <SummaryCard
-            title="Klart"
+            title="Done"
             value={doneTasks.toString()}
-            text="Uppgifter som är färdiga."
+            text="Tasks that have been completed."
           />
 
           <SummaryCard
-            title="Blockerat"
+            title="Blocked"
             value={blockedTasks.toString()}
-            text="Uppgifter som behöver uppmärksamhet."
+            text="Tasks that need attention."
           />
         </div>
 
@@ -194,14 +194,14 @@ export default function ProjectBoardPage() {
         >
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-              Ny uppgift
+              New task
             </p>
 
-            <h2 className="text-2xl font-bold">Skapa uppgift</h2>
+            <h2 className="text-2xl font-bold">Create task</h2>
 
             <p className="max-w-3xl text-sm leading-6 text-slate-400">
-              Skriv en tydlig uppgift som någon i projektet kan förstå, ta tag i
-              och flytta vidare genom arbetsflödet.
+              Write a clear task that someone in the project can understand,
+              take ownership of and move forward through the workflow.
             </p>
 
             {projectMembers.length === 0 && (
@@ -218,14 +218,14 @@ export default function ProjectBoardPage() {
                 htmlFor="task-title"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Titel
+                Title
               </label>
               <input
                 id="task-title"
                 type="text"
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
-                placeholder="Exempel: Skriv första rapportutkastet"
+                placeholder="Example: Write the first status update"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
@@ -236,14 +236,14 @@ export default function ProjectBoardPage() {
                 htmlFor="task-description"
                 className="block text-sm font-semibold text-slate-200"
               >
-                Beskrivning
+                Description
               </label>
               <input
                 id="task-description"
                 type="text"
                 value={taskDescription}
                 onChange={(event) => setTaskDescription(event.target.value)}
-                placeholder="Kort beskrivning av uppgiften"
+                placeholder="Short description of the task"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
@@ -298,7 +298,7 @@ export default function ProjectBoardPage() {
             type="submit"
             className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
           >
-            Lägg till uppgift
+            Add task
           </button>
         </form>
 
@@ -354,7 +354,7 @@ export default function ProjectBoardPage() {
                         htmlFor={`task-status-${task.id}`}
                         className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                       >
-                        Flytta till
+                        Move to
                       </label>
 
                       <select

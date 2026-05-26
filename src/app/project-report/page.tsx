@@ -132,9 +132,9 @@ export default function ProjectReportPage() {
       (decision) => decision.status === "decided"
     );
 
-    let statusLabel = "Stabil";
+    let statusLabel = "Stable";
     let statusText =
-      "Projektet har inga tydliga varningssignaler utifrån registrerade uppgifter, risker och beslut.";
+      "The project has no clear warning signs based on registered tasks, risks and decisions.";
     let statusTone = "emerald";
 
     if (
@@ -142,16 +142,16 @@ export default function ProjectReportPage() {
       highRisks.length > 0 ||
       openDecisions.length > 0
     ) {
-      statusLabel = "Kräver uppmärksamhet";
+      statusLabel = "Needs attention";
       statusText =
-        "Projektet har blockerade uppgifter, höga risker eller öppna beslut som bör följas upp.";
+        "The project has blocked tasks, high risks or open decisions that should be followed up.";
       statusTone = "amber";
     }
 
     if (blockedTasks.length > 1 || highRisks.length > 1) {
-      statusLabel = "Riskfyllt";
+      statusLabel = "High risk";
       statusText =
-        "Projektet har flera signaler som kan påverka framdrift, kvalitet eller leverans.";
+        "The project has several signals that may affect progress, quality or delivery.";
       statusTone = "rose";
     }
 
@@ -312,19 +312,19 @@ export default function ProjectReportPage() {
             Project Compass
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight">Statusrapport</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Status Report</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Samla projektets nuläge på ett ställe. Följ upp uppgifter, risker,
-            beslut, ansvar och rekommenderade nästa steg.
+            Collect the current project status in one place. Follow up tasks,
+            risks, decisions, responsibility and recommended next steps.
           </p>
 
           <p className="mt-3 text-slate-400">
             {project?.projectName
-              ? `Projekt: ${project.projectName}`
+              ? `Project: ${project.projectName}`
               : activeProject?.name
-                ? `Projekt: ${activeProject.name}`
-                : "Inget projekt hittades ännu."}
+                ? `Project: ${activeProject.name}`
+                : "No project found yet."}
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -360,7 +360,7 @@ export default function ProjectReportPage() {
           }`}
         >
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
-            Samlad projektstatus
+            Overall project status
           </p>
 
           <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -374,7 +374,7 @@ export default function ProjectReportPage() {
 
             <div className="rounded-2xl border border-slate-700/70 bg-slate-950/70 px-5 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Rapportläge
+                Report date
               </p>
 
               <p className="mt-2 font-semibold text-white">
@@ -386,77 +386,77 @@ export default function ProjectReportPage() {
 
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
           <SummaryCard
-            title="Uppgifter"
+            title="Tasks"
             value={report.totalTasks.toString()}
-            text="Totalt antal uppgifter."
+            text="Total number of tasks."
           />
 
           <SummaryCard
-            title="Klart"
+            title="Done"
             value={report.doneTasks.toString()}
-            text="Färdiga uppgifter."
+            text="Completed tasks."
           />
 
           <SummaryCard
-            title="Blockerat"
+            title="Blocked"
             value={report.blockedTasks.toString()}
-            text="Uppgifter som hindras."
+            text="Tasks that are blocked."
           />
 
           <SummaryCard
-            title="Öppna risker"
+            title="Open risks"
             value={report.openRisks.length.toString()}
-            text="Risker som inte är hanterade."
+            text="Risks that are not handled."
           />
 
           <SummaryCard
-            title="Höga risker"
+            title="High risks"
             value={report.highRisks.length.toString()}
-            text="Risker med hög nivå."
+            text="Risks with high level."
           />
 
           <SummaryCard
-            title="Öppna beslut"
+            title="Open decisions"
             value={report.openDecisions.length.toString()}
-            text="Beslut som återstår."
+            text="Decisions that remain open."
           />
 
           <SummaryCard
-            title="Medlemmar"
+            title="Members"
             value={(activeProject?.members.length ?? 0).toString()}
-            text="Medlemmar i aktivt projekt."
+            text="Members in the active project."
           />
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <ReportSection title="Projektets syfte">
+          <ReportSection title="Project purpose">
             <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.purpose || "Inget syfte är angivet ännu."}
+              {project?.purpose || "No purpose has been defined yet."}
             </p>
           </ReportSection>
 
-          <ReportSection title="Projektets mål">
+          <ReportSection title="Project goal">
             <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.goal || "Inget mål är angivet ännu."}
+              {project?.goal || "No goal has been defined yet."}
             </p>
           </ReportSection>
 
-          <ReportSection title="Leveranser">
+          <ReportSection title="Deliverables">
             <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.deliverables || "Inga leveranser är angivna ännu."}
+              {project?.deliverables || "No deliverables have been defined yet."}
             </p>
           </ReportSection>
 
-          <ReportSection title="Rekommenderade nästa steg">
+          <ReportSection title="Recommended next steps">
             <ul className="space-y-3 text-slate-300">
-              <li>• Följ upp blockerade uppgifter.</li>
-              <li>• Prioritera risker med hög sannolikhet eller konsekvens.</li>
-              <li>• Fatta eller förtydliga öppna beslut.</li>
+              <li>• Follow up blocked tasks.</li>
+              <li>• Prioritize risks with high probability or impact.</li>
+              <li>• Make or clarify open decisions.</li>
               <li>
-                • Kontrollera att viktiga uppgifter, risker och beslut har
-                ansvarig.
+                • Check that important tasks, risks and decisions have
+                responsible owners.
               </li>
-              <li>• Uppdatera arbetsytan efter nästa avstämning.</li>
+              <li>• Update the workspace after the next project check-in.</li>
             </ul>
           </ReportSection>
         </div>
@@ -570,10 +570,10 @@ export default function ProjectReportPage() {
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <ReportSection title="Öppna risker">
+          <ReportSection title="Open risks">
             {report.openRisks.length === 0 ? (
               <p className="text-slate-300">
-                Inga öppna risker finns registrerade.
+                No open risks have been registered.
               </p>
             ) : (
               <div className="space-y-4">
@@ -592,15 +592,15 @@ export default function ProjectReportPage() {
 
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Sannolikhet: {translateRiskLevel(risk.probability)}
+                        Probability: {translateRiskLevel(risk.probability)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Konsekvens: {translateRiskLevel(risk.impact)}
+                        Impact: {translateRiskLevel(risk.impact)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Ansvarig: {getMemberName(risk.ownerId, risk.owner)}
+                        Responsible: {getMemberName(risk.ownerId, risk.owner)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
@@ -613,10 +613,10 @@ export default function ProjectReportPage() {
             )}
           </ReportSection>
 
-          <ReportSection title="Öppna beslut">
+          <ReportSection title="Open decisions">
             {report.openDecisions.length === 0 ? (
               <p className="text-slate-300">
-                Inga öppna beslut finns registrerade.
+                No open decisions have been registered.
               </p>
             ) : (
               <div className="space-y-4">
@@ -637,12 +637,12 @@ export default function ProjectReportPage() {
 
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Ansvarig:{" "}
+                        Responsible:{" "}
                         {getMemberName(decision.ownerId, decision.owner)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Deadline: {decision.deadline || "Ej angivet"}
+                        Deadline: {decision.deadline || "Not specified"}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
@@ -732,56 +732,56 @@ function translateTaskStatus(status: TaskStatus) {
   }
 
   if (status === "planned") {
-    return "Planerat";
+    return "Planned";
   }
 
   if (status === "in-progress") {
-    return "Pågår";
+    return "In progress";
   }
 
   if (status === "blocked") {
-    return "Blockerat";
+    return "Blocked";
   }
 
   if (status === "review") {
-    return "Granskning";
+    return "Review";
   }
 
-  return "Klart";
+  return "Done";
 }
 
 function translateRiskLevel(level: RiskLevel) {
   if (level === "low") {
-    return "Låg";
+    return "Low";
   }
 
   if (level === "medium") {
-    return "Medel";
+    return "Medium";
   }
 
-  return "Hög";
+  return "High";
 }
 
 function translateRiskStatus(status: RiskStatus) {
   if (status === "open") {
-    return "Öppen";
+    return "Open";
   }
 
   if (status === "watching") {
-    return "Bevakas";
+    return "Watching";
   }
 
-  return "Hanterad";
+  return "Handled";
 }
 
 function translateDecisionStatus(status: DecisionStatus) {
   if (status === "open") {
-    return "Öppet";
+    return "Open";
   }
 
   if (status === "decided") {
-    return "Beslutat";
+    return "Decided";
   }
 
-  return "Bordlagt";
+  return "Postponed";
 }

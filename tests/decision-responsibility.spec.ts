@@ -46,10 +46,10 @@ test.describe("Decision responsibility", () => {
     await page.getByRole("link", { name: "Decisions" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "Beslutsvy" })
+      page.getByRole("heading", { name: "Decision View" })
     ).toBeVisible();
 
-    await page.getByLabel("Titel").fill("Choose presentation structure");
+    await page.getByLabel("Title").fill("Choose presentation structure");
 
     await page
       .getByLabel("Responsible member")
@@ -62,14 +62,16 @@ test.describe("Decision responsibility", () => {
     await page.getByLabel("Deadline").fill("2026-06-07");
 
     await page
-      .getByLabel("Beskrivning")
-      .fill("The group needs to decide how the final presentation should be structured.");
+      .getByLabel("Description")
+      .fill(
+        "The group needs to decide how the final presentation should be structured."
+      );
 
     await page
-      .getByLabel("Konsekvens")
+      .getByLabel("Consequence")
       .fill("The decision affects planning, responsibility and preparation.");
 
-    await page.getByRole("button", { name: "Lägg till beslut" }).click();
+    await page.getByRole("button", { name: "Add decision" }).click();
 
     const decisionCard = page
       .locator("article")

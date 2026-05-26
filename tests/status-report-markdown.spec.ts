@@ -116,11 +116,11 @@ test.describe("Status report Markdown export", () => {
     });
 
     await expect(
-      page.getByRole("heading", { name: /Statusrapport|Status Report/ })
+      page.getByRole("heading", { name: /Status Report/ })
     ).toBeVisible();
 
     await expect(
-      page.getByText("Projekt: Markdown Export Test", { exact: true })
+      page.getByText("Project: Markdown Export Test", { exact: true })
     ).toBeVisible();
 
     await expect(
@@ -143,5 +143,6 @@ test.describe("Status report Markdown export", () => {
     expect(copiedMarkdown).toContain("Write project update");
     expect(copiedMarkdown).toContain("Unclear ownership");
     expect(copiedMarkdown).toContain("Choose report format");
+    expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
   });
 });

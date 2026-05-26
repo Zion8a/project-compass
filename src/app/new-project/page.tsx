@@ -37,7 +37,7 @@ export default function NewProjectPage() {
 
     localStorage.setItem(
       "project-compass-current-project",
-      JSON.stringify(formData),
+      JSON.stringify(formData)
     );
 
     router.push("/project-map");
@@ -55,24 +55,25 @@ export default function NewProjectPage() {
             </p>
 
             <h1 className="text-4xl font-bold tracking-tight">
-              Projektintervju
+              Project Interview
             </h1>
 
             <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-              Börja med projektets riktning innan arbetet bryts ner i uppgifter.
-              Svara på några grundfrågor så skapas en tydlig projektkarta.
+              Start with the project direction before the work is broken down
+              into tasks. Answer a few core questions to create a clear project
+              map.
             </p>
           </div>
 
           <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-              Intervjuns syfte
+              Purpose of the interview
             </p>
 
             <p className="mt-4 text-sm leading-7 text-slate-300">
-              Projektintervjun hjälper dig att fånga syfte, mål, leveranser,
-              risker och beslut innan projektet bara blir en lista med
-              uppgifter.
+              The project interview helps you capture purpose, goals,
+              deliverables, risks and decisions before the project becomes just
+              a list of tasks.
             </p>
           </div>
         </div>
@@ -84,8 +85,8 @@ export default function NewProjectPage() {
           <div className="grid gap-6">
             <InterviewField
               number="01"
-              title="Projektnamn"
-              helpText="Ge projektet ett tydligt namn som går att känna igen senare."
+              title="Project name"
+              helpText="Give the project a clear name that will be easy to recognize later."
             >
               <input
                 type="text"
@@ -93,7 +94,7 @@ export default function NewProjectPage() {
                 onChange={(event) =>
                   updateField("projectName", event.target.value)
                 }
-                placeholder="Exempel: Införa nytt arbetssätt"
+                placeholder="Example: Introduce a new way of working"
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
               />
@@ -101,13 +102,13 @@ export default function NewProjectPage() {
 
             <InterviewField
               number="02"
-              title="Varför gör vi projektet?"
-              helpText="Beskriv problemet, behovet eller möjligheten som gör projektet viktigt."
+              title="Why are we doing this project?"
+              helpText="Describe the problem, need or opportunity that makes the project important."
             >
               <textarea
                 value={formData.purpose}
                 onChange={(event) => updateField("purpose", event.target.value)}
-                placeholder="Beskriv syftet med projektet."
+                placeholder="Describe the purpose of the project."
                 rows={4}
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
@@ -116,13 +117,13 @@ export default function NewProjectPage() {
 
             <InterviewField
               number="03"
-              title="Vad ska ha blivit bättre när projektet är klart?"
-              helpText="Beskriv den effekt, förändring eller nytta som ska märkas när projektet är genomfört."
+              title="What should be better when the project is complete?"
+              helpText="Describe the effect, change or value that should be visible when the project has been completed."
             >
               <textarea
                 value={formData.goal}
                 onChange={(event) => updateField("goal", event.target.value)}
-                placeholder="Beskriv projektets mål eller effekt."
+                placeholder="Describe the project goal or expected effect."
                 rows={4}
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
@@ -131,15 +132,15 @@ export default function NewProjectPage() {
 
             <InterviewField
               number="04"
-              title="Vad ska levereras?"
-              helpText="Lista konkreta resultat, dokument, beslut, aktiviteter, systemdelar eller andra leverabler."
+              title="What should be delivered?"
+              helpText="List concrete results, documents, decisions, activities, system parts or other deliverables."
             >
               <textarea
                 value={formData.deliverables}
                 onChange={(event) =>
                   updateField("deliverables", event.target.value)
                 }
-                placeholder="Exempel: rapport, prototyp, beslut, utbildning, system, evenemang."
+                placeholder="Example: report, prototype, decision, training, system, event."
                 rows={4}
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -147,13 +148,13 @@ export default function NewProjectPage() {
 
             <InterviewField
               number="05"
-              title="Vad kan gå fel?"
-              helpText="Identifiera risker, hinder och osäkerheter som kan påverka tid, kvalitet, ansvar eller leverans."
+              title="What can go wrong?"
+              helpText="Identify risks, obstacles and uncertainties that could affect time, quality, responsibility or delivery."
             >
               <textarea
                 value={formData.risks}
                 onChange={(event) => updateField("risks", event.target.value)}
-                placeholder="Beskriv risker, hinder eller osäkerheter."
+                placeholder="Describe risks, obstacles or uncertainties."
                 rows={4}
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -161,15 +162,15 @@ export default function NewProjectPage() {
 
             <InterviewField
               number="06"
-              title="Vilka beslut behöver fattas?"
-              helpText="Beskriv viktiga beslut, vägval eller godkännanden som projektet är beroende av."
+              title="Which decisions need to be made?"
+              helpText="Describe important decisions, choices or approvals that the project depends on."
             >
               <textarea
                 value={formData.decisions}
                 onChange={(event) =>
                   updateField("decisions", event.target.value)
                 }
-                placeholder="Beskriv viktiga beslut som projektet är beroende av."
+                placeholder="Describe important decisions that the project depends on."
                 rows={4}
                 className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
@@ -180,13 +181,13 @@ export default function NewProjectPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-300">
-                  Nästa steg
+                  Next step
                 </p>
 
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200">
-                  När intervjun sparas skapas projektkartan. Där får du en
-                  samlad överblick innan du går vidare till arbetsyta, risker,
-                  beslut och statusrapport.
+                  When the interview is saved, a project map is created. It
+                  gives you a shared overview before you continue to the
+                  workspace, risks, decisions and status report.
                 </p>
               </div>
 
@@ -194,7 +195,7 @@ export default function NewProjectPage() {
                 type="submit"
                 className="w-fit rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
               >
-                Skapa projektkarta
+                Create project map
               </button>
             </div>
           </div>
