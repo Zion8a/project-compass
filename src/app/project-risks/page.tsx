@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+  ProjectMember,
+} from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -24,6 +30,7 @@ type ProjectRisk = {
   impact: RiskLevel;
   action: string;
   owner: string;
+  ownerId?: string;
   status: RiskStatus;
 };
 
@@ -41,6 +48,8 @@ const riskStatuses: { id: RiskStatus; title: string }[] = [
 
 export default function ProjectRisksPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [risks, setRisks] = useState<ProjectRisk[]>([]);
 
   const [title, setTitle] = useState("");
@@ -49,11 +58,18 @@ export default function ProjectRisksPage() {
   const [impact, setImpact] = useState<RiskLevel>("medium");
   const [action, setAction] = useState("");
   const [owner, setOwner] = useState("");
+  const [ownerId, setOwnerId] = useState("");
   const [status, setStatus] = useState<RiskStatus>("open");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
     const savedRisks = localStorage.getItem("project-compass-risks");
+
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
@@ -68,6 +84,21 @@ export default function ProjectRisksPage() {
     localStorage.setItem("project-compass-risks", JSON.stringify(risks));
   }, [risks]);
 
+  function getMemberName(risk: ProjectRisk) {
+    if (risk.ownerId) {
+      return (
+        projectMembers.find((member) => member.id === risk.ownerId)?.name ||
+        "Unknown member"
+      );
+    }
+
+    if (risk.owner) {
+      return risk.owner;
+    }
+
+    return "Unassigned";
+  }
+
   function handleCreateRisk(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -79,6 +110,7 @@ export default function ProjectRisksPage() {
       impact,
       action,
       owner,
+      ownerId: ownerId || undefined,
       status,
     };
 
@@ -90,20 +122,21 @@ export default function ProjectRisksPage() {
     setImpact("medium");
     setAction("");
     setOwner("");
+    setOwnerId("");
     setStatus("open");
   }
 
   function updateRiskStatus(riskId: string, newStatus: RiskStatus) {
     setRisks((currentRisks) =>
       currentRisks.map((risk) =>
-        risk.id === riskId ? { ...risk, status: newStatus } : risk,
-      ),
+        risk.id === riskId ? { ...risk, status: newStatus } : risk
+      )
     );
   }
 
   const openRisks = risks.filter((risk) => risk.status !== "handled").length;
   const highRisks = risks.filter(
-    (risk) => risk.probability === "high" || risk.impact === "high",
+    (risk) => risk.probability === "high" || risk.impact === "high"
   ).length;
   const handledRisks = risks.filter((risk) => risk.status === "handled").length;
 
@@ -127,7 +160,9 @@ export default function ProjectRisksPage() {
           <p className="mt-3 text-slate-400">
             {project?.projectName
               ? `Projekt: ${project.projectName}`
-              : "Inget projekt hittades ännu."}
+              : activeProject?.name
+                ? `Projekt: ${activeProject.name}`
+                : "Inget projekt hittades ännu."}
           </p>
         </div>
 
@@ -172,14 +207,25 @@ export default function ProjectRisksPage() {
               Beskriv risken så konkret att någon annan kan förstå vad som kan
               hända, varför det spelar roll och vilken åtgärd som behövs.
             </p>
+
+            {projectMembers.length === 0 && (
+              <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                Add project members before assigning responsibility. You can
+                still create risks without an owner.
+              </p>
+            )}
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="risk-title"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Titel
               </label>
               <input
+                id="risk-title"
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -190,23 +236,74 @@ export default function ProjectRisksPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
-                Ansvarig
+              <label
+                htmlFor="risk-owner-id"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Responsible member
+              </label>
+              <select
+                id="risk-owner-id"
+                value={ownerId}
+                onChange={(event) => setOwnerId(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+              >
+                <option value="">Unassigned</option>
+                {projectMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="risk-owner"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Legacy owner note
               </label>
               <input
+                id="risk-owner"
                 type="text"
                 value={owner}
                 onChange={(event) => setOwner(event.target.value)}
-                placeholder="Exempel: Johan"
+                placeholder="Optional fallback, for example: Johan"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
+            <div>
+              <label
+                htmlFor="risk-status"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Status
+              </label>
+              <select
+                id="risk-status"
+                value={status}
+                onChange={(event) => setStatus(event.target.value as RiskStatus)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+              >
+                {riskStatuses.map((riskStatus) => (
+                  <option key={riskStatus.id} value={riskStatus.id}>
+                    {riskStatus.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="risk-description"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Beskrivning
               </label>
               <textarea
+                id="risk-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Beskriv vad som kan gå fel och varför det spelar roll."
@@ -216,10 +313,14 @@ export default function ProjectRisksPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="risk-probability"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Sannolikhet
               </label>
               <select
+                id="risk-probability"
                 value={probability}
                 onChange={(event) =>
                   setProbability(event.target.value as RiskLevel)
@@ -235,10 +336,14 @@ export default function ProjectRisksPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="risk-impact"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Konsekvens
               </label>
               <select
+                id="risk-impact"
                 value={impact}
                 onChange={(event) => setImpact(event.target.value as RiskLevel)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
@@ -252,33 +357,20 @@ export default function ProjectRisksPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="risk-action"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Åtgärd
               </label>
               <textarea
+                id="risk-action"
                 value={action}
                 onChange={(event) => setAction(event.target.value)}
                 placeholder="Vad gör vi för att minska risken eller hantera den om den inträffar?"
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-200">
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value as RiskStatus)}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-              >
-                {riskStatuses.map((riskStatus) => (
-                  <option key={riskStatus.id} value={riskStatus.id}>
-                    {riskStatus.title}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 
@@ -333,7 +425,7 @@ export default function ProjectRisksPage() {
                       onChange={(event) =>
                         updateRiskStatus(
                           risk.id,
-                          event.target.value as RiskStatus,
+                          event.target.value as RiskStatus
                         )
                       }
                       className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
@@ -357,10 +449,7 @@ export default function ProjectRisksPage() {
                       value={translateRiskLevel(risk.impact)}
                     />
 
-                    <RiskMeta
-                      label="Ansvarig"
-                      value={risk.owner || "Ej angivet"}
-                    />
+                    <RiskMeta label="Responsible" value={getMemberName(risk)} />
 
                     <RiskMeta
                       label="Status"
