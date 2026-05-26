@@ -74,5 +74,26 @@ test.describe("Project members", () => {
     await expect(
       projectCard.locator("dd").filter({ hasText: /^1$/ })
     ).toBeVisible();
+
+    await page.getByRole("link", { name: "Status Report" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: /Statusrapport|Status Report/ })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "Project Members" })
+    ).toBeVisible();
+
+    await expect(page.getByText("Johan Larsson")).toBeVisible();
+    await expect(page.getByText("Project Lead")).toBeVisible();
+
+    await expect(
+      page.getByText("Planning, follow-up and project structure")
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("First member added to the project")
+    ).toBeVisible();
   });
 });
