@@ -17,7 +17,7 @@ Many project tools start with tasks, boards and cards. Project Compass starts on
 - Who is responsible?
 - What should happen next?
 
-Project Compass has grown from a single-project MVP into a small project platform with support for saved projects, active project selection, project members and task responsibility.
+Project Compass has grown from a single-project MVP into a small project platform with support for saved projects, active project selection, project members and responsibility across tasks, risks and decisions.
 
 ---
 
@@ -34,7 +34,7 @@ It demonstrates:
 - Playwright end-to-end testing
 - Cross-browser landing page testing
 - Chromium-based core flow testing
-- Focused Playwright tests for project overview, members and task responsibility
+- Focused Playwright tests for project overview, members and responsibility
 - GitHub Actions CI pipeline
 - Playwright report artifact upload
 - Written test strategy and manual test documentation
@@ -101,10 +101,13 @@ The current version includes:
 - Project board / Kanban-style task board
 - Project members
 - Task responsibility with responsible member selection
+- Risk responsibility with responsible member selection
+- Decision responsibility with responsible member selection
 - Risk register
 - Decision log
 - Status report
 - Project members shown in status report
+- Responsibility overview in status report
 - Local data persistence with localStorage
 - Manual regression test documentation
 - Automated end-to-end tests with Playwright
@@ -144,9 +147,27 @@ Each project can have members with:
 
 Members are saved per project and persist after page reload.
 
+### Responsibility model
+
+Tasks, risks and decisions can now be connected to a responsible project member.
+
+The first version of the responsibility model is intentionally simple:
+
+- One responsible member per item
+- Optional responsibility
+- Clear display on cards
+- Responsibility persists after reload
+- Status report shows responsibility overview
+
+This supports the core project question:
+
+```text
+Who owns what right now?
+```
+
 ### Task responsibility
 
-Tasks in the workspace can now have a responsible member.
+Tasks in the workspace can have a responsible member.
 
 The user can:
 
@@ -156,7 +177,43 @@ The user can:
 - See the responsible member on the task card
 - Reload the page and keep the responsibility assignment
 
-This is the first implemented part of the responsibility model.
+### Risk responsibility
+
+Risks in the risk register can have a responsible member.
+
+The user can:
+
+- Create a risk
+- Assign the risk to a project member
+- See the responsible member on the risk card
+- Reload the page and keep the responsibility assignment
+
+### Decision responsibility
+
+Decisions in the decision log can have a responsible member.
+
+The user can:
+
+- Create a decision
+- Assign the decision to a project member
+- See the responsible member on the decision card
+- Reload the page and keep the responsibility assignment
+
+### Status report responsibility overview
+
+The status report now includes a responsibility overview for:
+
+- Tasks
+- Risks
+- Decisions
+
+Each section shows:
+
+- Title
+- Status
+- Responsible member
+
+Unassigned items are shown clearly.
 
 ---
 
@@ -173,11 +230,13 @@ The current main product flow is:
 7. Create tasks
 8. Assign task responsibility
 9. Add risks to the risk register
-10. Add decisions to the decision log
-11. Open the status report
-12. Review project status, members, risks, decisions and next steps
+10. Assign risk responsibility
+11. Add decisions to the decision log
+12. Assign decision responsibility
+13. Open the status report
+14. Review project status, members, responsibilities, risks, decisions and next steps
 
-The original MVP flow from project interview to project map and status report still exists and is covered by automated tests.
+The original MVP flow from project interview to project map and status report still exists, but the current product direction is the project platform flow.
 
 ---
 
@@ -221,10 +280,12 @@ project-compass
 │   └── lib
 │       └── projectStorage.ts
 ├── tests
+│   ├── decision-responsibility.spec.ts
 │   ├── landing-page.spec.ts
 │   ├── main-flow.spec.ts
 │   ├── project-members.spec.ts
 │   ├── projects-overview.spec.ts
+│   ├── risk-responsibility.spec.ts
 │   └── task-responsibility.spec.ts
 ├── playwright.config.ts
 └── README.md
@@ -302,10 +363,9 @@ The risk view allows the user to document project risks with:
 - Probability
 - Impact
 - Action
-- Owner
+- Responsible member
+- Legacy owner note
 - Status
-
-Risk responsibility through the new member model is planned for a later iteration.
 
 ### Decision view
 
@@ -313,12 +373,11 @@ The decision view allows the user to document decisions with:
 
 - Title
 - Description
-- Owner
+- Responsible member
+- Legacy owner note
 - Deadline
 - Status
 - Consequence
-
-Decision responsibility through the new member model is planned for a later iteration.
 
 ### Status report
 
@@ -334,6 +393,9 @@ The status report summarizes:
 - Project purpose
 - Project goal
 - Project members
+- Task responsibility
+- Risk responsibility
+- Decision responsibility
 - Recommended next steps
 
 The status report is intended to become the main communication artifact for a project.
@@ -385,6 +447,11 @@ Manual testing has been used to verify:
 - Members in status report
 - Task responsibility in workspace
 - Task responsibility after reload
+- Risk responsibility in risk view
+- Risk responsibility after reload
+- Decision responsibility in decision view
+- Decision responsibility after reload
+- Responsibility overview in status report
 
 During manual exploratory testing, several usability and navigation issues were found and fixed, including:
 
@@ -394,6 +461,7 @@ During manual exploratory testing, several usability and navigation issues were 
 - Unclear project opening behavior
 - Tests that were too tightly coupled to old UI text
 - Ambiguous Playwright locators when several elements had similar text
+- Navigation timing issues in the old main flow test
 
 ### Automated testing
 
@@ -405,15 +473,19 @@ tests/main-flow.spec.ts
 tests/projects-overview.spec.ts
 tests/project-members.spec.ts
 tests/task-responsibility.spec.ts
+tests/risk-responsibility.spec.ts
+tests/decision-responsibility.spec.ts
 ```
 
 Current automated tests include:
 
 - Landing page and navigation test
-- Main user flow test
+- Main project data flow test
 - Projects overview test
 - Project members test
 - Task responsibility test
+- Risk responsibility test
+- Decision responsibility test
 
 The landing page test is verified across:
 
@@ -440,11 +512,9 @@ Verifies that:
 
 Verifies that:
 
-- User can open the project interview
-- User can fill in project information
-- User can create a project map
-- User can open the status report
-- Project data appears in the report
+- Stored project data can be shown in the project map
+- Stored project data can be shown in the status report
+- Project map and status report read the same saved project data
 
 ### Projects overview
 
@@ -476,6 +546,28 @@ Verifies that:
 - User can create a task
 - User can assign the task to a member
 - Task card shows the responsible member
+- Responsibility persists after reload
+
+### Risk responsibility
+
+Verifies that:
+
+- User can create a project
+- User can add a project member
+- User can create a risk
+- User can assign the risk to a member
+- Risk card shows the responsible member
+- Responsibility persists after reload
+
+### Decision responsibility
+
+Verifies that:
+
+- User can create a project
+- User can add a project member
+- User can create a decision
+- User can assign the decision to a member
+- Decision card shows the responsible member
 - Responsibility persists after reload
 
 ---
@@ -518,12 +610,26 @@ Run the task responsibility test:
 npx playwright test tests/task-responsibility.spec.ts --project=chromium
 ```
 
+Run the risk responsibility test:
+
+```bash
+npx playwright test tests/risk-responsibility.spec.ts --project=chromium
+```
+
+Run the decision responsibility test:
+
+```bash
+npx playwright test tests/decision-responsibility.spec.ts --project=chromium
+```
+
 Run the focused regression suite:
 
 ```bash
 npx playwright test tests/projects-overview.spec.ts --project=chromium
 npx playwright test tests/project-members.spec.ts --project=chromium
 npx playwright test tests/task-responsibility.spec.ts --project=chromium
+npx playwright test tests/risk-responsibility.spec.ts --project=chromium
+npx playwright test tests/decision-responsibility.spec.ts --project=chromium
 npx playwright test tests/landing-page.spec.ts
 npx playwright test tests/main-flow.spec.ts --project=chromium
 ```
@@ -592,14 +698,16 @@ Completed:
 - Project member Playwright coverage
 - Task responsibility in workspace
 - Task responsibility Playwright coverage
+- Risk responsibility in risk view
+- Risk responsibility Playwright coverage
+- Decision responsibility in decision view
+- Decision responsibility Playwright coverage
+- Responsibility overview in status report
 - Responsibility model plan
 
 Planned next steps:
 
-- Show task responsibility in the status report
-- Add risk responsibility
-- Add decision responsibility
-- Add responsibility overview in the status report
+- Export or copy status report as Markdown
 - Improve data migration from older localStorage keys to the new project platform structure
 - Improve validation and error handling
 - Add more focused Playwright tests per module
