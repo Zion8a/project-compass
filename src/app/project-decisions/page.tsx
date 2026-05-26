@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+  ProjectMember,
+} from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -19,6 +25,7 @@ type ProjectDecision = {
   title: string;
   description: string;
   owner: string;
+  ownerId?: string;
   deadline: string;
   consequence: string;
   status: DecisionStatus;
@@ -32,11 +39,14 @@ const decisionStatuses: { id: DecisionStatus; title: string }[] = [
 
 export default function ProjectDecisionsPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [decisions, setDecisions] = useState<ProjectDecision[]>([]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [owner, setOwner] = useState("");
+  const [ownerId, setOwnerId] = useState("");
   const [deadline, setDeadline] = useState("");
   const [consequence, setConsequence] = useState("");
   const [status, setStatus] = useState<DecisionStatus>("open");
@@ -44,6 +54,12 @@ export default function ProjectDecisionsPage() {
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
     const savedDecisions = localStorage.getItem("project-compass-decisions");
+
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
@@ -57,9 +73,24 @@ export default function ProjectDecisionsPage() {
   useEffect(() => {
     localStorage.setItem(
       "project-compass-decisions",
-      JSON.stringify(decisions),
+      JSON.stringify(decisions)
     );
   }, [decisions]);
+
+  function getMemberName(decision: ProjectDecision) {
+    if (decision.ownerId) {
+      return (
+        projectMembers.find((member) => member.id === decision.ownerId)?.name ||
+        "Unknown member"
+      );
+    }
+
+    if (decision.owner) {
+      return decision.owner;
+    }
+
+    return "Unassigned";
+  }
 
   function handleCreateDecision(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,6 +100,7 @@ export default function ProjectDecisionsPage() {
       title,
       description,
       owner,
+      ownerId: ownerId || undefined,
       deadline,
       consequence,
       status,
@@ -79,6 +111,7 @@ export default function ProjectDecisionsPage() {
     setTitle("");
     setDescription("");
     setOwner("");
+    setOwnerId("");
     setDeadline("");
     setConsequence("");
     setStatus("open");
@@ -86,27 +119,27 @@ export default function ProjectDecisionsPage() {
 
   function updateDecisionStatus(
     decisionId: string,
-    newStatus: DecisionStatus,
+    newStatus: DecisionStatus
   ) {
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === decisionId
           ? { ...decision, status: newStatus }
-          : decision,
-      ),
+          : decision
+      )
     );
   }
 
   const openDecisions = decisions.filter(
-    (decision) => decision.status === "open",
+    (decision) => decision.status === "open"
   ).length;
 
   const decidedDecisions = decisions.filter(
-    (decision) => decision.status === "decided",
+    (decision) => decision.status === "decided"
   ).length;
 
   const postponedDecisions = decisions.filter(
-    (decision) => decision.status === "postponed",
+    (decision) => decision.status === "postponed"
   ).length;
 
   return (
@@ -129,7 +162,9 @@ export default function ProjectDecisionsPage() {
           <p className="mt-3 text-slate-400">
             {project?.projectName
               ? `Projekt: ${project.projectName}`
-              : "Inget projekt hittades ännu."}
+              : activeProject?.name
+                ? `Projekt: ${activeProject.name}`
+                : "Inget projekt hittades ännu."}
           </p>
         </div>
 
@@ -174,15 +209,26 @@ export default function ProjectDecisionsPage() {
               Beskriv beslutet så att det blir tydligt vad som behöver avgöras,
               vem som ansvarar och vad beslutet påverkar.
             </p>
+
+            {projectMembers.length === 0 && (
+              <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                Add project members before assigning responsibility. You can
+                still create decisions without an owner.
+              </p>
+            )}
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="decision-title"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Titel
               </label>
 
               <input
+                id="decision-title"
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -193,39 +239,56 @@ export default function ProjectDecisionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
-                Ansvarig
+              <label
+                htmlFor="decision-owner-id"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Responsible member
+              </label>
+
+              <select
+                id="decision-owner-id"
+                value={ownerId}
+                onChange={(event) => setOwnerId(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+              >
+                <option value="">Unassigned</option>
+                {projectMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="decision-owner"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Legacy owner note
               </label>
 
               <input
+                id="decision-owner"
                 type="text"
                 value={owner}
                 onChange={(event) => setOwner(event.target.value)}
-                placeholder="Exempel: Johan"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-200">
-                Beskrivning
-              </label>
-
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Beskriv vilket beslut som behöver fattas."
-                rows={3}
+                placeholder="Optional fallback, for example: Johan"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="decision-deadline"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Deadline
               </label>
 
               <input
+                id="decision-deadline"
                 type="text"
                 value={deadline}
                 onChange={(event) => setDeadline(event.target.value)}
@@ -235,11 +298,15 @@ export default function ProjectDecisionsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="decision-status"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Status
               </label>
 
               <select
+                id="decision-status"
                 value={status}
                 onChange={(event) =>
                   setStatus(event.target.value as DecisionStatus)
@@ -255,11 +322,33 @@ export default function ProjectDecisionsPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="decision-description"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Beskrivning
+              </label>
+
+              <textarea
+                id="decision-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Beskriv vilket beslut som behöver fattas."
+                rows={3}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label
+                htmlFor="decision-consequence"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Konsekvens
               </label>
 
               <textarea
+                id="decision-consequence"
                 value={consequence}
                 onChange={(event) => setConsequence(event.target.value)}
                 placeholder="Vad påverkas av beslutet? Tid, kvalitet, ansvar, omfattning eller nästa steg?"
@@ -320,13 +409,16 @@ export default function ProjectDecisionsPage() {
                       onChange={(event) =>
                         updateDecisionStatus(
                           decision.id,
-                          event.target.value as DecisionStatus,
+                          event.target.value as DecisionStatus
                         )
                       }
                       className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
                     >
                       {decisionStatuses.map((decisionStatus) => (
-                        <option key={decisionStatus.id} value={decisionStatus.id}>
+                        <option
+                          key={decisionStatus.id}
+                          value={decisionStatus.id}
+                        >
                           {decisionStatus.title}
                         </option>
                       ))}
@@ -335,8 +427,8 @@ export default function ProjectDecisionsPage() {
 
                   <div className="mt-5 grid gap-4 md:grid-cols-4">
                     <DecisionMeta
-                      label="Ansvarig"
-                      value={decision.owner || "Ej angivet"}
+                      label="Responsible"
+                      value={getMemberName(decision)}
                     />
 
                     <DecisionMeta
