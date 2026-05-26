@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import AppHeader from "../../components/AppHeader";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import AppHeader from "@/components/AppHeader";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+} from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -56,6 +61,7 @@ type ProjectDecision = {
 
 export default function ProjectReportPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [risks, setRisks] = useState<ProjectRisk[]>([]);
   const [decisions, setDecisions] = useState<ProjectDecision[]>([]);
@@ -65,6 +71,11 @@ export default function ProjectReportPage() {
     const savedTasks = localStorage.getItem("project-compass-tasks");
     const savedRisks = localStorage.getItem("project-compass-risks");
     const savedDecisions = localStorage.getItem("project-compass-decisions");
+
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    setActiveProject(currentActiveProject);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
@@ -89,15 +100,15 @@ export default function ProjectReportPage() {
 
     const openRisks = risks.filter((risk) => risk.status !== "handled");
     const highRisks = risks.filter(
-      (risk) => risk.probability === "high" || risk.impact === "high",
+      (risk) => risk.probability === "high" || risk.impact === "high"
     );
 
     const openDecisions = decisions.filter(
-      (decision) => decision.status === "open",
+      (decision) => decision.status === "open"
     );
 
     const decidedDecisions = decisions.filter(
-      (decision) => decision.status === "decided",
+      (decision) => decision.status === "decided"
     );
 
     let statusLabel = "Stabil";
@@ -105,7 +116,11 @@ export default function ProjectReportPage() {
       "Projektet har inga tydliga varningssignaler utifrån registrerade uppgifter, risker och beslut.";
     let statusTone = "emerald";
 
-    if (blockedTasks.length > 0 || highRisks.length > 0 || openDecisions.length > 0) {
+    if (
+      blockedTasks.length > 0 ||
+      highRisks.length > 0 ||
+      openDecisions.length > 0
+    ) {
       statusLabel = "Kräver uppmärksamhet";
       statusText =
         "Projektet har blockerade uppgifter, höga risker eller öppna beslut som bör följas upp.";
@@ -153,7 +168,9 @@ export default function ProjectReportPage() {
           <p className="mt-3 text-slate-400">
             {project?.projectName
               ? `Projekt: ${project.projectName}`
-              : "Inget projekt hittades ännu."}
+              : activeProject?.name
+                ? `Projekt: ${activeProject.name}`
+                : "Inget projekt hittades ännu."}
           </p>
         </div>
 
@@ -191,7 +208,7 @@ export default function ProjectReportPage() {
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
           <SummaryCard
             title="Uppgifter"
             value={report.totalTasks.toString()}
@@ -227,6 +244,12 @@ export default function ProjectReportPage() {
             value={report.openDecisions.length.toString()}
             text="Beslut som återstår."
           />
+
+          <SummaryCard
+            title="Medlemmar"
+            value={(activeProject?.members.length ?? 0).toString()}
+            text="Medlemmar i aktivt projekt."
+          />
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -258,10 +281,58 @@ export default function ProjectReportPage() {
           </ReportSection>
         </div>
 
+        <div className="mt-10">
+          <ReportSection title="Project Members">
+            {!activeProject || activeProject.members.length === 0 ? (
+              <p className="text-slate-300">
+                No project members have been added yet.
+              </p>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {activeProject.members.map((member) => (
+                  <article
+                    key={member.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <h3 className="font-semibold text-white">{member.name}</h3>
+
+                    <dl className="mt-4 grid gap-3 text-sm">
+                      <div>
+                        <dt className="font-medium text-slate-300">Role</dt>
+                        <dd className="mt-1 text-slate-400">
+                          {member.role || "Not specified"}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt className="font-medium text-slate-300">
+                          Responsibility
+                        </dt>
+                        <dd className="mt-1 text-slate-400">
+                          {member.responsibility || "Not specified"}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt className="font-medium text-slate-300">Comment</dt>
+                        <dd className="mt-1 text-slate-400">
+                          {member.comment || "No comment"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
+            )}
+          </ReportSection>
+        </div>
+
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <ReportSection title="Öppna risker">
             {report.openRisks.length === 0 ? (
-              <p className="text-slate-300">Inga öppna risker finns registrerade.</p>
+              <p className="text-slate-300">
+                Inga öppna risker finns registrerade.
+              </p>
             ) : (
               <div className="space-y-4">
                 {report.openRisks.map((risk) => (
@@ -298,7 +369,9 @@ export default function ProjectReportPage() {
 
           <ReportSection title="Öppna beslut">
             {report.openDecisions.length === 0 ? (
-              <p className="text-slate-300">Inga öppna beslut finns registrerade.</p>
+              <p className="text-slate-300">
+                Inga öppna beslut finns registrerade.
+              </p>
             ) : (
               <div className="space-y-4">
                 {report.openDecisions.map((decision) => (
@@ -367,7 +440,7 @@ function ReportSection({
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">

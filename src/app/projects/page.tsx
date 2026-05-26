@@ -1,17 +1,21 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import {
   addProject,
   createProject,
   loadProjectCompassState,
+  Project,
   ProjectCompassState,
   saveProjectCompassState,
   setActiveProject,
 } from "@/lib/projectStorage";
 
 export default function ProjectsPage() {
+  const router = useRouter();
+
   const [state, setState] = useState<ProjectCompassState>({
     activeProjectId: null,
     projects: [],
@@ -24,6 +28,24 @@ export default function ProjectsPage() {
     const loadedState = loadProjectCompassState();
     setState(loadedState);
   }, []);
+
+  function saveLegacyProjectMap(project: Project) {
+    const legacyProjectMap = {
+      projectName: project.name,
+      purpose:
+        project.description ||
+        "Purpose has not been defined yet. Continue with the project interview or project map.",
+      goal: "Goal has not been defined yet.",
+      deliverables: "Deliverables have not been defined yet.",
+      risks: "Risks have not been defined yet.",
+      decisions: "Decisions have not been defined yet.",
+    };
+
+    window.localStorage.setItem(
+      "project-compass-current-project",
+      JSON.stringify(legacyProjectMap)
+    );
+  }
 
   function handleCreateProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,16 +66,28 @@ export default function ProjectsPage() {
 
     setState(updatedState);
     saveProjectCompassState(updatedState);
+    saveLegacyProjectMap(newProject);
 
     setProjectName("");
     setProjectDescription("");
   }
 
   function handleOpenProject(projectId: string) {
+    const selectedProject = state.projects.find(
+      (project) => project.id === projectId
+    );
+
+    if (!selectedProject) {
+      return;
+    }
+
     const updatedState = setActiveProject(state, projectId);
 
     setState(updatedState);
     saveProjectCompassState(updatedState);
+    saveLegacyProjectMap(selectedProject);
+
+    router.push("/project-map");
   }
 
   return (
@@ -188,18 +222,22 @@ export default function ProjectsPage() {
                               </dt>
                               <dd>{project.status}</dd>
                             </div>
+
                             <div>
                               <dt className="font-medium text-slate-300">
                                 Members
                               </dt>
                               <dd>{project.members.length}</dd>
                             </div>
+
                             <div>
                               <dt className="font-medium text-slate-300">
                                 Last updated
                               </dt>
                               <dd>
-                                {new Date(project.updatedAt).toLocaleDateString()}
+                                {new Date(
+                                  project.updatedAt
+                                ).toLocaleDateString("sv-SE")}
                               </dd>
                             </div>
                           </dl>
