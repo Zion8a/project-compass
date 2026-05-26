@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+  ProjectMember,
+} from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -25,6 +31,7 @@ type Task = {
   title: string;
   description: string;
   status: TaskStatus;
+  ownerId?: string;
 };
 
 const columns: { id: TaskStatus; title: string; description: string }[] = [
@@ -62,14 +69,23 @@ const columns: { id: TaskStatus; title: string; description: string }[] = [
 
 export default function ProjectBoardPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [taskStatus, setTaskStatus] = useState<TaskStatus>("backlog");
+  const [taskOwnerId, setTaskOwnerId] = useState("");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
     const savedTasks = localStorage.getItem("project-compass-tasks");
+
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
@@ -84,6 +100,17 @@ export default function ProjectBoardPage() {
     localStorage.setItem("project-compass-tasks", JSON.stringify(tasks));
   }, [tasks]);
 
+  function getMemberName(ownerId?: string) {
+    if (!ownerId) {
+      return "Unassigned";
+    }
+
+    return (
+      projectMembers.find((member) => member.id === ownerId)?.name ||
+      "Unknown member"
+    );
+  }
+
   function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -92,6 +119,7 @@ export default function ProjectBoardPage() {
       title: taskTitle,
       description: taskDescription,
       status: taskStatus,
+      ownerId: taskOwnerId || undefined,
     };
 
     setTasks((currentTasks) => [...currentTasks, newTask]);
@@ -99,13 +127,14 @@ export default function ProjectBoardPage() {
     setTaskTitle("");
     setTaskDescription("");
     setTaskStatus("backlog");
+    setTaskOwnerId("");
   }
 
   function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
     setTasks((currentTasks) =>
       currentTasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task,
-      ),
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
     );
   }
 
@@ -133,7 +162,9 @@ export default function ProjectBoardPage() {
           <p className="mt-3 text-slate-400">
             {project?.projectName
               ? `Projekt: ${project.projectName}`
-              : "Inget projekt hittades ännu."}
+              : activeProject?.name
+                ? `Projekt: ${activeProject.name}`
+                : "Inget projekt hittades ännu."}
           </p>
         </div>
 
@@ -172,14 +203,25 @@ export default function ProjectBoardPage() {
               Skriv en tydlig uppgift som någon i projektet kan förstå, ta tag i
               och flytta vidare genom arbetsflödet.
             </p>
+
+            {projectMembers.length === 0 && (
+              <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                Add project members before assigning responsibility. You can
+                still create tasks without an owner.
+              </p>
+            )}
           </div>
 
-          <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div className="mt-6 grid gap-5 md:grid-cols-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="task-title"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Titel
               </label>
               <input
+                id="task-title"
                 type="text"
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
@@ -190,10 +232,14 @@ export default function ProjectBoardPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="task-description"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Beskrivning
               </label>
               <input
+                id="task-description"
                 type="text"
                 value={taskDescription}
                 onChange={(event) => setTaskDescription(event.target.value)}
@@ -203,10 +249,14 @@ export default function ProjectBoardPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-200">
+              <label
+                htmlFor="task-status"
+                className="block text-sm font-semibold text-slate-200"
+              >
                 Status
               </label>
               <select
+                id="task-status"
                 value={taskStatus}
                 onChange={(event) =>
                   setTaskStatus(event.target.value as TaskStatus)
@@ -216,6 +266,28 @@ export default function ProjectBoardPage() {
                 {columns.map((column) => (
                   <option key={column.id} value={column.id}>
                     {column.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="task-owner"
+                className="block text-sm font-semibold text-slate-200"
+              >
+                Responsible member
+              </label>
+              <select
+                id="task-owner"
+                value={taskOwnerId}
+                onChange={(event) => setTaskOwnerId(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+              >
+                <option value="">Unassigned</option>
+                {projectMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
                   </option>
                 ))}
               </select>
@@ -233,7 +305,7 @@ export default function ProjectBoardPage() {
         <div className="grid gap-4 lg:grid-cols-6">
           {columns.map((column) => {
             const columnTasks = tasks.filter(
-              (task) => task.status === column.id,
+              (task) => task.status === column.id
             );
 
             return (
@@ -271,16 +343,27 @@ export default function ProjectBoardPage() {
                         </p>
                       )}
 
-                      <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                      <p className="mt-3 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-300">
+                        Responsible:{" "}
+                        <span className="font-semibold text-cyan-300">
+                          {getMemberName(task.ownerId)}
+                        </span>
+                      </p>
+
+                      <label
+                        htmlFor={`task-status-${task.id}`}
+                        className="mt-4 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                      >
                         Flytta till
                       </label>
 
                       <select
+                        id={`task-status-${task.id}`}
                         value={task.status}
                         onChange={(event) =>
                           updateTaskStatus(
                             task.id,
-                            event.target.value as TaskStatus,
+                            event.target.value as TaskStatus
                           )
                         }
                         className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
