@@ -30,6 +30,7 @@ type Task = {
   title: string;
   description: string;
   status: TaskStatus;
+  ownerId?: string;
 };
 
 type RiskLevel = "low" | "medium" | "high";
@@ -44,6 +45,7 @@ type ProjectRisk = {
   impact: RiskLevel;
   action: string;
   owner: string;
+  ownerId?: string;
   status: RiskStatus;
 };
 
@@ -54,6 +56,7 @@ type ProjectDecision = {
   title: string;
   description: string;
   owner: string;
+  ownerId?: string;
   deadline: string;
   consequence: string;
   status: DecisionStatus;
@@ -93,6 +96,21 @@ export default function ProjectReportPage() {
       setDecisions(JSON.parse(savedDecisions));
     }
   }, []);
+
+  function getMemberName(ownerId?: string, fallbackOwner?: string) {
+    if (ownerId) {
+      return (
+        activeProject?.members.find((member) => member.id === ownerId)?.name ||
+        "Unknown member"
+      );
+    }
+
+    if (fallbackOwner) {
+      return fallbackOwner;
+    }
+
+    return "Unassigned";
+  }
 
   const report = useMemo(() => {
     const doneTasks = tasks.filter((task) => task.status === "done");
@@ -162,7 +180,7 @@ export default function ProjectReportPage() {
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
             Samla projektets nuläge på ett ställe. Följ upp uppgifter, risker,
-            beslut och rekommenderade nästa steg.
+            beslut, ansvar och rekommenderade nästa steg.
           </p>
 
           <p className="mt-3 text-slate-400">
@@ -276,6 +294,7 @@ export default function ProjectReportPage() {
               <li>• Följ upp blockerade uppgifter.</li>
               <li>• Prioritera risker med hög sannolikhet eller konsekvens.</li>
               <li>• Fatta eller förtydliga öppna beslut.</li>
+              <li>• Kontrollera att viktiga uppgifter, risker och beslut har ansvarig.</li>
               <li>• Uppdatera arbetsytan efter nästa avstämning.</li>
             </ul>
           </ReportSection>
@@ -327,6 +346,68 @@ export default function ProjectReportPage() {
           </ReportSection>
         </div>
 
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <ReportSection title="Task Responsibility">
+            {tasks.length === 0 ? (
+              <p className="text-slate-300">
+                No tasks have been created yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {tasks.map((task) => (
+                  <ResponsibilityItem
+                    key={task.id}
+                    title={task.title}
+                    status={translateTaskStatus(task.status)}
+                    responsible={getMemberName(task.ownerId)}
+                  />
+                ))}
+              </div>
+            )}
+          </ReportSection>
+
+          <ReportSection title="Risk Responsibility">
+            {risks.length === 0 ? (
+              <p className="text-slate-300">
+                No risks have been created yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {risks.map((risk) => (
+                  <ResponsibilityItem
+                    key={risk.id}
+                    title={risk.title}
+                    status={translateRiskStatus(risk.status)}
+                    responsible={getMemberName(risk.ownerId, risk.owner)}
+                  />
+                ))}
+              </div>
+            )}
+          </ReportSection>
+
+          <ReportSection title="Decision Responsibility">
+            {decisions.length === 0 ? (
+              <p className="text-slate-300">
+                No decisions have been created yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {decisions.map((decision) => (
+                  <ResponsibilityItem
+                    key={decision.id}
+                    title={decision.title}
+                    status={translateDecisionStatus(decision.status)}
+                    responsible={getMemberName(
+                      decision.ownerId,
+                      decision.owner
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+          </ReportSection>
+        </div>
+
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <ReportSection title="Öppna risker">
             {report.openRisks.length === 0 ? (
@@ -355,6 +436,10 @@ export default function ProjectReportPage() {
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
                         Konsekvens: {translateRiskLevel(risk.impact)}
+                      </span>
+
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Ansvarig: {getMemberName(risk.ownerId, risk.owner)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
@@ -391,7 +476,8 @@ export default function ProjectReportPage() {
 
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Ansvarig: {decision.owner || "Ej angivet"}
+                        Ansvarig:{" "}
+                        {getMemberName(decision.ownerId, decision.owner)}
                       </span>
 
                       <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
@@ -449,6 +535,58 @@ function ReportSection({
       <div className="mt-4">{children}</div>
     </section>
   );
+}
+
+function ResponsibilityItem({
+  title,
+  status,
+  responsible,
+}: {
+  title: string;
+  status: string;
+  responsible: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <h3 className="font-semibold text-white">{title}</h3>
+
+      <dl className="mt-4 grid gap-3 text-sm">
+        <div>
+          <dt className="font-medium text-slate-300">Status</dt>
+          <dd className="mt-1 text-slate-400">{status}</dd>
+        </div>
+
+        <div>
+          <dt className="font-medium text-slate-300">Responsible</dt>
+          <dd className="mt-1 text-cyan-300">{responsible}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function translateTaskStatus(status: TaskStatus) {
+  if (status === "backlog") {
+    return "Backlog";
+  }
+
+  if (status === "planned") {
+    return "Planerat";
+  }
+
+  if (status === "in-progress") {
+    return "Pågår";
+  }
+
+  if (status === "blocked") {
+    return "Blockerat";
+  }
+
+  if (status === "review") {
+    return "Granskning";
+  }
+
+  return "Klart";
 }
 
 function translateRiskLevel(level: RiskLevel) {
