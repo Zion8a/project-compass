@@ -68,6 +68,9 @@ export default function ProjectReportPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [risks, setRisks] = useState<ProjectRisk[]>([]);
   const [decisions, setDecisions] = useState<ProjectDecision[]>([]);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
@@ -166,6 +169,139 @@ export default function ProjectReportPage() {
     };
   }, [tasks, risks, decisions]);
 
+  function buildStatusReportMarkdown() {
+    const projectName =
+      project?.projectName || activeProject?.name || "Untitled project";
+
+    const members = activeProject?.members ?? [];
+
+    const memberSection =
+      members.length === 0
+        ? "No project members have been added yet."
+        : members
+            .map((member) => {
+              return [
+                `- **${member.name}**`,
+                `  - Role: ${member.role || "Not specified"}`,
+                `  - Responsibility: ${
+                  member.responsibility || "Not specified"
+                }`,
+                `  - Comment: ${member.comment || "No comment"}`,
+              ].join("\n");
+            })
+            .join("\n");
+
+    const taskSection =
+      tasks.length === 0
+        ? "No tasks have been created yet."
+        : tasks
+            .map((task) => {
+              return `- **${task.title}** — ${translateTaskStatus(
+                task.status
+              )} — Responsible: ${getMemberName(task.ownerId)}`;
+            })
+            .join("\n");
+
+    const riskSection =
+      risks.length === 0
+        ? "No risks have been created yet."
+        : risks
+            .map((risk) => {
+              return `- **${risk.title}** — ${translateRiskStatus(
+                risk.status
+              )} — Responsible: ${getMemberName(risk.ownerId, risk.owner)}`;
+            })
+            .join("\n");
+
+    const decisionSection =
+      decisions.length === 0
+        ? "No decisions have been created yet."
+        : decisions
+            .map((decision) => {
+              return `- **${decision.title}** — ${translateDecisionStatus(
+                decision.status
+              )} — Responsible: ${getMemberName(
+                decision.ownerId,
+                decision.owner
+              )}`;
+            })
+            .join("\n");
+
+    return [
+      `# Status Report – ${projectName}`,
+      "",
+      `Date: ${new Date().toLocaleDateString("sv-SE")}`,
+      "",
+      "## Overall Project Status",
+      "",
+      `**${report.statusLabel}**`,
+      "",
+      report.statusText,
+      "",
+      "## Summary",
+      "",
+      `- Total tasks: ${report.totalTasks}`,
+      `- Done tasks: ${report.doneTasks}`,
+      `- Blocked tasks: ${report.blockedTasks}`,
+      `- Open risks: ${report.openRisks.length}`,
+      `- High risks: ${report.highRisks.length}`,
+      `- Open decisions: ${report.openDecisions.length}`,
+      `- Project members: ${members.length}`,
+      "",
+      "## Purpose",
+      "",
+      project?.purpose || "No purpose has been defined yet.",
+      "",
+      "## Goal",
+      "",
+      project?.goal || "No goal has been defined yet.",
+      "",
+      "## Deliverables",
+      "",
+      project?.deliverables || "No deliverables have been defined yet.",
+      "",
+      "## Project Members",
+      "",
+      memberSection,
+      "",
+      "## Task Responsibility",
+      "",
+      taskSection,
+      "",
+      "## Risk Responsibility",
+      "",
+      riskSection,
+      "",
+      "## Decision Responsibility",
+      "",
+      decisionSection,
+      "",
+      "## Recommended Next Steps",
+      "",
+      "- Follow up blocked tasks.",
+      "- Prioritize high-probability or high-impact risks.",
+      "- Clarify open decisions.",
+      "- Check that important tasks, risks and decisions have responsible owners.",
+      "- Update the workspace after the next project check-in.",
+    ].join("\n");
+  }
+
+  async function handleCopyMarkdownReport() {
+    try {
+      const markdown = buildStatusReportMarkdown();
+
+      await navigator.clipboard.writeText(markdown);
+
+      setCopyStatus("copied");
+
+      window.setTimeout(() => {
+        setCopyStatus("idle");
+      }, 2500);
+    } catch {
+      setCopyStatus("error");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppHeader currentPage="project-report" />
@@ -190,6 +326,28 @@ export default function ProjectReportPage() {
                 ? `Projekt: ${activeProject.name}`
                 : "Inget projekt hittades ännu."}
           </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={handleCopyMarkdownReport}
+              className="w-fit rounded-2xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 shadow-lg transition hover:bg-cyan-300"
+            >
+              Copy status report as Markdown
+            </button>
+
+            {copyStatus === "copied" && (
+              <p className="text-sm font-medium text-emerald-300">
+                Report copied to clipboard.
+              </p>
+            )}
+
+            {copyStatus === "error" && (
+              <p className="text-sm font-medium text-rose-300">
+                Could not copy report. Try again.
+              </p>
+            )}
+          </div>
         </div>
 
         <section
@@ -294,7 +452,10 @@ export default function ProjectReportPage() {
               <li>• Följ upp blockerade uppgifter.</li>
               <li>• Prioritera risker med hög sannolikhet eller konsekvens.</li>
               <li>• Fatta eller förtydliga öppna beslut.</li>
-              <li>• Kontrollera att viktiga uppgifter, risker och beslut har ansvarig.</li>
+              <li>
+                • Kontrollera att viktiga uppgifter, risker och beslut har
+                ansvarig.
+              </li>
               <li>• Uppdatera arbetsytan efter nästa avstämning.</li>
             </ul>
           </ReportSection>
