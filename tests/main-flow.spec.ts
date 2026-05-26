@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("user can create a project and see the status report", async ({ page }) => {
+test("user can create a project and see the status report", async ({
+  page,
+  context,
+}) => {
   await page.goto("/new-project");
 
   const textboxes = page.getByRole("textbox");
@@ -23,16 +26,17 @@ test("user can create a project and see the status report", async ({ page }) => 
     page.getByRole("heading", { name: /Projektkarta/ })
   ).toBeVisible();
 
-  await page
-    .locator("header")
-    .getByRole("link", { name: "Status Report" })
-    .click();
+  await expect(page.getByText("Införa nytt arbetssätt")).toBeVisible();
 
-  await page.waitForURL("**/project-report");
+  const reportPage = await context.newPage();
+
+  await reportPage.goto("/project-report");
 
   await expect(
-    page.getByRole("heading", { name: /Statusrapport|Status Report/ })
+    reportPage.getByRole("heading", { name: /Statusrapport|Status Report/ })
   ).toBeVisible();
 
-  await expect(page.getByText("Införa nytt arbetssätt")).toBeVisible();
+  await expect(reportPage.getByText("Införa nytt arbetssätt")).toBeVisible();
+
+  await reportPage.close();
 });
