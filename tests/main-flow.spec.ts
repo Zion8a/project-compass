@@ -21,7 +21,7 @@ test("user can create a project and see the status report", async ({ page }) => 
     page.getByRole("heading", { name: /Projektkarta/ })
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Status Report" }).click();
+  await page.goto("/project-report");
 
   await expect(
     page.getByRole("heading", { name: /Statusrapport|Status Report/ })

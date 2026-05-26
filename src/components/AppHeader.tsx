@@ -23,9 +23,13 @@ const navItems = [
     label: "My Projects",
   },
   {
-  href: "/new-project",
-  label: "Interview",
-},
+    href: "/project-members",
+    label: "Members",
+  },
+  {
+    href: "/new-project",
+    label: "Interview",
+  },
   {
     href: "/project-map",
     label: "Project Map",
