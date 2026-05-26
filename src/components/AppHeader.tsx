@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+} from "@/lib/projectStorage";
 
 const navItems = [
   {
@@ -40,21 +46,44 @@ const navItems = [
 
 export default function AppHeader() {
   const pathname = usePathname();
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+
+  useEffect(() => {
+    const loadedState = loadProjectCompassState();
+    const currentProject = getActiveProject(loadedState);
+
+    setActiveProject(currentProject);
+  }, [pathname]);
 
   return (
     <header className="border-b border-slate-800/80 bg-slate-950/95">
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5">
-        <div className="flex flex-col gap-1">
-          <Link
-            href="/"
-            className="text-xl font-bold tracking-tight text-slate-100"
-          >
-            Project Compass
-          </Link>
-          <p className="text-sm text-slate-400">
-            A project thinking tool for goals, risks, decisions, status and next
-            steps.
-          </p>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-1">
+            <Link
+              href="/"
+              className="text-xl font-bold tracking-tight text-slate-100"
+            >
+              Project Compass
+            </Link>
+            <p className="text-sm text-slate-400">
+              A project thinking tool for goals, risks, decisions, status and
+              next steps.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Active project
+            </p>
+            {activeProject ? (
+              <p className="mt-1 font-semibold text-cyan-300">
+                {activeProject.name}
+              </p>
+            ) : (
+              <p className="mt-1 text-slate-400">No active project</p>
+            )}
+          </div>
         </div>
 
         <nav aria-label="Main navigation">

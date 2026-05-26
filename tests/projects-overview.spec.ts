@@ -3,9 +3,11 @@ import { expect, test } from "@playwright/test";
 test.describe("Projects overview", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/projects");
+
     await page.evaluate(() => {
       window.localStorage.clear();
     });
+
     await page.reload();
   });
 
@@ -23,18 +25,42 @@ test.describe("Projects overview", () => {
 
     await page.getByRole("button", { name: "Create project" }).click();
 
+    const projectCard = page
+      .locator("article")
+      .filter({ hasText: "Project Compass Demo" });
+
     await expect(
-      page.getByRole("heading", { name: "Project Compass Demo" })
+      projectCard.getByRole("heading", { name: "Project Compass Demo" })
     ).toBeVisible();
 
-    await expect(page.getByText("Active")).toBeVisible();
+    await expect(
+      projectCard.getByText("Active", { exact: true })
+    ).toBeVisible();
 
     await page.reload();
 
+    const reloadedProjectCard = page
+      .locator("article")
+      .filter({ hasText: "Project Compass Demo" });
+
     await expect(
-      page.getByRole("heading", { name: "Project Compass Demo" })
+      reloadedProjectCard.getByRole("heading", {
+        name: "Project Compass Demo",
+      })
     ).toBeVisible();
 
-    await expect(page.getByText("Active")).toBeVisible();
+    await expect(
+      reloadedProjectCard.getByText("Active", { exact: true })
+    ).toBeVisible();
+
+    const header = page.locator("header");
+
+    await expect(
+      header.getByText("Active project", { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      header.getByText("Project Compass Demo", { exact: true })
+    ).toBeVisible();
   });
 });
