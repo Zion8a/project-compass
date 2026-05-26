@@ -23,9 +23,12 @@ test("user can create a project and see the status report", async ({ page }) => 
     page.getByRole("heading", { name: /Projektkarta/ })
   ).toBeVisible();
 
-  await page.waitForLoadState("networkidle");
+  await page
+    .locator("header")
+    .getByRole("link", { name: "Status Report" })
+    .click();
 
-  await page.goto("/project-report", { waitUntil: "domcontentloaded" });
+  await page.waitForURL("**/project-report");
 
   await expect(
     page.getByRole("heading", { name: /Statusrapport|Status Report/ })
