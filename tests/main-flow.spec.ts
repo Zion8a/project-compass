@@ -17,11 +17,15 @@ test("user can create a project and see the status report", async ({ page }) => 
 
   await page.getByRole("button", { name: "Skapa projektkarta" }).click();
 
+  await page.waitForURL("**/project-map");
+
   await expect(
     page.getByRole("heading", { name: /Projektkarta/ })
   ).toBeVisible();
 
-  await page.goto("/project-report");
+  await page.waitForLoadState("networkidle");
+
+  await page.goto("/project-report", { waitUntil: "domcontentloaded" });
 
   await expect(
     page.getByRole("heading", { name: /Statusrapport|Status Report/ })
