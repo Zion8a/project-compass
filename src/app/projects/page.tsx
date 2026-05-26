@@ -1,0 +1,226 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import AppHeader from "@/components/AppHeader";
+import {
+  addProject,
+  createProject,
+  loadProjectCompassState,
+  ProjectCompassState,
+  saveProjectCompassState,
+  setActiveProject,
+} from "@/lib/projectStorage";
+
+export default function ProjectsPage() {
+  const [state, setState] = useState<ProjectCompassState>({
+    activeProjectId: null,
+    projects: [],
+  });
+
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+
+  useEffect(() => {
+    const loadedState = loadProjectCompassState();
+    setState(loadedState);
+  }, []);
+
+  function handleCreateProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedName = projectName.trim();
+    const trimmedDescription = projectDescription.trim();
+
+    if (!trimmedName) {
+      return;
+    }
+
+    const newProject = createProject(
+      trimmedName,
+      trimmedDescription || undefined
+    );
+
+    const updatedState = addProject(state, newProject);
+
+    setState(updatedState);
+    saveProjectCompassState(updatedState);
+
+    setProjectName("");
+    setProjectDescription("");
+  }
+
+  function handleOpenProject(projectId: string) {
+    const updatedState = setActiveProject(state, projectId);
+
+    setState(updatedState);
+    saveProjectCompassState(updatedState);
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <AppHeader />
+
+      <section className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mb-10">
+          <p className="text-sm font-semibold uppercase tracking-wide text-cyan-300">
+            Project platform
+          </p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight">
+            My Projects
+          </h1>
+          <p className="mt-4 max-w-3xl text-slate-300">
+            Create, save and open projects. This is the first step in turning
+            Project Compass from a single-project MVP into a small project
+            platform.
+          </p>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
+          <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-lg">
+            <h2 className="text-xl font-semibold">Create new project</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Start with a simple project name. More structure can be added
+              later through the project interview, map, risks, decisions and
+              status report.
+            </p>
+
+            <form onSubmit={handleCreateProject} className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="project-name"
+                  className="block text-sm font-medium text-slate-200"
+                >
+                  Project name
+                </label>
+                <input
+                  id="project-name"
+                  value={projectName}
+                  onChange={(event) => setProjectName(event.target.value)}
+                  placeholder="Example: Website redesign"
+                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none ring-cyan-400 placeholder:text-slate-500 focus:ring-2"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="project-description"
+                  className="block text-sm font-medium text-slate-200"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="project-description"
+                  value={projectDescription}
+                  onChange={(event) =>
+                    setProjectDescription(event.target.value)
+                  }
+                  placeholder="Short description of the project"
+                  rows={4}
+                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none ring-cyan-400 placeholder:text-slate-500 focus:ring-2"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+              >
+                Create project
+              </button>
+            </form>
+          </section>
+
+          <section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold">Saved projects</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  {state.projects.length} saved project
+                  {state.projects.length === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+
+            {state.projects.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 p-8 text-center">
+                <h3 className="text-lg font-semibold">No projects yet</h3>
+                <p className="mt-2 text-slate-400">
+                  Create your first project to start using Project Compass as a
+                  project platform.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {state.projects.map((project) => {
+                  const isActive = project.id === state.activeProjectId;
+
+                  return (
+                    <article
+                      key={project.id}
+                      className={`rounded-2xl border p-5 shadow-lg ${
+                        isActive
+                          ? "border-cyan-400 bg-cyan-400/10"
+                          : "border-slate-800 bg-slate-900/70"
+                      }`}
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-xl font-semibold">
+                              {project.name}
+                            </h3>
+                            {isActive && (
+                              <span className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-950">
+                                Active
+                              </span>
+                            )}
+                          </div>
+
+                          {project.description && (
+                            <p className="mt-2 text-slate-300">
+                              {project.description}
+                            </p>
+                          )}
+
+                          <dl className="mt-4 grid gap-2 text-sm text-slate-400 sm:grid-cols-3">
+                            <div>
+                              <dt className="font-medium text-slate-300">
+                                Status
+                              </dt>
+                              <dd>{project.status}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-medium text-slate-300">
+                                Members
+                              </dt>
+                              <dd>{project.members.length}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-medium text-slate-300">
+                                Last updated
+                              </dt>
+                              <dd>
+                                {new Date(project.updatedAt).toLocaleDateString()}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenProject(project.id)}
+                          className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-400 hover:text-cyan-300"
+                        >
+                          Open project
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </section>
+    </main>
+  );
+}
