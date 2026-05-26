@@ -49,6 +49,7 @@ It demonstrates:
 - Playwright report artifact upload
 - Written test strategy and manual test documentation
 - Incremental feature development with clear commits
+- UI language consistency improvement from mixed Swedish/English to standardized English
 - Deployment to Vercel as a live portfolio demo
 
 The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression, automation and maintainability.
@@ -124,6 +125,7 @@ The current version includes:
 - Responsibility overview in status report
 - Copy status report as Markdown
 - Local data persistence with localStorage
+- Standardized English UI across the main application flow
 - Manual regression test documentation
 - Automated end-to-end tests with Playwright
 - Live deployment on Vercel
@@ -493,6 +495,7 @@ Manual testing has been used to verify:
 - Decision responsibility after reload
 - Responsibility overview in status report
 - Markdown copy from status report
+- Standardized English UI across the main application flow
 - Vercel deployment smoke test
 
 During manual exploratory testing, several usability and navigation issues were found and fixed, including:
@@ -505,6 +508,8 @@ During manual exploratory testing, several usability and navigation issues were 
 - Ambiguous Playwright locators when several elements had similar text
 - Navigation timing issues in the old main flow test
 - Clipboard limitations in Playwright requiring a mocked clipboard implementation
+- Mixed Swedish and English UI text before the English UI refactor
+- Encoding issues from earlier copied text
 
 ### Automated testing
 
@@ -778,6 +783,9 @@ Completed:
 - Copy status report as Markdown
 - Status report Markdown Playwright coverage
 - Responsibility model plan
+- Standardized English UI across the main application flow
+- Updated Playwright tests after UI language refactor
+- Cleaned up encoding issues from earlier copied text
 - Vercel deployment
 - Live demo link in README
 
