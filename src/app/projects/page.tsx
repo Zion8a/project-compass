@@ -13,6 +13,21 @@ import {
   setActiveProject,
 } from "@/lib/projectStorage";
 
+function formatProjectStatus(status: Project["status"]) {
+  switch (status) {
+    case "not-started":
+      return "Not started";
+    case "in-progress":
+      return "In progress";
+    case "at-risk":
+      return "At risk";
+    case "completed":
+      return "Completed";
+    default:
+      return status;
+  }
+}
+
 export default function ProjectsPage() {
   const router = useRouter();
 
@@ -103,9 +118,9 @@ export default function ProjectsPage() {
             My Projects
           </h1>
           <p className="mt-4 max-w-3xl text-slate-300">
-            Create, save and open projects. This is the first step in turning
-            Project Compass from a single-project MVP into a small project
-            platform.
+            Create, save and open projects. This overview helps you see which
+            projects exist, which project is active, and how much structure each
+            project currently has.
           </p>
         </div>
 
@@ -114,8 +129,8 @@ export default function ProjectsPage() {
             <h2 className="text-xl font-semibold">Create new project</h2>
             <p className="mt-2 text-sm text-slate-400">
               Start with a simple project name. More structure can be added
-              later through the project interview, map, risks, decisions and
-              status report.
+              later through the project interview, project map, members, risks,
+              decisions and status report.
             </p>
 
             <form onSubmit={handleCreateProject} className="mt-6 space-y-4">
@@ -196,8 +211,8 @@ export default function ProjectsPage() {
                           : "border-slate-800 bg-slate-900/70"
                       }`}
                     >
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
+                      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-3">
                             <h3 className="text-xl font-semibold">
                               {project.name}
@@ -209,32 +224,61 @@ export default function ProjectsPage() {
                             )}
                           </div>
 
-                          {project.description && (
+                          {project.description ? (
                             <p className="mt-2 text-slate-300">
                               {project.description}
                             </p>
+                          ) : (
+                            <p className="mt-2 text-slate-500">
+                              No description added yet.
+                            </p>
                           )}
 
-                          <dl className="mt-4 grid gap-2 text-sm text-slate-400 sm:grid-cols-3">
-                            <div>
+                          <dl className="mt-5 grid gap-3 text-sm text-slate-400 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                               <dt className="font-medium text-slate-300">
                                 Status
                               </dt>
-                              <dd>{project.status}</dd>
+                              <dd className="mt-1">
+                                {formatProjectStatus(project.status)}
+                              </dd>
                             </div>
 
-                            <div>
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                               <dt className="font-medium text-slate-300">
                                 Members
                               </dt>
-                              <dd>{project.members.length}</dd>
+                              <dd className="mt-1">{project.members.length}</dd>
                             </div>
 
-                            <div>
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                              <dt className="font-medium text-slate-300">
+                                Tasks
+                              </dt>
+                              <dd className="mt-1">{project.tasks.length}</dd>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                              <dt className="font-medium text-slate-300">
+                                Risks
+                              </dt>
+                              <dd className="mt-1">{project.risks.length}</dd>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                              <dt className="font-medium text-slate-300">
+                                Decisions
+                              </dt>
+                              <dd className="mt-1">
+                                {project.decisions.length}
+                              </dd>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                               <dt className="font-medium text-slate-300">
                                 Last updated
                               </dt>
-                              <dd>
+                              <dd className="mt-1">
                                 {new Date(
                                   project.updatedAt
                                 ).toLocaleDateString("sv-SE")}
