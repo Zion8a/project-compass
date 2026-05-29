@@ -13,7 +13,12 @@ import {
   ProjectRiskStatus,
   ProjectTaskStatus,
 } from "@/lib/projectStorage";
-import { AttentionItem, getAttentionItems } from "@/lib/projectInsights";
+import {
+  AttentionItem,
+  getAttentionItems,
+  getProjectHealth,
+  ProjectHealth,
+} from "@/lib/projectInsights";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -50,6 +55,9 @@ export default function ProjectReportPage() {
   const members = activeProject?.members ?? [];
 
   const attentionItems = activeProject ? getAttentionItems(activeProject) : [];
+  const projectHealth = activeProject
+    ? getProjectHealth(activeProject, attentionItems)
+    : null;
 
   function getMemberName(ownerId?: string, fallbackOwner?: string) {
     if (ownerId) {
@@ -83,34 +91,6 @@ export default function ProjectReportPage() {
       (decision) => decision.status === "decided"
     );
 
-    let statusLabel = "Stable";
-    let statusText =
-      "The project has no clear warning signs based on registered tasks, risks and decisions.";
-    let statusTone = "emerald";
-
-    if (
-      blockedTasks.length > 0 ||
-      highRisks.length > 0 ||
-      openDecisions.length > 0 ||
-      attentionItems.length > 0
-    ) {
-      statusLabel = "Needs attention";
-      statusText =
-        "The project has blocked tasks, high risks, open decisions or missing ownership that should be followed up.";
-      statusTone = "amber";
-    }
-
-    if (
-      blockedTasks.length >= 2 ||
-      highRisks.length >= 2 ||
-      openDecisions.length >= 3
-    ) {
-      statusLabel = "At risk";
-      statusText =
-        "The project has several signals that may affect progress, quality or delivery.";
-      statusTone = "rose";
-    }
-
     return {
       totalTasks: tasks.length,
       doneTasks: doneTasks.length,
@@ -119,11 +99,15 @@ export default function ProjectReportPage() {
       highRisks,
       openDecisions,
       decidedDecisions,
-      statusLabel,
-      statusText,
-      statusTone,
+      statusLabel: projectHealth?.title ?? "Stable",
+      statusText:
+        projectHealth?.summary ??
+        "The project has no clear warning signs based on registered tasks, risks and decisions.",
+      statusTone: projectHealth
+        ? getProjectHealthTone(projectHealth)
+        : "emerald",
     };
-  }, [tasks, risks, decisions, attentionItems.length]);
+  }, [tasks, risks, decisions, projectHealth]);
 
   function buildStatusReportMarkdown() {
     const projectName =
@@ -599,6 +583,18 @@ export default function ProjectReportPage() {
       </section>
     </main>
   );
+}
+
+function getProjectHealthTone(projectHealth: ProjectHealth) {
+  if (projectHealth.level === "stable") {
+    return "emerald";
+  }
+
+  if (projectHealth.level === "needs-attention") {
+    return "amber";
+  }
+
+  return "rose";
 }
 
 function SummaryCard({
