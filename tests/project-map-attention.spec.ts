@@ -72,11 +72,28 @@ test.describe("Project map attention needed", () => {
 
     await expect(page.getByText("Attention needed", { exact: true })).toBeVisible();
 
-    await expect(page.getByText("1 blocked task")).toBeVisible();
-    await expect(page.getByText("1 task without owner")).toBeVisible();
-    await expect(page.getByText("1 risk without owner")).toBeVisible();
-    await expect(page.getByText("1 high risk")).toBeVisible();
-    await expect(page.getByText("1 decision without owner")).toBeVisible();
-    await expect(page.getByText("1 open decision")).toBeVisible();
+    await expect(
+  page.getByRole("heading", { name: "1 blocked task" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 task without owner" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 risk without owner" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 high risk" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 decision without owner" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 open decision" })
+).toBeVisible();
   });
 });

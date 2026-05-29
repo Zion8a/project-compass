@@ -25,6 +25,13 @@ type AttentionItem = {
   severity: "medium" | "high";
 };
 
+type ProjectHealth = {
+  level: "stable" | "needs-attention" | "at-risk";
+  title: string;
+  summary: string;
+  reasons: string[];
+};
+
 export default function ProjectMapPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -103,9 +110,10 @@ export default function ProjectMapPage() {
     activeProject?.decisions.filter((decision) => decision.status === "open")
       .length ?? 0;
 
-  const attentionItems = activeProject
-    ? getAttentionItems(activeProject)
-    : [];
+  const attentionItems = activeProject ? getAttentionItems(activeProject) : [];
+  const projectHealth = activeProject
+    ? getProjectHealth(activeProject, attentionItems)
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -207,6 +215,10 @@ export default function ProjectMapPage() {
               />
             </div>
           </section>
+        )}
+
+        {projectHealth && (
+          <ProjectHealthSection projectHealth={projectHealth} />
         )}
 
         {activeProject && (
@@ -411,6 +423,128 @@ function getAttentionItems(project: Project): AttentionItem[] {
   }
 
   return items;
+}
+
+function getProjectHealth(
+  project: Project,
+  attentionItems: AttentionItem[]
+): ProjectHealth {
+  const blockedTasksCount = project.tasks.filter(
+    (task) => task.status === "blocked"
+  ).length;
+
+  const highRisksCount = project.risks.filter(
+    (risk) => risk.probability === "high" || risk.impact === "high"
+  ).length;
+
+  const openDecisionsCount = project.decisions.filter(
+    (decision) => decision.status === "open"
+  ).length;
+
+  const reasons: string[] = [];
+
+  if (blockedTasksCount > 0) {
+    reasons.push(
+      `${blockedTasksCount} blocked task${
+        blockedTasksCount === 1 ? "" : "s"
+      }`
+    );
+  }
+
+  if (highRisksCount > 0) {
+    reasons.push(
+      `${highRisksCount} high risk${highRisksCount === 1 ? "" : "s"}`
+    );
+  }
+
+  if (openDecisionsCount > 0) {
+    reasons.push(
+      `${openDecisionsCount} open decision${
+        openDecisionsCount === 1 ? "" : "s"
+      }`
+    );
+  }
+
+  const isAtRisk =
+    blockedTasksCount >= 2 || highRisksCount >= 2 || openDecisionsCount >= 3;
+
+  if (isAtRisk) {
+    return {
+      level: "at-risk",
+      title: "At risk",
+      summary:
+        "This project has several signals that may affect progress, direction or delivery.",
+      reasons,
+    };
+  }
+
+  if (attentionItems.length > 0) {
+    return {
+      level: "needs-attention",
+      title: "Needs attention",
+      summary:
+        "This project has items that should be reviewed by the project leader.",
+      reasons:
+        reasons.length > 0
+          ? reasons
+          : ["Some tasks, risks or decisions are missing clear ownership."],
+    };
+  }
+
+  return {
+    level: "stable",
+    title: "Stable",
+    summary:
+      "No blocked tasks, high risks, open decisions or missing owners were found.",
+    reasons: ["No current attention signals."],
+  };
+}
+
+function ProjectHealthSection({
+  projectHealth,
+}: {
+  projectHealth: ProjectHealth;
+}) {
+  const healthClasses = {
+    stable: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
+    "needs-attention": "border-amber-500/30 bg-amber-500/10 text-amber-100",
+    "at-risk": "border-red-500/30 bg-red-500/10 text-red-100",
+  };
+
+  return (
+    <section
+      className={`mt-8 rounded-3xl border p-6 ${
+        healthClasses[projectHealth.level]
+      }`}
+    >
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] opacity-80">
+        Project Health
+      </p>
+
+      <h2 className="mt-2 text-3xl font-bold">{projectHealth.title}</h2>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">
+        {projectHealth.summary}
+      </p>
+
+      <div className="mt-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
+          Main reasons
+        </p>
+
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {projectHealth.reasons.map((reason) => (
+            <li
+              key={reason}
+              className="rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-slate-100"
+            >
+              {reason}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
 }
 
 function ProjectMapCard({
