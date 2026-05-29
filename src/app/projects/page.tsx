@@ -12,6 +12,11 @@ import {
   saveProjectCompassState,
   setActiveProject,
 } from "@/lib/projectStorage";
+import {
+  getAttentionItems,
+  getProjectHealth,
+  ProjectHealth,
+} from "@/lib/projectInsights";
 
 function formatProjectStatus(status: Project["status"]) {
   switch (status) {
@@ -26,6 +31,18 @@ function formatProjectStatus(status: Project["status"]) {
     default:
       return status;
   }
+}
+
+function getProjectHealthClasses(projectHealth: ProjectHealth) {
+  if (projectHealth.level === "stable") {
+    return "border-emerald-500/40 bg-emerald-500/10 text-emerald-200";
+  }
+
+  if (projectHealth.level === "needs-attention") {
+    return "border-amber-500/40 bg-amber-500/10 text-amber-200";
+  }
+
+  return "border-red-500/40 bg-red-500/10 text-red-200";
 }
 
 export default function ProjectsPage() {
@@ -201,6 +218,11 @@ export default function ProjectsPage() {
               <div className="grid gap-4">
                 {state.projects.map((project) => {
                   const isActive = project.id === state.activeProjectId;
+                  const attentionItems = getAttentionItems(project);
+                  const projectHealth = getProjectHealth(
+                    project,
+                    attentionItems
+                  );
 
                   return (
                     <article
@@ -217,11 +239,20 @@ export default function ProjectsPage() {
                             <h3 className="text-xl font-semibold">
                               {project.name}
                             </h3>
+
                             {isActive && (
                               <span className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-950">
                                 Active
                               </span>
                             )}
+
+                            <span
+                              className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${getProjectHealthClasses(
+                                projectHealth
+                              )}`}
+                            >
+                              {projectHealth.title}
+                            </span>
                           </div>
 
                           {project.description ? (
@@ -234,7 +265,18 @@ export default function ProjectsPage() {
                             </p>
                           )}
 
+                          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                            {projectHealth.summary}
+                          </p>
+
                           <dl className="mt-5 grid gap-3 text-sm text-slate-400 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                              <dt className="font-medium text-slate-300">
+                                Health
+                              </dt>
+                              <dd className="mt-1">{projectHealth.title}</dd>
+                            </div>
+
                             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                               <dt className="font-medium text-slate-300">
                                 Status
@@ -242,6 +284,13 @@ export default function ProjectsPage() {
                               <dd className="mt-1">
                                 {formatProjectStatus(project.status)}
                               </dd>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                              <dt className="font-medium text-slate-300">
+                                Attention items
+                              </dt>
+                              <dd className="mt-1">{attentionItems.length}</dd>
                             </div>
 
                             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
