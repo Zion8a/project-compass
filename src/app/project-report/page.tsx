@@ -13,6 +13,7 @@ import {
   ProjectRiskStatus,
   ProjectTaskStatus,
 } from "@/lib/projectStorage";
+import { AttentionItem, getAttentionItems } from "@/lib/projectInsights";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -21,13 +22,6 @@ type ProjectInterviewData = {
   deliverables: string;
   risks: string;
   decisions: string;
-};
-
-type AttentionItem = {
-  id: string;
-  title: string;
-  text: string;
-  severity: "medium" | "high";
 };
 
 export default function ProjectReportPage() {
@@ -605,100 +599,6 @@ export default function ProjectReportPage() {
       </section>
     </main>
   );
-}
-
-function getAttentionItems(project: Project): AttentionItem[] {
-  const blockedTasks = project.tasks.filter(
-    (task) => task.status === "blocked"
-  );
-
-  const tasksWithoutOwner = project.tasks.filter((task) => !task.ownerId);
-
-  const risksWithoutOwner = project.risks.filter(
-    (risk) => !risk.ownerId && !risk.owner
-  );
-
-  const highRisks = project.risks.filter(
-    (risk) => risk.probability === "high" || risk.impact === "high"
-  );
-
-  const decisionsWithoutOwner = project.decisions.filter(
-    (decision) => !decision.ownerId && !decision.owner
-  );
-
-  const openDecisions = project.decisions.filter(
-    (decision) => decision.status === "open"
-  );
-
-  const items: AttentionItem[] = [];
-
-  if (blockedTasks.length > 0) {
-    items.push({
-      id: "blocked-tasks",
-      title: `${blockedTasks.length} blocked task${
-        blockedTasks.length === 1 ? "" : "s"
-      }`,
-      text: "Blocked tasks may prevent the project from moving forward.",
-      severity: "high",
-    });
-  }
-
-  if (tasksWithoutOwner.length > 0) {
-    items.push({
-      id: "tasks-without-owner",
-      title: `${tasksWithoutOwner.length} task${
-        tasksWithoutOwner.length === 1 ? "" : "s"
-      } without owner`,
-      text: "Tasks without an owner can easily be missed or delayed.",
-      severity: "medium",
-    });
-  }
-
-  if (risksWithoutOwner.length > 0) {
-    items.push({
-      id: "risks-without-owner",
-      title: `${risksWithoutOwner.length} risk${
-        risksWithoutOwner.length === 1 ? "" : "s"
-      } without owner`,
-      text: "Risks without a responsible person may not be followed up.",
-      severity: "medium",
-    });
-  }
-
-  if (highRisks.length > 0) {
-    items.push({
-      id: "high-risks",
-      title: `${highRisks.length} high risk${
-        highRisks.length === 1 ? "" : "s"
-      }`,
-      text: "High risks should be reviewed and handled before they affect the project.",
-      severity: "high",
-    });
-  }
-
-  if (decisionsWithoutOwner.length > 0) {
-    items.push({
-      id: "decisions-without-owner",
-      title: `${decisionsWithoutOwner.length} decision${
-        decisionsWithoutOwner.length === 1 ? "" : "s"
-      } without owner`,
-      text: "Decisions without an owner may remain unclear or unresolved.",
-      severity: "medium",
-    });
-  }
-
-  if (openDecisions.length > 0) {
-    items.push({
-      id: "open-decisions",
-      title: `${openDecisions.length} open decision${
-        openDecisions.length === 1 ? "" : "s"
-      }`,
-      text: "Open decisions can block direction, scope or next steps.",
-      severity: "high",
-    });
-  }
-
-  return items;
 }
 
 function SummaryCard({
