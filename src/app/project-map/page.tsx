@@ -18,6 +18,13 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
+type AttentionItem = {
+  id: string;
+  title: string;
+  text: string;
+  severity: "medium" | "high";
+};
+
 export default function ProjectMapPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -95,6 +102,10 @@ export default function ProjectMapPage() {
   const openDecisionsCount =
     activeProject?.decisions.filter((decision) => decision.status === "open")
       .length ?? 0;
+
+  const attentionItems = activeProject
+    ? getAttentionItems(activeProject)
+    : [];
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -198,6 +209,44 @@ export default function ProjectMapPage() {
           </section>
         )}
 
+        {activeProject && (
+          <section className="mt-8 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-6">
+            <div className="mb-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">
+                Attention needed
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold">
+                What needs project leader attention?
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+                Project Compass checks the active project for blocked work,
+                missing responsibility, high risks and open decisions.
+              </p>
+            </div>
+
+            {attentionItems.length === 0 ? (
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+                <h3 className="font-semibold text-emerald-200">
+                  No attention items right now.
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  No blocked tasks, high risks, open decisions or missing
+                  owners were found in the active project.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {attentionItems.map((item) => (
+                  <AttentionCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <ProjectMapCard
             number="01"
@@ -270,6 +319,100 @@ export default function ProjectMapPage() {
   );
 }
 
+function getAttentionItems(project: Project): AttentionItem[] {
+  const blockedTasks = project.tasks.filter(
+    (task) => task.status === "blocked"
+  );
+
+  const tasksWithoutOwner = project.tasks.filter((task) => !task.ownerId);
+
+  const risksWithoutOwner = project.risks.filter(
+    (risk) => !risk.ownerId && !risk.owner
+  );
+
+  const highRisks = project.risks.filter(
+    (risk) => risk.probability === "high" || risk.impact === "high"
+  );
+
+  const decisionsWithoutOwner = project.decisions.filter(
+    (decision) => !decision.ownerId && !decision.owner
+  );
+
+  const openDecisions = project.decisions.filter(
+    (decision) => decision.status === "open"
+  );
+
+  const items: AttentionItem[] = [];
+
+  if (blockedTasks.length > 0) {
+    items.push({
+      id: "blocked-tasks",
+      title: `${blockedTasks.length} blocked task${
+        blockedTasks.length === 1 ? "" : "s"
+      }`,
+      text: "Blocked tasks may prevent the project from moving forward.",
+      severity: "high",
+    });
+  }
+
+  if (tasksWithoutOwner.length > 0) {
+    items.push({
+      id: "tasks-without-owner",
+      title: `${tasksWithoutOwner.length} task${
+        tasksWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Tasks without an owner can easily be missed or delayed.",
+      severity: "medium",
+    });
+  }
+
+  if (risksWithoutOwner.length > 0) {
+    items.push({
+      id: "risks-without-owner",
+      title: `${risksWithoutOwner.length} risk${
+        risksWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Risks without a responsible person may not be followed up.",
+      severity: "medium",
+    });
+  }
+
+  if (highRisks.length > 0) {
+    items.push({
+      id: "high-risks",
+      title: `${highRisks.length} high risk${
+        highRisks.length === 1 ? "" : "s"
+      }`,
+      text: "High risks should be reviewed and handled before they affect the project.",
+      severity: "high",
+    });
+  }
+
+  if (decisionsWithoutOwner.length > 0) {
+    items.push({
+      id: "decisions-without-owner",
+      title: `${decisionsWithoutOwner.length} decision${
+        decisionsWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Decisions without an owner may remain unclear or unresolved.",
+      severity: "medium",
+    });
+  }
+
+  if (openDecisions.length > 0) {
+    items.push({
+      id: "open-decisions",
+      title: `${openDecisions.length} open decision${
+        openDecisions.length === 1 ? "" : "s"
+      }`,
+      text: "Open decisions can block direction, scope or next steps.",
+      severity: "high",
+    });
+  }
+
+  return items;
+}
+
 function ProjectMapCard({
   number,
   title,
@@ -322,6 +465,25 @@ function ProjectSummaryCard({
       <p className="mt-2 text-2xl font-bold text-white">{value}</p>
 
       <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
+  );
+}
+
+function AttentionCard({ item }: { item: AttentionItem }) {
+  const severityClasses =
+    item.severity === "high"
+      ? "border-red-500/40 bg-red-500/10 text-red-100"
+      : "border-amber-500/40 bg-amber-500/10 text-amber-100";
+
+  return (
+    <article className={`rounded-2xl border p-5 ${severityClasses}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
+        {item.severity === "high" ? "High attention" : "Needs attention"}
+      </p>
+
+      <h3 className="mt-2 text-lg font-bold">{item.title}</h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-200">{item.text}</p>
     </article>
   );
 }
