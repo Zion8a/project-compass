@@ -6,7 +6,11 @@ import {
   getActiveProject,
   loadProjectCompassState,
   Project,
+  ProjectDecision,
+  ProjectDecisionStatus,
   ProjectMember,
+  saveProjectCompassState,
+  updateProject,
 } from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
@@ -18,24 +22,74 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
-type DecisionStatus = "open" | "decided" | "postponed";
-
-type ProjectDecision = {
-  id: string;
-  title: string;
-  description: string;
-  owner: string;
-  ownerId?: string;
-  deadline: string;
-  consequence: string;
-  status: DecisionStatus;
-};
-
-const decisionStatuses: { id: DecisionStatus; title: string }[] = [
+const decisionStatuses: { id: ProjectDecisionStatus; title: string }[] = [
   { id: "open", title: "Open" },
   { id: "decided", title: "Decided" },
   { id: "postponed", title: "Postponed" },
 ];
+
+function isValidDecisionStatus(
+  status: unknown
+): status is ProjectDecisionStatus {
+  return decisionStatuses.some((decisionStatus) => decisionStatus.id === status);
+}
+
+function loadLegacyDecisions(): ProjectDecision[] {
+  const savedDecisions = localStorage.getItem("project-compass-decisions");
+
+  if (!savedDecisions) {
+    return [];
+  }
+
+  try {
+    const parsedDecisions = JSON.parse(
+      savedDecisions
+    ) as Partial<ProjectDecision>[];
+
+    if (!Array.isArray(parsedDecisions)) {
+      return [];
+    }
+
+    const now = new Date().toISOString();
+
+    return parsedDecisions
+      .filter(
+        (decision) =>
+          typeof decision.title === "string" && decision.title.trim()
+      )
+      .map((decision) => ({
+        id:
+          typeof decision.id === "string"
+            ? decision.id
+            : crypto.randomUUID(),
+        title: decision.title ?? "Untitled decision",
+        description:
+          typeof decision.description === "string"
+            ? decision.description
+            : undefined,
+        owner: typeof decision.owner === "string" ? decision.owner : undefined,
+        ownerId:
+          typeof decision.ownerId === "string" ? decision.ownerId : undefined,
+        deadline:
+          typeof decision.deadline === "string"
+            ? decision.deadline
+            : undefined,
+        consequence:
+          typeof decision.consequence === "string"
+            ? decision.consequence
+            : undefined,
+        status: isValidDecisionStatus(decision.status)
+          ? decision.status
+          : "open",
+        createdAt:
+          typeof decision.createdAt === "string" ? decision.createdAt : now,
+        updatedAt:
+          typeof decision.updatedAt === "string" ? decision.updatedAt : now,
+      }));
+  } catch {
+    return [];
+  }
+}
 
 export default function ProjectDecisionsPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
@@ -49,33 +103,77 @@ export default function ProjectDecisionsPage() {
   const [ownerId, setOwnerId] = useState("");
   const [deadline, setDeadline] = useState("");
   const [consequence, setConsequence] = useState("");
-  const [status, setStatus] = useState<DecisionStatus>("open");
+  const [status, setStatus] = useState<ProjectDecisionStatus>("open");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
-    const savedDecisions = localStorage.getItem("project-compass-decisions");
 
     const platformState = loadProjectCompassState();
     const currentActiveProject = getActiveProject(platformState);
-
-    setActiveProject(currentActiveProject);
-    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
     }
 
-    if (savedDecisions) {
-      setDecisions(JSON.parse(savedDecisions));
+    if (!currentActiveProject) {
+      setActiveProject(null);
+      setProjectMembers([]);
+      setDecisions([]);
+      return;
     }
+
+    const legacyDecisions = loadLegacyDecisions();
+
+    if (
+      currentActiveProject.decisions.length === 0 &&
+      legacyDecisions.length > 0
+    ) {
+      const migratedProject: Project = {
+        ...currentActiveProject,
+        decisions: legacyDecisions,
+      };
+
+      const updatedState = updateProject(platformState, migratedProject);
+      const updatedActiveProject = getActiveProject(updatedState);
+
+      saveProjectCompassState(updatedState);
+      localStorage.removeItem("project-compass-decisions");
+
+      setActiveProject(updatedActiveProject);
+      setProjectMembers(updatedActiveProject?.members ?? []);
+      setDecisions(updatedActiveProject?.decisions ?? []);
+
+      return;
+    }
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject.members);
+    setDecisions(currentActiveProject.decisions);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(
-      "project-compass-decisions",
-      JSON.stringify(decisions)
-    );
-  }, [decisions]);
+  function persistDecisions(nextDecisions: ProjectDecision[]) {
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    if (!currentActiveProject) {
+      setDecisions(nextDecisions);
+      return;
+    }
+
+    const updatedProject: Project = {
+      ...currentActiveProject,
+      decisions: nextDecisions,
+    };
+
+    const updatedState = updateProject(platformState, updatedProject);
+    const updatedActiveProject = getActiveProject(updatedState);
+
+    saveProjectCompassState(updatedState);
+
+    setActiveProject(updatedActiveProject);
+    setProjectMembers(updatedActiveProject?.members ?? []);
+    setDecisions(updatedActiveProject?.decisions ?? nextDecisions);
+  }
 
   function getMemberName(decision: ProjectDecision) {
     if (decision.ownerId) {
@@ -95,18 +193,22 @@ export default function ProjectDecisionsPage() {
   function handleCreateDecision(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const now = new Date().toISOString();
+
     const newDecision: ProjectDecision = {
       id: crypto.randomUUID(),
       title,
-      description,
-      owner,
+      description: description || undefined,
+      owner: owner || undefined,
       ownerId: ownerId || undefined,
-      deadline,
-      consequence,
+      deadline: deadline || undefined,
+      consequence: consequence || undefined,
       status,
+      createdAt: now,
+      updatedAt: now,
     };
 
-    setDecisions((currentDecisions) => [...currentDecisions, newDecision]);
+    persistDecisions([...decisions, newDecision]);
 
     setTitle("");
     setDescription("");
@@ -119,15 +221,17 @@ export default function ProjectDecisionsPage() {
 
   function updateDecisionStatus(
     decisionId: string,
-    newStatus: DecisionStatus
+    newStatus: ProjectDecisionStatus
   ) {
-    setDecisions((currentDecisions) =>
-      currentDecisions.map((decision) =>
-        decision.id === decisionId
-          ? { ...decision, status: newStatus }
-          : decision
-      )
+    const now = new Date().toISOString();
+
+    const updatedDecisions = decisions.map((decision) =>
+      decision.id === decisionId
+        ? { ...decision, status: newStatus, updatedAt: now }
+        : decision
     );
+
+    persistDecisions(updatedDecisions);
   }
 
   const openDecisions = decisions.filter(
@@ -160,11 +264,11 @@ export default function ProjectDecisionsPage() {
           </p>
 
           <p className="mt-3 text-slate-400">
-            {project?.projectName
-              ? `Project: ${project.projectName}`
-              : activeProject?.name
-                ? `Project: ${activeProject.name}`
-                : "No project found yet."}
+            {activeProject?.name
+              ? `Project: ${activeProject.name}`
+              : project?.projectName
+                ? `Project: ${project.projectName}`
+                : "No active project found yet."}
           </p>
         </div>
 
@@ -211,7 +315,14 @@ export default function ProjectDecisionsPage() {
               affects.
             </p>
 
-            {projectMembers.length === 0 && (
+            {!activeProject && (
+              <p className="mt-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                No active project found. Open or create a project before adding
+                decisions.
+              </p>
+            )}
+
+            {activeProject && projectMembers.length === 0 && (
               <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                 Add project members before assigning responsibility. You can
                 still create decisions without an owner.
@@ -236,6 +347,7 @@ export default function ProjectDecisionsPage() {
                 placeholder="Example: Choose presentation structure"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
+                disabled={!activeProject}
               />
             </div>
 
@@ -252,6 +364,7 @@ export default function ProjectDecisionsPage() {
                 value={ownerId}
                 onChange={(event) => setOwnerId(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 <option value="">Unassigned</option>
                 {projectMembers.map((member) => (
@@ -277,6 +390,7 @@ export default function ProjectDecisionsPage() {
                 onChange={(event) => setOwner(event.target.value)}
                 placeholder="Optional fallback, for example: Johan"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -295,6 +409,7 @@ export default function ProjectDecisionsPage() {
                 onChange={(event) => setDeadline(event.target.value)}
                 placeholder="Example: 2026-06-07"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -310,9 +425,10 @@ export default function ProjectDecisionsPage() {
                 id="decision-status"
                 value={status}
                 onChange={(event) =>
-                  setStatus(event.target.value as DecisionStatus)
+                  setStatus(event.target.value as ProjectDecisionStatus)
                 }
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 {decisionStatuses.map((decisionStatus) => (
                   <option key={decisionStatus.id} value={decisionStatus.id}>
@@ -337,6 +453,7 @@ export default function ProjectDecisionsPage() {
                 placeholder="Describe which decision needs to be made."
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -355,13 +472,15 @@ export default function ProjectDecisionsPage() {
                 placeholder="What is affected by this decision? Time, quality, responsibility, scope or next steps?"
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            disabled={!activeProject}
+            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             Add decision
           </button>
@@ -410,7 +529,7 @@ export default function ProjectDecisionsPage() {
                       onChange={(event) =>
                         updateDecisionStatus(
                           decision.id,
-                          event.target.value as DecisionStatus
+                          event.target.value as ProjectDecisionStatus
                         )
                       }
                       className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
@@ -500,7 +619,7 @@ function DecisionMeta({ label, value }: { label: string; value: string }) {
   );
 }
 
-function translateDecisionStatus(status: DecisionStatus) {
+function translateDecisionStatus(status: ProjectDecisionStatus) {
   if (status === "open") {
     return "Open";
   }

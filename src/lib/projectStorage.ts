@@ -52,13 +52,17 @@ export type ProjectRisk = {
   updatedAt: string;
 };
 
+export type ProjectDecisionStatus = "open" | "decided" | "postponed";
+
 export type ProjectDecision = {
   id: string;
   title: string;
   description?: string;
-  decidedBy?: string;
+  owner?: string;
   ownerId?: string;
-  date?: string;
+  deadline?: string;
+  consequence?: string;
+  status: ProjectDecisionStatus;
   createdAt: string;
   updatedAt: string;
 };
