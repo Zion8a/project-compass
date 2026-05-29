@@ -380,6 +380,13 @@ At risk:
 - important decisions are open
 - many items have no owner
 
+### 4.11 Shared Project Insight Logic
+
+Attention Needed and Project Health are now calculated through shared project insight logic in:
+
+```ts
+src/lib/projectInsights.ts
+
 ---
 
 ## 5. User Stories
