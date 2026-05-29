@@ -37,6 +37,15 @@ test.describe("Projects overview", () => {
       projectCard.getByText("Active", { exact: true })
     ).toBeVisible();
 
+    await expect(projectCard.getByText("Status")).toBeVisible();
+    await expect(projectCard.getByText("Not started")).toBeVisible();
+
+    await expect(projectCard.getByText("Members")).toBeVisible();
+    await expect(projectCard.getByText("Tasks")).toBeVisible();
+    await expect(projectCard.getByText("Risks")).toBeVisible();
+    await expect(projectCard.getByText("Decisions")).toBeVisible();
+    await expect(projectCard.getByText("Last updated")).toBeVisible();
+
     await page.reload();
 
     const reloadedProjectCard = page
@@ -52,6 +61,15 @@ test.describe("Projects overview", () => {
     await expect(
       reloadedProjectCard.getByText("Active", { exact: true })
     ).toBeVisible();
+
+    await expect(reloadedProjectCard.getByText("Status")).toBeVisible();
+    await expect(reloadedProjectCard.getByText("Not started")).toBeVisible();
+
+    await expect(reloadedProjectCard.getByText("Members")).toBeVisible();
+    await expect(reloadedProjectCard.getByText("Tasks")).toBeVisible();
+    await expect(reloadedProjectCard.getByText("Risks")).toBeVisible();
+    await expect(reloadedProjectCard.getByText("Decisions")).toBeVisible();
+    await expect(reloadedProjectCard.getByText("Last updated")).toBeVisible();
 
     const header = page.locator("header");
 
