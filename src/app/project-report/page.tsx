@@ -11,7 +11,6 @@ import {
   ProjectRisk,
   ProjectRiskLevel,
   ProjectRiskStatus,
-  ProjectTask,
   ProjectTaskStatus,
 } from "@/lib/projectStorage";
 
@@ -22,6 +21,13 @@ type ProjectInterviewData = {
   deliverables: string;
   risks: string;
   decisions: string;
+};
+
+type AttentionItem = {
+  id: string;
+  title: string;
+  text: string;
+  severity: "medium" | "high";
 };
 
 export default function ProjectReportPage() {
@@ -48,6 +54,8 @@ export default function ProjectReportPage() {
   const risks = activeProject?.risks ?? [];
   const decisions = activeProject?.decisions ?? [];
   const members = activeProject?.members ?? [];
+
+  const attentionItems = activeProject ? getAttentionItems(activeProject) : [];
 
   function getMemberName(ownerId?: string, fallbackOwner?: string) {
     if (ownerId) {
@@ -89,11 +97,12 @@ export default function ProjectReportPage() {
     if (
       blockedTasks.length > 0 ||
       highRisks.length > 0 ||
-      openDecisions.length > 0
+      openDecisions.length > 0 ||
+      attentionItems.length > 0
     ) {
       statusLabel = "Needs attention";
       statusText =
-        "The project has blocked tasks, high risks or open decisions that should be followed up.";
+        "The project has blocked tasks, high risks, open decisions or missing ownership that should be followed up.";
       statusTone = "amber";
     }
 
@@ -120,7 +129,7 @@ export default function ProjectReportPage() {
       statusText,
       statusTone,
     };
-  }, [tasks, risks, decisions]);
+  }, [tasks, risks, decisions, attentionItems.length]);
 
   function buildStatusReportMarkdown() {
     const projectName =
@@ -139,6 +148,15 @@ export default function ProjectReportPage() {
                 }`,
                 `  - Comment: ${member.comment || "No comment"}`,
               ].join("\n");
+            })
+            .join("\n");
+
+    const attentionSection =
+      attentionItems.length === 0
+        ? "No attention items were found in the active project."
+        : attentionItems
+            .map((item) => {
+              return `- **${item.title}** — ${item.text}`;
             })
             .join("\n");
 
@@ -199,9 +217,15 @@ export default function ProjectReportPage() {
       `- Open decisions: ${report.openDecisions.length}`,
       `- Project members: ${members.length}`,
       "",
+      "## Attention Needed",
+      "",
+      attentionSection,
+      "",
       "## Purpose",
       "",
-      project?.purpose || activeProject?.description || "No purpose has been defined yet.",
+      project?.purpose ||
+        activeProject?.description ||
+        "No purpose has been defined yet.",
       "",
       "## Goal",
       "",
@@ -377,6 +401,22 @@ export default function ProjectReportPage() {
             value={members.length.toString()}
             text="Members in the active project."
           />
+        </div>
+
+        <div className="mt-10">
+          <ReportSection title="Attention Needed">
+            {attentionItems.length === 0 ? (
+              <p className="text-slate-300">
+                No attention items were found in the active project.
+              </p>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {attentionItems.map((item) => (
+                  <AttentionReportItem key={item.id} item={item} />
+                ))}
+              </div>
+            )}
+          </ReportSection>
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -567,6 +607,100 @@ export default function ProjectReportPage() {
   );
 }
 
+function getAttentionItems(project: Project): AttentionItem[] {
+  const blockedTasks = project.tasks.filter(
+    (task) => task.status === "blocked"
+  );
+
+  const tasksWithoutOwner = project.tasks.filter((task) => !task.ownerId);
+
+  const risksWithoutOwner = project.risks.filter(
+    (risk) => !risk.ownerId && !risk.owner
+  );
+
+  const highRisks = project.risks.filter(
+    (risk) => risk.probability === "high" || risk.impact === "high"
+  );
+
+  const decisionsWithoutOwner = project.decisions.filter(
+    (decision) => !decision.ownerId && !decision.owner
+  );
+
+  const openDecisions = project.decisions.filter(
+    (decision) => decision.status === "open"
+  );
+
+  const items: AttentionItem[] = [];
+
+  if (blockedTasks.length > 0) {
+    items.push({
+      id: "blocked-tasks",
+      title: `${blockedTasks.length} blocked task${
+        blockedTasks.length === 1 ? "" : "s"
+      }`,
+      text: "Blocked tasks may prevent the project from moving forward.",
+      severity: "high",
+    });
+  }
+
+  if (tasksWithoutOwner.length > 0) {
+    items.push({
+      id: "tasks-without-owner",
+      title: `${tasksWithoutOwner.length} task${
+        tasksWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Tasks without an owner can easily be missed or delayed.",
+      severity: "medium",
+    });
+  }
+
+  if (risksWithoutOwner.length > 0) {
+    items.push({
+      id: "risks-without-owner",
+      title: `${risksWithoutOwner.length} risk${
+        risksWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Risks without a responsible person may not be followed up.",
+      severity: "medium",
+    });
+  }
+
+  if (highRisks.length > 0) {
+    items.push({
+      id: "high-risks",
+      title: `${highRisks.length} high risk${
+        highRisks.length === 1 ? "" : "s"
+      }`,
+      text: "High risks should be reviewed and handled before they affect the project.",
+      severity: "high",
+    });
+  }
+
+  if (decisionsWithoutOwner.length > 0) {
+    items.push({
+      id: "decisions-without-owner",
+      title: `${decisionsWithoutOwner.length} decision${
+        decisionsWithoutOwner.length === 1 ? "" : "s"
+      } without owner`,
+      text: "Decisions without an owner may remain unclear or unresolved.",
+      severity: "medium",
+    });
+  }
+
+  if (openDecisions.length > 0) {
+    items.push({
+      id: "open-decisions",
+      title: `${openDecisions.length} open decision${
+        openDecisions.length === 1 ? "" : "s"
+      }`,
+      text: "Open decisions can block direction, scope or next steps.",
+      severity: "high",
+    });
+  }
+
+  return items;
+}
+
 function SummaryCard({
   title,
   value,
@@ -602,6 +736,25 @@ function ReportSection({
 
       <div className="mt-4">{children}</div>
     </section>
+  );
+}
+
+function AttentionReportItem({ item }: { item: AttentionItem }) {
+  const severityClasses =
+    item.severity === "high"
+      ? "border-red-500/40 bg-red-500/10 text-red-100"
+      : "border-amber-500/40 bg-amber-500/10 text-amber-100";
+
+  return (
+    <article className={`rounded-2xl border p-4 ${severityClasses}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
+        {item.severity === "high" ? "High attention" : "Needs attention"}
+      </p>
+
+      <h3 className="mt-2 font-semibold">{item.title}</h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-200">{item.text}</p>
+    </article>
   );
 }
 

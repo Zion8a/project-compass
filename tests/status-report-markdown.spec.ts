@@ -137,5 +137,9 @@ test.describe("Status report Markdown export", () => {
     expect(copiedMarkdown).toContain("Unclear ownership");
     expect(copiedMarkdown).toContain("Choose report format");
     expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
+
+    expect(copiedMarkdown).toContain("## Attention Needed");
+    expect(copiedMarkdown).toContain("1 high risk");
+    expect(copiedMarkdown).toContain("1 open decision");
   });
 });
