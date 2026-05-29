@@ -1,4 +1,8 @@
-export type ProjectStatus = "not-started" | "in-progress" | "at-risk" | "completed";
+export type ProjectStatus =
+  | "not-started"
+  | "in-progress"
+  | "at-risk"
+  | "completed";
 
 export type ProjectMember = {
   id: string;
@@ -10,11 +14,19 @@ export type ProjectMember = {
   updatedAt: string;
 };
 
+export type ProjectTaskStatus =
+  | "backlog"
+  | "planned"
+  | "in-progress"
+  | "blocked"
+  | "review"
+  | "done";
+
 export type ProjectTask = {
   id: string;
   title: string;
   description?: string;
-  status: "todo" | "in-progress" | "done";
+  status: ProjectTaskStatus;
   priority?: "low" | "medium" | "high";
   ownerId?: string;
   createdAt: string;
@@ -128,14 +140,19 @@ export function getActiveProject(state: ProjectCompassState): Project | null {
     return null;
   }
 
-  return state.projects.find((project) => project.id === state.activeProjectId) ?? null;
+  return (
+    state.projects.find((project) => project.id === state.activeProjectId) ??
+    null
+  );
 }
 
 export function setActiveProject(
   state: ProjectCompassState,
   projectId: string
 ): ProjectCompassState {
-  const projectExists = state.projects.some((project) => project.id === projectId);
+  const projectExists = state.projects.some(
+    (project) => project.id === projectId
+  );
 
   if (!projectExists) {
     return state;
@@ -173,6 +190,7 @@ export function updateProject(
     ),
   };
 }
+
 export function createProjectMember(
   name: string,
   role?: string,

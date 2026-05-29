@@ -7,6 +7,10 @@ import {
   loadProjectCompassState,
   Project,
   ProjectMember,
+  ProjectTask,
+  ProjectTaskStatus,
+  saveProjectCompassState,
+  updateProject,
 } from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
@@ -18,23 +22,11 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
-type TaskStatus =
-  | "backlog"
-  | "planned"
-  | "in-progress"
-  | "blocked"
-  | "review"
-  | "done";
-
-type Task = {
-  id: string;
+const columns: {
+  id: ProjectTaskStatus;
   title: string;
   description: string;
-  status: TaskStatus;
-  ownerId?: string;
-};
-
-const columns: { id: TaskStatus; title: string; description: string }[] = [
+}[] = [
   {
     id: "backlog",
     title: "Backlog",
@@ -67,38 +59,119 @@ const columns: { id: TaskStatus; title: string; description: string }[] = [
   },
 ];
 
+function isValidTaskStatus(status: unknown): status is ProjectTaskStatus {
+  return columns.some((column) => column.id === status);
+}
+
+function loadLegacyTasks(): ProjectTask[] {
+  const savedTasks = localStorage.getItem("project-compass-tasks");
+
+  if (!savedTasks) {
+    return [];
+  }
+
+  try {
+    const parsedTasks = JSON.parse(savedTasks) as Partial<ProjectTask>[];
+
+    if (!Array.isArray(parsedTasks)) {
+      return [];
+    }
+
+    const now = new Date().toISOString();
+
+    return parsedTasks
+      .filter((task) => typeof task.title === "string" && task.title.trim())
+      .map((task) => ({
+        id: typeof task.id === "string" ? task.id : crypto.randomUUID(),
+        title: task.title ?? "Untitled task",
+        description:
+          typeof task.description === "string" ? task.description : undefined,
+        status: isValidTaskStatus(task.status) ? task.status : "backlog",
+        ownerId: typeof task.ownerId === "string" ? task.ownerId : undefined,
+        createdAt: typeof task.createdAt === "string" ? task.createdAt : now,
+        updatedAt: typeof task.updatedAt === "string" ? task.updatedAt : now,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 export default function ProjectBoardPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<ProjectTask[]>([]);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
-  const [taskStatus, setTaskStatus] = useState<TaskStatus>("backlog");
+  const [taskStatus, setTaskStatus] = useState<ProjectTaskStatus>("backlog");
   const [taskOwnerId, setTaskOwnerId] = useState("");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
-    const savedTasks = localStorage.getItem("project-compass-tasks");
 
     const platformState = loadProjectCompassState();
     const currentActiveProject = getActiveProject(platformState);
-
-    setActiveProject(currentActiveProject);
-    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
     }
 
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
+    if (!currentActiveProject) {
+      setActiveProject(null);
+      setProjectMembers([]);
+      setTasks([]);
+      return;
     }
+
+    const legacyTasks = loadLegacyTasks();
+
+    if (currentActiveProject.tasks.length === 0 && legacyTasks.length > 0) {
+      const migratedProject: Project = {
+        ...currentActiveProject,
+        tasks: legacyTasks,
+      };
+
+      const updatedState = updateProject(platformState, migratedProject);
+      const updatedActiveProject = getActiveProject(updatedState);
+
+      saveProjectCompassState(updatedState);
+      localStorage.removeItem("project-compass-tasks");
+
+      setActiveProject(updatedActiveProject);
+      setProjectMembers(updatedActiveProject?.members ?? []);
+      setTasks(updatedActiveProject?.tasks ?? []);
+
+      return;
+    }
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject.members);
+    setTasks(currentActiveProject.tasks);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("project-compass-tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  function persistTasks(nextTasks: ProjectTask[]) {
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    if (!currentActiveProject) {
+      setTasks(nextTasks);
+      return;
+    }
+
+    const updatedProject: Project = {
+      ...currentActiveProject,
+      tasks: nextTasks,
+    };
+
+    const updatedState = updateProject(platformState, updatedProject);
+    const updatedActiveProject = getActiveProject(updatedState);
+
+    saveProjectCompassState(updatedState);
+
+    setActiveProject(updatedActiveProject);
+    setProjectMembers(updatedActiveProject?.members ?? []);
+    setTasks(updatedActiveProject?.tasks ?? nextTasks);
+  }
 
   function getMemberName(ownerId?: string) {
     if (!ownerId) {
@@ -114,15 +187,19 @@ export default function ProjectBoardPage() {
   function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const newTask: Task = {
+    const now = new Date().toISOString();
+
+    const newTask: ProjectTask = {
       id: crypto.randomUUID(),
       title: taskTitle,
-      description: taskDescription,
+      description: taskDescription || undefined,
       status: taskStatus,
       ownerId: taskOwnerId || undefined,
+      createdAt: now,
+      updatedAt: now,
     };
 
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    persistTasks([...tasks, newTask]);
 
     setTaskTitle("");
     setTaskDescription("");
@@ -130,12 +207,16 @@ export default function ProjectBoardPage() {
     setTaskOwnerId("");
   }
 
-  function updateTaskStatus(taskId: string, newStatus: TaskStatus) {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
+  function updateTaskStatus(taskId: string, newStatus: ProjectTaskStatus) {
+    const now = new Date().toISOString();
+
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId
+        ? { ...task, status: newStatus, updatedAt: now }
+        : task
     );
+
+    persistTasks(updatedTasks);
   }
 
   const totalTasks = tasks.length;
@@ -160,11 +241,11 @@ export default function ProjectBoardPage() {
           </p>
 
           <p className="mt-3 text-slate-400">
-            {project?.projectName
-              ? `Project: ${project.projectName}`
-              : activeProject?.name
-                ? `Project: ${activeProject.name}`
-                : "No project found yet."}
+            {activeProject?.name
+              ? `Project: ${activeProject.name}`
+              : project?.projectName
+                ? `Project: ${project.projectName}`
+                : "No active project found yet."}
           </p>
         </div>
 
@@ -204,7 +285,14 @@ export default function ProjectBoardPage() {
               take ownership of and move forward through the workflow.
             </p>
 
-            {projectMembers.length === 0 && (
+            {!activeProject && (
+              <p className="mt-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                No active project found. Open or create a project before adding
+                tasks.
+              </p>
+            )}
+
+            {activeProject && projectMembers.length === 0 && (
               <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                 Add project members before assigning responsibility. You can
                 still create tasks without an owner.
@@ -228,6 +316,7 @@ export default function ProjectBoardPage() {
                 placeholder="Example: Write the first status update"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
+                disabled={!activeProject}
               />
             </div>
 
@@ -245,6 +334,7 @@ export default function ProjectBoardPage() {
                 onChange={(event) => setTaskDescription(event.target.value)}
                 placeholder="Short description of the task"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -259,9 +349,10 @@ export default function ProjectBoardPage() {
                 id="task-status"
                 value={taskStatus}
                 onChange={(event) =>
-                  setTaskStatus(event.target.value as TaskStatus)
+                  setTaskStatus(event.target.value as ProjectTaskStatus)
                 }
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 {columns.map((column) => (
                   <option key={column.id} value={column.id}>
@@ -283,6 +374,7 @@ export default function ProjectBoardPage() {
                 value={taskOwnerId}
                 onChange={(event) => setTaskOwnerId(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 <option value="">Unassigned</option>
                 {projectMembers.map((member) => (
@@ -296,7 +388,8 @@ export default function ProjectBoardPage() {
 
           <button
             type="submit"
-            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            disabled={!activeProject}
+            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             Add task
           </button>
@@ -363,7 +456,7 @@ export default function ProjectBoardPage() {
                         onChange={(event) =>
                           updateTaskStatus(
                             task.id,
-                            event.target.value as TaskStatus
+                            event.target.value as ProjectTaskStatus
                           )
                         }
                         className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
