@@ -33,14 +33,21 @@ export type ProjectTask = {
   updatedAt: string;
 };
 
+export type ProjectRiskLevel = "low" | "medium" | "high";
+
+export type ProjectRiskStatus = "open" | "watching" | "handled";
+
 export type ProjectRisk = {
   id: string;
   title: string;
   description?: string;
-  probability?: "low" | "medium" | "high";
-  impact?: "low" | "medium" | "high";
+  probability: ProjectRiskLevel;
+  impact: ProjectRiskLevel;
   mitigation?: string;
+  action?: string;
+  owner?: string;
   ownerId?: string;
+  status: ProjectRiskStatus;
   createdAt: string;
   updatedAt: string;
 };

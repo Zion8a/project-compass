@@ -7,6 +7,11 @@ import {
   loadProjectCompassState,
   Project,
   ProjectMember,
+  ProjectRisk,
+  ProjectRiskLevel,
+  ProjectRiskStatus,
+  saveProjectCompassState,
+  updateProject,
 } from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
@@ -18,33 +23,66 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
-type RiskLevel = "low" | "medium" | "high";
-
-type RiskStatus = "open" | "watching" | "handled";
-
-type ProjectRisk = {
-  id: string;
-  title: string;
-  description: string;
-  probability: RiskLevel;
-  impact: RiskLevel;
-  action: string;
-  owner: string;
-  ownerId?: string;
-  status: RiskStatus;
-};
-
-const riskLevels: { id: RiskLevel; title: string }[] = [
+const riskLevels: { id: ProjectRiskLevel; title: string }[] = [
   { id: "low", title: "Low" },
   { id: "medium", title: "Medium" },
   { id: "high", title: "High" },
 ];
 
-const riskStatuses: { id: RiskStatus; title: string }[] = [
+const riskStatuses: { id: ProjectRiskStatus; title: string }[] = [
   { id: "open", title: "Open" },
   { id: "watching", title: "Watching" },
   { id: "handled", title: "Handled" },
 ];
+
+function isValidRiskLevel(level: unknown): level is ProjectRiskLevel {
+  return riskLevels.some((riskLevel) => riskLevel.id === level);
+}
+
+function isValidRiskStatus(status: unknown): status is ProjectRiskStatus {
+  return riskStatuses.some((riskStatus) => riskStatus.id === status);
+}
+
+function loadLegacyRisks(): ProjectRisk[] {
+  const savedRisks = localStorage.getItem("project-compass-risks");
+
+  if (!savedRisks) {
+    return [];
+  }
+
+  try {
+    const parsedRisks = JSON.parse(savedRisks) as Partial<ProjectRisk>[];
+
+    if (!Array.isArray(parsedRisks)) {
+      return [];
+    }
+
+    const now = new Date().toISOString();
+
+    return parsedRisks
+      .filter((risk) => typeof risk.title === "string" && risk.title.trim())
+      .map((risk) => ({
+        id: typeof risk.id === "string" ? risk.id : crypto.randomUUID(),
+        title: risk.title ?? "Untitled risk",
+        description:
+          typeof risk.description === "string" ? risk.description : undefined,
+        probability: isValidRiskLevel(risk.probability)
+          ? risk.probability
+          : "medium",
+        impact: isValidRiskLevel(risk.impact) ? risk.impact : "medium",
+        action: typeof risk.action === "string" ? risk.action : undefined,
+        mitigation:
+          typeof risk.mitigation === "string" ? risk.mitigation : undefined,
+        owner: typeof risk.owner === "string" ? risk.owner : undefined,
+        ownerId: typeof risk.ownerId === "string" ? risk.ownerId : undefined,
+        status: isValidRiskStatus(risk.status) ? risk.status : "open",
+        createdAt: typeof risk.createdAt === "string" ? risk.createdAt : now,
+        updatedAt: typeof risk.updatedAt === "string" ? risk.updatedAt : now,
+      }));
+  } catch {
+    return [];
+  }
+}
 
 export default function ProjectRisksPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
@@ -54,35 +92,79 @@ export default function ProjectRisksPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [probability, setProbability] = useState<RiskLevel>("medium");
-  const [impact, setImpact] = useState<RiskLevel>("medium");
+  const [probability, setProbability] = useState<ProjectRiskLevel>("medium");
+  const [impact, setImpact] = useState<ProjectRiskLevel>("medium");
   const [action, setAction] = useState("");
   const [owner, setOwner] = useState("");
   const [ownerId, setOwnerId] = useState("");
-  const [status, setStatus] = useState<RiskStatus>("open");
+  const [status, setStatus] = useState<ProjectRiskStatus>("open");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
-    const savedRisks = localStorage.getItem("project-compass-risks");
 
     const platformState = loadProjectCompassState();
     const currentActiveProject = getActiveProject(platformState);
-
-    setActiveProject(currentActiveProject);
-    setProjectMembers(currentActiveProject?.members ?? []);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
     }
 
-    if (savedRisks) {
-      setRisks(JSON.parse(savedRisks));
+    if (!currentActiveProject) {
+      setActiveProject(null);
+      setProjectMembers([]);
+      setRisks([]);
+      return;
     }
+
+    const legacyRisks = loadLegacyRisks();
+
+    if (currentActiveProject.risks.length === 0 && legacyRisks.length > 0) {
+      const migratedProject: Project = {
+        ...currentActiveProject,
+        risks: legacyRisks,
+      };
+
+      const updatedState = updateProject(platformState, migratedProject);
+      const updatedActiveProject = getActiveProject(updatedState);
+
+      saveProjectCompassState(updatedState);
+      localStorage.removeItem("project-compass-risks");
+
+      setActiveProject(updatedActiveProject);
+      setProjectMembers(updatedActiveProject?.members ?? []);
+      setRisks(updatedActiveProject?.risks ?? []);
+
+      return;
+    }
+
+    setActiveProject(currentActiveProject);
+    setProjectMembers(currentActiveProject.members);
+    setRisks(currentActiveProject.risks);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("project-compass-risks", JSON.stringify(risks));
-  }, [risks]);
+  function persistRisks(nextRisks: ProjectRisk[]) {
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    if (!currentActiveProject) {
+      setRisks(nextRisks);
+      return;
+    }
+
+    const updatedProject: Project = {
+      ...currentActiveProject,
+      risks: nextRisks,
+    };
+
+    const updatedState = updateProject(platformState, updatedProject);
+    const updatedActiveProject = getActiveProject(updatedState);
+
+    saveProjectCompassState(updatedState);
+
+    setActiveProject(updatedActiveProject);
+    setProjectMembers(updatedActiveProject?.members ?? []);
+    setRisks(updatedActiveProject?.risks ?? nextRisks);
+  }
 
   function getMemberName(risk: ProjectRisk) {
     if (risk.ownerId) {
@@ -102,19 +184,24 @@ export default function ProjectRisksPage() {
   function handleCreateRisk(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const now = new Date().toISOString();
+
     const newRisk: ProjectRisk = {
       id: crypto.randomUUID(),
       title,
-      description,
+      description: description || undefined,
       probability,
       impact,
-      action,
-      owner,
+      action: action || undefined,
+      mitigation: action || undefined,
+      owner: owner || undefined,
       ownerId: ownerId || undefined,
       status,
+      createdAt: now,
+      updatedAt: now,
     };
 
-    setRisks((currentRisks) => [...currentRisks, newRisk]);
+    persistRisks([...risks, newRisk]);
 
     setTitle("");
     setDescription("");
@@ -126,18 +213,24 @@ export default function ProjectRisksPage() {
     setStatus("open");
   }
 
-  function updateRiskStatus(riskId: string, newStatus: RiskStatus) {
-    setRisks((currentRisks) =>
-      currentRisks.map((risk) =>
-        risk.id === riskId ? { ...risk, status: newStatus } : risk
-      )
+  function updateRiskStatus(riskId: string, newStatus: ProjectRiskStatus) {
+    const now = new Date().toISOString();
+
+    const updatedRisks = risks.map((risk) =>
+      risk.id === riskId
+        ? { ...risk, status: newStatus, updatedAt: now }
+        : risk
     );
+
+    persistRisks(updatedRisks);
   }
 
   const openRisks = risks.filter((risk) => risk.status !== "handled").length;
+
   const highRisks = risks.filter(
     (risk) => risk.probability === "high" || risk.impact === "high"
   ).length;
+
   const handledRisks = risks.filter((risk) => risk.status === "handled").length;
 
   return (
@@ -159,11 +252,11 @@ export default function ProjectRisksPage() {
           </p>
 
           <p className="mt-3 text-slate-400">
-            {project?.projectName
-              ? `Project: ${project.projectName}`
-              : activeProject?.name
-                ? `Project: ${activeProject.name}`
-                : "No project found yet."}
+            {activeProject?.name
+              ? `Project: ${activeProject.name}`
+              : project?.projectName
+                ? `Project: ${project.projectName}`
+                : "No active project found yet."}
           </p>
         </div>
 
@@ -209,7 +302,14 @@ export default function ProjectRisksPage() {
               what could happen, why it matters and what action is needed.
             </p>
 
-            {projectMembers.length === 0 && (
+            {!activeProject && (
+              <p className="mt-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                No active project found. Open or create a project before adding
+                risks.
+              </p>
+            )}
+
+            {activeProject && projectMembers.length === 0 && (
               <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                 Add project members before assigning responsibility. You can
                 still create risks without an owner.
@@ -233,6 +333,7 @@ export default function ProjectRisksPage() {
                 placeholder="Example: The team may not finish on time"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
                 required
+                disabled={!activeProject}
               />
             </div>
 
@@ -248,6 +349,7 @@ export default function ProjectRisksPage() {
                 value={ownerId}
                 onChange={(event) => setOwnerId(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 <option value="">Unassigned</option>
                 {projectMembers.map((member) => (
@@ -272,6 +374,7 @@ export default function ProjectRisksPage() {
                 onChange={(event) => setOwner(event.target.value)}
                 placeholder="Optional fallback, for example: Johan"
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -285,8 +388,11 @@ export default function ProjectRisksPage() {
               <select
                 id="risk-status"
                 value={status}
-                onChange={(event) => setStatus(event.target.value as RiskStatus)}
+                onChange={(event) =>
+                  setStatus(event.target.value as ProjectRiskStatus)
+                }
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 {riskStatuses.map((riskStatus) => (
                   <option key={riskStatus.id} value={riskStatus.id}>
@@ -310,6 +416,7 @@ export default function ProjectRisksPage() {
                 placeholder="Describe what could go wrong and why it matters."
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
 
@@ -324,9 +431,10 @@ export default function ProjectRisksPage() {
                 id="risk-probability"
                 value={probability}
                 onChange={(event) =>
-                  setProbability(event.target.value as RiskLevel)
+                  setProbability(event.target.value as ProjectRiskLevel)
                 }
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 {riskLevels.map((level) => (
                   <option key={level.id} value={level.id}>
@@ -346,8 +454,11 @@ export default function ProjectRisksPage() {
               <select
                 id="risk-impact"
                 value={impact}
-                onChange={(event) => setImpact(event.target.value as RiskLevel)}
+                onChange={(event) =>
+                  setImpact(event.target.value as ProjectRiskLevel)
+                }
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               >
                 {riskLevels.map((level) => (
                   <option key={level.id} value={level.id}>
@@ -371,13 +482,15 @@ export default function ProjectRisksPage() {
                 placeholder="What should be done to reduce the risk or handle it if it happens?"
                 rows={3}
                 className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                disabled={!activeProject}
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            disabled={!activeProject}
+            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
             Add risk
           </button>
@@ -426,7 +539,7 @@ export default function ProjectRisksPage() {
                       onChange={(event) =>
                         updateRiskStatus(
                           risk.id,
-                          event.target.value as RiskStatus
+                          event.target.value as ProjectRiskStatus
                         )
                       }
                       className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
@@ -458,14 +571,14 @@ export default function ProjectRisksPage() {
                     />
                   </div>
 
-                  {risk.action && (
+                  {(risk.action || risk.mitigation) && (
                     <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                         Action
                       </p>
 
                       <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
-                        {risk.action}
+                        {risk.action || risk.mitigation}
                       </p>
                     </div>
                   )}
@@ -513,7 +626,7 @@ function RiskMeta({ label, value }: { label: string; value: string }) {
   );
 }
 
-function translateRiskLevel(level: RiskLevel) {
+function translateRiskLevel(level: ProjectRiskLevel) {
   if (level === "low") {
     return "Low";
   }
@@ -525,7 +638,7 @@ function translateRiskLevel(level: RiskLevel) {
   return "High";
 }
 
-function translateRiskStatus(status: RiskStatus) {
+function translateRiskStatus(status: ProjectRiskStatus) {
   if (status === "open") {
     return "Open";
   }
