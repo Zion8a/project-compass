@@ -6,6 +6,13 @@ import {
   getActiveProject,
   loadProjectCompassState,
   Project,
+  ProjectDecision,
+  ProjectDecisionStatus,
+  ProjectRisk,
+  ProjectRiskLevel,
+  ProjectRiskStatus,
+  ProjectTask,
+  ProjectTaskStatus,
 } from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
@@ -17,66 +24,15 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
-type TaskStatus =
-  | "backlog"
-  | "planned"
-  | "in-progress"
-  | "blocked"
-  | "review"
-  | "done";
-
-type Task = {
-  id: string;
-  title: string;
-  description: string;
-  status: TaskStatus;
-  ownerId?: string;
-};
-
-type RiskLevel = "low" | "medium" | "high";
-
-type RiskStatus = "open" | "watching" | "handled";
-
-type ProjectRisk = {
-  id: string;
-  title: string;
-  description: string;
-  probability: RiskLevel;
-  impact: RiskLevel;
-  action: string;
-  owner: string;
-  ownerId?: string;
-  status: RiskStatus;
-};
-
-type DecisionStatus = "open" | "decided" | "postponed";
-
-type ProjectDecision = {
-  id: string;
-  title: string;
-  description: string;
-  owner: string;
-  ownerId?: string;
-  deadline: string;
-  consequence: string;
-  status: DecisionStatus;
-};
-
 export default function ProjectReportPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [risks, setRisks] = useState<ProjectRisk[]>([]);
-  const [decisions, setDecisions] = useState<ProjectDecision[]>([]);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle"
   );
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
-    const savedTasks = localStorage.getItem("project-compass-tasks");
-    const savedRisks = localStorage.getItem("project-compass-risks");
-    const savedDecisions = localStorage.getItem("project-compass-decisions");
 
     const platformState = loadProjectCompassState();
     const currentActiveProject = getActiveProject(platformState);
@@ -86,19 +42,12 @@ export default function ProjectReportPage() {
     if (savedProject) {
       setProject(JSON.parse(savedProject));
     }
-
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-
-    if (savedRisks) {
-      setRisks(JSON.parse(savedRisks));
-    }
-
-    if (savedDecisions) {
-      setDecisions(JSON.parse(savedDecisions));
-    }
   }, []);
+
+  const tasks = activeProject?.tasks ?? [];
+  const risks = activeProject?.risks ?? [];
+  const decisions = activeProject?.decisions ?? [];
+  const members = activeProject?.members ?? [];
 
   function getMemberName(ownerId?: string, fallbackOwner?: string) {
     if (ownerId) {
@@ -148,8 +97,12 @@ export default function ProjectReportPage() {
       statusTone = "amber";
     }
 
-    if (blockedTasks.length > 1 || highRisks.length > 1) {
-      statusLabel = "High risk";
+    if (
+      blockedTasks.length >= 2 ||
+      highRisks.length >= 2 ||
+      openDecisions.length >= 3
+    ) {
+      statusLabel = "At risk";
       statusText =
         "The project has several signals that may affect progress, quality or delivery.";
       statusTone = "rose";
@@ -172,8 +125,6 @@ export default function ProjectReportPage() {
   function buildStatusReportMarkdown() {
     const projectName =
       project?.projectName || activeProject?.name || "Untitled project";
-
-    const members = activeProject?.members ?? [];
 
     const memberSection =
       members.length === 0
@@ -250,7 +201,7 @@ export default function ProjectReportPage() {
       "",
       "## Purpose",
       "",
-      project?.purpose || "No purpose has been defined yet.",
+      project?.purpose || activeProject?.description || "No purpose has been defined yet.",
       "",
       "## Goal",
       "",
@@ -423,7 +374,7 @@ export default function ProjectReportPage() {
 
           <SummaryCard
             title="Members"
-            value={(activeProject?.members.length ?? 0).toString()}
+            value={members.length.toString()}
             text="Members in the active project."
           />
         </div>
@@ -431,7 +382,9 @@ export default function ProjectReportPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <ReportSection title="Project purpose">
             <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.purpose || "No purpose has been defined yet."}
+              {project?.purpose ||
+                activeProject?.description ||
+                "No purpose has been defined yet."}
             </p>
           </ReportSection>
 
@@ -463,13 +416,13 @@ export default function ProjectReportPage() {
 
         <div className="mt-10">
           <ReportSection title="Project Members">
-            {!activeProject || activeProject.members.length === 0 ? (
+            {!activeProject || members.length === 0 ? (
               <p className="text-slate-300">
                 No project members have been added yet.
               </p>
             ) : (
               <div className="grid gap-4 lg:grid-cols-2">
-                {activeProject.members.map((member) => (
+                {members.map((member) => (
                   <article
                     key={member.id}
                     className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
@@ -578,36 +531,11 @@ export default function ProjectReportPage() {
             ) : (
               <div className="space-y-4">
                 {report.openRisks.map((risk) => (
-                  <article
+                  <RiskReportItem
                     key={risk.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <h3 className="font-semibold text-white">{risk.title}</h3>
-
-                    {risk.description && (
-                      <p className="mt-2 text-sm leading-6 text-slate-300">
-                        {risk.description}
-                      </p>
-                    )}
-
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Probability: {translateRiskLevel(risk.probability)}
-                      </span>
-
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Impact: {translateRiskLevel(risk.impact)}
-                      </span>
-
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Responsible: {getMemberName(risk.ownerId, risk.owner)}
-                      </span>
-
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Status: {translateRiskStatus(risk.status)}
-                      </span>
-                    </div>
-                  </article>
+                    risk={risk}
+                    responsible={getMemberName(risk.ownerId, risk.owner)}
+                  />
                 ))}
               </div>
             )}
@@ -621,35 +549,14 @@ export default function ProjectReportPage() {
             ) : (
               <div className="space-y-4">
                 {report.openDecisions.map((decision) => (
-                  <article
+                  <DecisionReportItem
                     key={decision.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <h3 className="font-semibold text-white">
-                      {decision.title}
-                    </h3>
-
-                    {decision.description && (
-                      <p className="mt-2 text-sm leading-6 text-slate-300">
-                        {decision.description}
-                      </p>
+                    decision={decision}
+                    responsible={getMemberName(
+                      decision.ownerId,
+                      decision.owner
                     )}
-
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Responsible:{" "}
-                        {getMemberName(decision.ownerId, decision.owner)}
-                      </span>
-
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Deadline: {decision.deadline || "Not specified"}
-                      </span>
-
-                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                        Status: {translateDecisionStatus(decision.status)}
-                      </span>
-                    </div>
-                  </article>
+                  />
                 ))}
               </div>
             )}
@@ -726,7 +633,79 @@ function ResponsibilityItem({
   );
 }
 
-function translateTaskStatus(status: TaskStatus) {
+function RiskReportItem({
+  risk,
+  responsible,
+}: {
+  risk: ProjectRisk;
+  responsible: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <h3 className="font-semibold text-white">{risk.title}</h3>
+
+      {risk.description && (
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          {risk.description}
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Probability: {translateRiskLevel(risk.probability)}
+        </span>
+
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Impact: {translateRiskLevel(risk.impact)}
+        </span>
+
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Responsible: {responsible}
+        </span>
+
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Status: {translateRiskStatus(risk.status)}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function DecisionReportItem({
+  decision,
+  responsible,
+}: {
+  decision: ProjectDecision;
+  responsible: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <h3 className="font-semibold text-white">{decision.title}</h3>
+
+      {decision.description && (
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          {decision.description}
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Responsible: {responsible}
+        </span>
+
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Deadline: {decision.deadline || "Not specified"}
+        </span>
+
+        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+          Status: {translateDecisionStatus(decision.status)}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function translateTaskStatus(status: ProjectTaskStatus) {
   if (status === "backlog") {
     return "Backlog";
   }
@@ -750,7 +729,7 @@ function translateTaskStatus(status: TaskStatus) {
   return "Done";
 }
 
-function translateRiskLevel(level: RiskLevel) {
+function translateRiskLevel(level: ProjectRiskLevel) {
   if (level === "low") {
     return "Low";
   }
@@ -762,7 +741,7 @@ function translateRiskLevel(level: RiskLevel) {
   return "High";
 }
 
-function translateRiskStatus(status: RiskStatus) {
+function translateRiskStatus(status: ProjectRiskStatus) {
   if (status === "open") {
     return "Open";
   }
@@ -774,7 +753,7 @@ function translateRiskStatus(status: RiskStatus) {
   return "Handled";
 }
 
-function translateDecisionStatus(status: DecisionStatus) {
+function translateDecisionStatus(status: ProjectDecisionStatus) {
   if (status === "open") {
     return "Open";
   }

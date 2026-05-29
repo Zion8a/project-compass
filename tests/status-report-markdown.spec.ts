@@ -8,6 +8,7 @@ test.describe("Status report Markdown export", () => {
       window.localStorage.clear();
 
       const memberId = "member-johan-larsson";
+      const now = new Date().toISOString();
 
       window.localStorage.setItem(
         "project-compass-state",
@@ -19,11 +20,49 @@ test.describe("Status report Markdown export", () => {
               name: "Markdown Export Test",
               description: "A project used for testing Markdown export.",
               status: "in-progress",
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              tasks: [],
-              risks: [],
-              decisions: [],
+              createdAt: now,
+              updatedAt: now,
+              tasks: [
+                {
+                  id: "task-1",
+                  title: "Write project update",
+                  description: "Prepare the next project update.",
+                  status: "in-progress",
+                  ownerId: memberId,
+                  createdAt: now,
+                  updatedAt: now,
+                },
+              ],
+              risks: [
+                {
+                  id: "risk-1",
+                  title: "Unclear ownership",
+                  description: "Some work may not have a clear owner.",
+                  probability: "medium",
+                  impact: "high",
+                  action: "Review responsibility before the next meeting.",
+                  mitigation: "Review responsibility before the next meeting.",
+                  owner: "",
+                  ownerId: memberId,
+                  status: "open",
+                  createdAt: now,
+                  updatedAt: now,
+                },
+              ],
+              decisions: [
+                {
+                  id: "decision-1",
+                  title: "Choose report format",
+                  description: "The team needs to agree on report format.",
+                  owner: "",
+                  ownerId: memberId,
+                  deadline: "2026-06-07",
+                  consequence: "The format affects how the report is shared.",
+                  status: "open",
+                  createdAt: now,
+                  updatedAt: now,
+                },
+              ],
               members: [
                 {
                   id: memberId,
@@ -31,8 +70,8 @@ test.describe("Status report Markdown export", () => {
                   role: "Project Lead",
                   responsibility: "Planning and follow-up",
                   comment: "Responsible for project structure.",
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
+                  createdAt: now,
+                  updatedAt: now,
                 },
               ],
             },
@@ -51,52 +90,6 @@ test.describe("Status report Markdown export", () => {
           risks: "The report may miss important project information.",
           decisions: "Decide what should be included in the exported report.",
         })
-      );
-
-      window.localStorage.setItem(
-        "project-compass-tasks",
-        JSON.stringify([
-          {
-            id: "task-1",
-            title: "Write project update",
-            description: "Prepare the next project update.",
-            status: "in-progress",
-            ownerId: memberId,
-          },
-        ])
-      );
-
-      window.localStorage.setItem(
-        "project-compass-risks",
-        JSON.stringify([
-          {
-            id: "risk-1",
-            title: "Unclear ownership",
-            description: "Some work may not have a clear owner.",
-            probability: "medium",
-            impact: "high",
-            action: "Review responsibility before the next meeting.",
-            owner: "",
-            ownerId: memberId,
-            status: "open",
-          },
-        ])
-      );
-
-      window.localStorage.setItem(
-        "project-compass-decisions",
-        JSON.stringify([
-          {
-            id: "decision-1",
-            title: "Choose report format",
-            description: "The team needs to agree on report format.",
-            owner: "",
-            ownerId: memberId,
-            deadline: "2026-06-07",
-            consequence: "The format affects how the report is shared.",
-            status: "open",
-          },
-        ])
       );
     });
   });
