@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
+import {
+  getActiveProject,
+  loadProjectCompassState,
+  Project,
+} from "@/lib/projectStorage";
 
 type ProjectInterviewData = {
   projectName: string;
@@ -15,16 +20,22 @@ type ProjectInterviewData = {
 
 export default function ProjectMapPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
+
+    const platformState = loadProjectCompassState();
+    const currentActiveProject = getActiveProject(platformState);
+
+    setActiveProject(currentActiveProject);
 
     if (savedProject) {
       setProject(JSON.parse(savedProject));
     }
   }, []);
 
-  if (!project) {
+  if (!project && !activeProject) {
     return (
       <main className="min-h-screen bg-slate-950 text-white">
         <AppHeader currentPage="project-map" />
@@ -39,19 +50,51 @@ export default function ProjectMapPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-            Start by creating a new project through the project interview.
+            Start by creating or opening a project. Project Compass needs an
+            active project before it can show a useful project map.
           </p>
 
-          <Link
-            href="/new-project"
-            className="mt-8 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
-          >
-            Create new project
-          </Link>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/projects"
+              className="rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+            >
+              Go to My Projects
+            </Link>
+
+            <Link
+              href="/new-project"
+              className="rounded-2xl border border-slate-700 px-6 py-3 font-semibold text-slate-100 hover:border-sky-300 hover:text-sky-300"
+            >
+              Create new project
+            </Link>
+          </div>
         </section>
       </main>
     );
   }
+
+  const projectName =
+    activeProject?.name ?? project?.projectName ?? "Untitled project";
+
+  const projectDescription = activeProject?.description;
+
+  const membersCount = activeProject?.members.length ?? 0;
+  const tasksCount = activeProject?.tasks.length ?? 0;
+  const blockedTasksCount =
+    activeProject?.tasks.filter((task) => task.status === "blocked").length ??
+    0;
+
+  const risksCount = activeProject?.risks.length ?? 0;
+  const highRisksCount =
+    activeProject?.risks.filter(
+      (risk) => risk.probability === "high" || risk.impact === "high"
+    ).length ?? 0;
+
+  const decisionsCount = activeProject?.decisions.length ?? 0;
+  const openDecisionsCount =
+    activeProject?.decisions.filter((decision) => decision.status === "open")
+      .length ?? 0;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -76,43 +119,123 @@ export default function ProjectMapPage() {
             Project name
           </p>
 
-          <h2 className="mt-3 text-3xl font-bold">{project.projectName}</h2>
+          <h2 className="mt-3 text-3xl font-bold">{projectName}</h2>
+
+          {projectDescription && (
+            <p className="mt-3 max-w-3xl text-slate-300">
+              {projectDescription}
+            </p>
+          )}
         </div>
+
+        {activeProject && (
+          <section className="mt-8 rounded-3xl border border-cyan-500/30 bg-cyan-500/10 p-6">
+            <div className="mb-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-cyan-300">
+                Active project summary
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold">
+                Current project structure
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+                This summary is based on the active project data. It shows how
+                much structure the project currently has and prepares the app
+                for Attention needed and Project Health.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <ProjectSummaryCard
+                title="Members"
+                value={membersCount.toString()}
+                text="People added to this project."
+              />
+
+              <ProjectSummaryCard
+                title="Tasks"
+                value={tasksCount.toString()}
+                text="Tasks connected to this project."
+              />
+
+              <ProjectSummaryCard
+                title="Blocked tasks"
+                value={blockedTasksCount.toString()}
+                text="Tasks that may need action."
+              />
+
+              <ProjectSummaryCard
+                title="Risks"
+                value={risksCount.toString()}
+                text="Risks connected to this project."
+              />
+
+              <ProjectSummaryCard
+                title="High risks"
+                value={highRisksCount.toString()}
+                text="Risks with high probability or impact."
+              />
+
+              <ProjectSummaryCard
+                title="Decisions"
+                value={decisionsCount.toString()}
+                text="Decisions connected to this project."
+              />
+
+              <ProjectSummaryCard
+                title="Open decisions"
+                value={openDecisionsCount.toString()}
+                text="Decisions that still need to be handled."
+              />
+
+              <ProjectSummaryCard
+                title="Status"
+                value={formatProjectStatus(activeProject.status)}
+                text="Current high-level project status."
+              />
+            </div>
+          </section>
+        )}
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <ProjectMapCard
             number="01"
             title="Why are we doing this project?"
             helpText="The project background, need or problem."
-            content={project.purpose}
+            content={
+              project?.purpose ??
+              activeProject?.description ??
+              "Purpose has not been defined yet."
+            }
           />
 
           <ProjectMapCard
             number="02"
             title="What should be better?"
             helpText="The effect or change that should be visible when the project is complete."
-            content={project.goal}
+            content={project?.goal ?? "Goal has not been defined yet."}
           />
 
           <ProjectMapCard
             number="03"
             title="What should be delivered?"
             helpText="Concrete results, documents, activities or decisions."
-            content={project.deliverables || "Not specified yet."}
+            content={project?.deliverables || "Not specified yet."}
           />
 
           <ProjectMapCard
             number="04"
             title="What can go wrong?"
             helpText="Risks, obstacles or uncertainties that could affect the project."
-            content={project.risks || "No risks specified yet."}
+            content={project?.risks || "No risks specified yet."}
           />
 
           <ProjectMapCard
             number="05"
             title="Which decisions are needed?"
             helpText="Decisions the project depends on in order to move forward."
-            content={project.decisions || "No decisions specified yet."}
+            content={project?.decisions || "No decisions specified yet."}
           />
 
           <ProjectMapCard
@@ -179,4 +302,41 @@ function ProjectMapCard({
       </div>
     </article>
   );
+}
+
+function ProjectSummaryCard({
+  title,
+  value,
+  text,
+}: {
+  title: string;
+  value: string;
+  text: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        {title}
+      </p>
+
+      <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
+  );
+}
+
+function formatProjectStatus(status: Project["status"]) {
+  switch (status) {
+    case "not-started":
+      return "Not started";
+    case "in-progress":
+      return "In progress";
+    case "at-risk":
+      return "At risk";
+    case "completed":
+      return "Completed";
+    default:
+      return status;
+  }
 }
