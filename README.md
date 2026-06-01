@@ -1206,3 +1206,14 @@ A typical change should include:
 11. Push to GitHub
 
 This workflow is part of the portfolio value of the project. It shows not only the final application, but also how the work is planned, tested, documented and improved over time.
+---
+
+## Copyright
+
+© 2026 Johan Larsson. Project Compass is a portfolio project created by Johan Larsson.
+
+The source code, documentation, screenshots and product concept material in this repository are part of Johan Larsson’s software testing and QA portfolio.
+
+Unless a separate license is added, all rights are reserved. This repository may be viewed for evaluation, learning and recruitment purposes, but the project may not be copied, redistributed, published or presented as someone else’s work without written permission.
+
+See [NOTICE.md](NOTICE.md) for more information.
