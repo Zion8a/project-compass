@@ -24,6 +24,14 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
+type SetupChecklistItem = {
+  id: string;
+  title: string;
+  text: string;
+  isComplete: boolean;
+  href?: string;
+};
+
 export default function ProjectMapPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -107,6 +115,15 @@ export default function ProjectMapPage() {
     ? getProjectHealth(activeProject, attentionItems)
     : null;
 
+  const setupChecklistItems = getSetupChecklistItems({
+    project,
+    activeProject,
+  });
+
+  const completedSetupItems = setupChecklistItems.filter(
+    (item) => item.isComplete
+  ).length;
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppHeader currentPage="project-map" />
@@ -138,6 +155,13 @@ export default function ProjectMapPage() {
             </p>
           )}
         </div>
+
+        {activeProject && (
+          <ProjectSetupChecklist
+            completedItems={completedSetupItems}
+            items={setupChecklistItems}
+          />
+        )}
 
         {activeProject && (
           <section className="mt-8 rounded-3xl border border-cyan-500/30 bg-cyan-500/10 p-6">
@@ -319,6 +343,182 @@ export default function ProjectMapPage() {
       </section>
     </main>
   );
+}
+
+function getSetupChecklistItems({
+  project,
+  activeProject,
+}: {
+  project: ProjectInterviewData | null;
+  activeProject: Project | null;
+}): SetupChecklistItem[] {
+  const hasProjectName = Boolean(activeProject?.name || project?.projectName);
+
+  const hasDescriptionOrPurpose = Boolean(
+    activeProject?.description || project?.purpose
+  );
+
+  const hasGoal = Boolean(project?.goal);
+  const hasDeliverables = Boolean(project?.deliverables);
+  const hasMembers = (activeProject?.members.length ?? 0) > 0;
+  const hasTasks = (activeProject?.tasks.length ?? 0) > 0;
+  const hasRisks = (activeProject?.risks.length ?? 0) > 0;
+  const hasDecisions = (activeProject?.decisions.length ?? 0) > 0;
+
+  return [
+    {
+      id: "project-created",
+      title: "Create project",
+      text: "The project exists and has a name.",
+      isComplete: hasProjectName,
+      href: "/projects",
+    },
+    {
+      id: "project-purpose",
+      title: "Add purpose or description",
+      text: "Clarify why the project exists.",
+      isComplete: hasDescriptionOrPurpose,
+      href: "/projects",
+    },
+    {
+      id: "project-goal",
+      title: "Clarify goal",
+      text: "Describe what should improve when the project is complete.",
+      isComplete: hasGoal,
+    },
+    {
+      id: "project-deliverables",
+      title: "Clarify deliverables",
+      text: "Define what the project should produce or deliver.",
+      isComplete: hasDeliverables,
+    },
+    {
+      id: "project-members",
+      title: "Add project members",
+      text: "Add the people involved in the project.",
+      isComplete: hasMembers,
+      href: "/project-members",
+    },
+    {
+      id: "project-tasks",
+      title: "Add first task",
+      text: "Break the project down into concrete work.",
+      isComplete: hasTasks,
+      href: "/project-board",
+    },
+    {
+      id: "project-risks",
+      title: "Add first risk",
+      text: "Identify something that could affect the project.",
+      isComplete: hasRisks,
+      href: "/project-risks",
+    },
+    {
+      id: "project-decisions",
+      title: "Add first decision",
+      text: "Track an important decision or open question.",
+      isComplete: hasDecisions,
+      href: "/project-decisions",
+    },
+    {
+      id: "status-report",
+      title: "Review status report",
+      text: "Use the status report to summarize the project.",
+      isComplete:
+        hasProjectName &&
+        hasDescriptionOrPurpose &&
+        hasMembers &&
+        hasTasks &&
+        hasRisks &&
+        hasDecisions,
+      href: "/project-report",
+    },
+  ];
+}
+
+function ProjectSetupChecklist({
+  completedItems,
+  items,
+}: {
+  completedItems: number;
+  items: SetupChecklistItem[];
+}) {
+  return (
+    <section className="mt-8 rounded-3xl border border-sky-500/30 bg-sky-500/10 p-6">
+      <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">
+            Project setup checklist
+          </p>
+
+          <h2 className="mt-2 text-2xl font-bold">
+            What should be clarified next?
+          </h2>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+            This checklist helps a new user understand what structure the
+            project already has and what should be added next.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-sky-400/30 bg-slate-950/50 px-5 py-4 text-right">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
+            Setup progress
+          </p>
+
+          <p className="mt-2 text-2xl font-bold text-white">
+            {completedItems}/{items.length}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {items.map((item) => (
+          <SetupChecklistCard key={item.id} item={item} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SetupChecklistCard({ item }: { item: SetupChecklistItem }) {
+  const cardClasses = item.isComplete
+    ? "border-emerald-500/30 bg-emerald-500/10"
+    : "border-slate-800 bg-slate-950/60";
+
+  const statusClasses = item.isComplete
+    ? "bg-emerald-400 text-slate-950"
+    : "bg-slate-800 text-slate-300";
+
+  const content = (
+    <article className={`rounded-2xl border p-4 ${cardClasses}`}>
+      <div className="flex gap-3">
+        <div
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${statusClasses}`}
+        >
+          {item.isComplete ? "✓" : "•"}
+        </div>
+
+        <div>
+          <h3 className="font-semibold text-white">{item.title}</h3>
+
+          <p className="mt-1 text-sm leading-6 text-slate-300">{item.text}</p>
+
+          {item.href && !item.isComplete && (
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
+              Go to step
+            </p>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+
+  if (item.href && !item.isComplete) {
+    return <Link href={item.href}>{content}</Link>;
+  }
+
+  return content;
 }
 
 function ProjectHealthSection({
