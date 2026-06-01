@@ -23,6 +23,34 @@ Project Compass helps teams turn unclear work into a manageable project.
 
 ---
 
+## Screenshots
+
+### My Projects overview
+
+The My Projects overview shows saved projects, active project status, Project Health, attention items and key project metrics.
+
+![My Projects overview](public/screenshots/my-projects-overview.png)
+
+### Project setup checklist
+
+The Project setup checklist helps a new user understand what project structure already exists and what should be clarified next.
+
+![Project setup checklist](public/screenshots/project-map-checklist.png)
+
+### Project Health and Attention Needed
+
+Project Compass interprets project signals and highlights blocked work, missing ownership, high risks and open decisions.
+
+![Project Health and Attention Needed](public/screenshots/project-health-attention.png)
+
+### Status Report
+
+The Status Report summarizes project status, tasks, risks, decisions, members, Attention Needed and recommended next steps.
+
+![Status Report](public/screenshots/status-report.png)
+
+---
+
 ## Live demo
 
 Project Compass is deployed on Vercel:
@@ -487,6 +515,12 @@ project-compass
 │   ├── responsibility-model-plan.md
 │   ├── test-strategy.md
 │   └── user-stories.md
+├── public
+│   └── screenshots
+│       ├── my-projects-overview.png
+│       ├── project-health-attention.png
+│       ├── project-map-checklist.png
+│       └── status-report.png
 ├── src
 │   ├── app
 │   │   ├── new-project
@@ -1075,6 +1109,7 @@ Completed:
 * Cleaned up encoding issues from earlier copied text
 * Vercel deployment
 * Live demo link in README
+* Screenshots in README
 
 Planned next steps:
 
@@ -1088,7 +1123,6 @@ Planned next steps:
 * Add edit/delete for all main objects
 * Add filtering and sorting
 * Consider persistent backend storage in a later version
-* Add screenshots to README
 * Add a clearer “What I learned” section
 * Add a QA/test module in a later version
 
