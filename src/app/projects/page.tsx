@@ -55,6 +55,7 @@ export default function ProjectsPage() {
 
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectNameError, setProjectNameError] = useState("");
 
   useEffect(() => {
     const loadedState = loadProjectCompassState();
@@ -86,6 +87,7 @@ export default function ProjectsPage() {
     const trimmedDescription = projectDescription.trim();
 
     if (!trimmedName) {
+      setProjectNameError("Project name is required.");
       return;
     }
 
@@ -102,6 +104,15 @@ export default function ProjectsPage() {
 
     setProjectName("");
     setProjectDescription("");
+    setProjectNameError("");
+  }
+
+  function handleProjectNameChange(value: string) {
+    setProjectName(value);
+
+    if (projectNameError && value.trim()) {
+      setProjectNameError("");
+    }
   }
 
   function handleOpenProject(projectId: string) {
@@ -161,10 +172,29 @@ export default function ProjectsPage() {
                 <input
                   id="project-name"
                   value={projectName}
-                  onChange={(event) => setProjectName(event.target.value)}
+                  onChange={(event) =>
+                    handleProjectNameChange(event.target.value)
+                  }
                   placeholder="Example: Website redesign"
-                  className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none ring-cyan-400 placeholder:text-slate-500 focus:ring-2"
+                  aria-invalid={projectNameError ? "true" : "false"}
+                  aria-describedby={
+                    projectNameError ? "project-name-error" : undefined
+                  }
+                  className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:ring-2 ${
+                    projectNameError
+                      ? "border-rose-500 ring-rose-400"
+                      : "border-slate-700 ring-cyan-400"
+                  }`}
                 />
+
+                {projectNameError && (
+                  <p
+                    id="project-name-error"
+                    className="mt-2 text-sm font-medium text-rose-300"
+                  >
+                    {projectNameError}
+                  </p>
+                )}
               </div>
 
               <div>

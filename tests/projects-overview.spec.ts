@@ -9,6 +9,25 @@ test.describe("Projects overview", () => {
     });
   });
 
+  test("user sees validation message when project name is missing", async ({
+    page,
+  }) => {
+    await page.goto("/projects");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(page.getByText("Project name is required.")).toBeVisible();
+
+    await expect(page.getByLabel("Project name")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await page.getByLabel("Project name").fill("Validation Demo Project");
+
+    await expect(page.getByText("Project name is required.")).not.toBeVisible();
+  });
+
   test("user can create a project and see it after reload", async ({ page }) => {
     await page.goto("/projects");
 
