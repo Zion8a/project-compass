@@ -123,6 +123,7 @@ The current version includes:
 * Landing page
 * Project interview
 * My Projects overview
+* Project name validation when creating projects
 * Multiple saved projects in `localStorage`
 * Active project handling
 * Active project shown in the app header
@@ -168,6 +169,7 @@ It demonstrates:
 * Cross-browser landing page testing
 * Chromium-based core flow testing
 * Focused Playwright tests for project overview, members, responsibility, Attention Needed, setup checklist and Markdown export
+* Form validation tested with Playwright
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
 * Written test strategy and manual test documentation
@@ -177,6 +179,7 @@ It demonstrates:
 * Project Health MVP based on project signals
 * Project Health shown in My Projects, Project Map and Status Report
 * Project setup checklist tested with Playwright
+* Project name validation tested with Playwright
 * Shared project insight logic for maintainability
 * UI language consistency improvement from mixed Swedish/English to standardized English
 * Deployment to Vercel as a live portfolio demo
@@ -207,6 +210,7 @@ It demonstrates that I can:
 * Use Git commits to document progress and technical decisions
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
+* Improve form validation and error handling from a user perspective
 
 The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 
@@ -219,6 +223,7 @@ The project shows both a builder mindset and a tester mindset: creating a workin
 The My Projects page allows the user to:
 
 * Create a new project
+* See a validation message if project name is missing
 * Save multiple projects
 * View saved projects
 * Open a selected project
@@ -234,6 +239,18 @@ The My Projects page allows the user to:
 * See when the project was last updated
 
 This makes the overview more useful as a project leadership view, not only a list of saved projects.
+
+### Project name validation
+
+The project creation form validates that a project name has been entered.
+
+If the user tries to create a project without a name, the app shows a clear validation message:
+
+```text
+Project name is required.
+```
+
+The input also uses `aria-invalid` when the validation error is active. This improves both usability and accessibility, and the behavior is covered by Playwright.
 
 ### Active project
 
@@ -570,6 +587,7 @@ The landing page introduces Project Compass and provides navigation to:
 The project overview allows the user to:
 
 * Create new projects
+* See a validation message if project name is missing
 * View saved projects
 * Open a selected project
 * See which project is active
@@ -721,6 +739,7 @@ Manual testing has been used to verify:
 * Main MVP flow
 * Navigation
 * Project creation
+* Project name validation
 * Project persistence
 * Member creation
 * Members after reload
@@ -748,6 +767,7 @@ During manual exploratory testing, several usability and navigation issues were 
 * Missing home navigation from project pages
 * Missing edit interview navigation from the risk view
 * Unclear project opening behavior
+* Missing validation feedback when trying to create a project without a name
 * Tests that were too tightly coupled to old UI text
 * Ambiguous Playwright locators when several elements had similar text
 * Navigation timing issues in the old main flow test
@@ -778,6 +798,7 @@ Current automated tests include:
 * Landing page and navigation test
 * Main project data flow test
 * Projects overview test
+* Project name validation test
 * Project members test
 * Task responsibility test
 * Risk responsibility test
@@ -820,6 +841,9 @@ Verifies that:
 Verifies that:
 
 * User can open My Projects
+* User sees a validation message when project name is missing
+* Project name input is marked invalid when validation fails
+* Validation message disappears when the user enters a project name
 * User can create a project
 * Project appears in the list
 * Project becomes active
@@ -926,7 +950,7 @@ Run the main flow test in Chromium:
 npx playwright test tests/main-flow.spec.ts --project=chromium
 ```
 
-Run the project overview test:
+Run the project overview and project validation test:
 
 ```bash
 npx playwright test tests/projects-overview.spec.ts --project=chromium
@@ -1079,6 +1103,8 @@ Completed:
 * Multiple saved projects
 * Active project ID
 * My Projects overview
+* Project name validation on My Projects
+* Project name validation Playwright coverage
 * Project Health shown in My Projects overview
 * Project members page
 * Members shown in status report
@@ -1114,7 +1140,7 @@ Completed:
 Planned next steps:
 
 * Continue improving migration and cleanup from older `localStorage` keys
-* Improve validation and error handling
+* Continue improving form validation and error handling
 * Add more focused Playwright tests per module
 * Improve accessibility
 * Improve Project Health logic over time
@@ -1155,6 +1181,7 @@ It demonstrates:
 * Building a simple Project Health MVP
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
+* Adding form validation and testing validation behavior
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
 
