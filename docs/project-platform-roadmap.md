@@ -382,12 +382,24 @@ At risk:
 
 ### 4.11 Shared Project Insight Logic
 
-Attention Needed and Project Health are now calculated through shared project insight logic in:
+Attention Needed and Project Health are now calculated through shared project insight logic in `src/lib/projectInsights.ts`.
 
-```ts
-src/lib/projectInsights.ts
+This helper currently contains:
 
----
+- `getAttentionItems(project)`
+- `getProjectHealth(project, attentionItems)`
+
+The purpose of this shared logic is to make sure that Project Map, Status Report and My Projects can use the same interpretation of project data.
+
+This reduces duplicated logic, lowers the risk of inconsistent project status between views, and prepares the app for future improvements such as:
+
+- Project Health Score
+- richer health explanations
+- shared dashboard summaries
+- health indicators in My Projects
+- future QA/test summary insights
+
+This is an important maintainability step because Project Compass should not only display project information, but interpret project signals in a consistent and testable way.
 
 ## 5. User Stories
 
@@ -930,7 +942,7 @@ Suggested small steps:
 2. Create helper function for calculating Project Health.
 3. Show health badge on dashboard.
 4. Show health summary in status report.
-5. Add health indicator to project cards.
+5. Add health indicator to project cards. ✅ Implemented in My Projects overview.
 6. Test different project situations.
 7. Add Playwright test for health states.
 8. Update documentation.
@@ -943,6 +955,13 @@ Definition of Done:
 - the health explanation is understandable
 - the status report includes Project Health
 - the feature is tested
+Implementation note:
+
+Project Health is now shown in the My Projects overview. Each project card shows the calculated health state, a short health summary and the number of attention items. This makes the project overview more useful as a project leadership view, not only a list of saved projects.
+
+The health state is calculated through shared project insight logic in `src/lib/projectInsights.ts`.
+
+This means that My Projects, Project Map and Status Report can build on the same project interpretation logic.
 
 ---
 
