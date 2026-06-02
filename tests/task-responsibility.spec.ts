@@ -11,6 +11,40 @@ test.describe("Task responsibility", () => {
     await page.reload();
   });
 
+  test("user sees validation message when task title is missing", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Task Validation Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing task validation.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Task Validation Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Workspace" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace" })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Add task" }).click();
+
+    await expect(page.getByText("Task title is required.")).toBeVisible();
+
+    await expect(page.getByLabel("Title")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await page.getByLabel("Title").fill("Validation task");
+
+    await expect(page.getByText("Task title is required.")).not.toBeVisible();
+  });
+
   test("user can assign a task to a project member and see it after reload", async ({
     page,
   }) => {

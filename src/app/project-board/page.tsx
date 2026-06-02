@@ -105,6 +105,7 @@ export default function ProjectBoardPage() {
   const [taskDescription, setTaskDescription] = useState("");
   const [taskStatus, setTaskStatus] = useState<ProjectTaskStatus>("backlog");
   const [taskOwnerId, setTaskOwnerId] = useState("");
+  const [taskTitleError, setTaskTitleError] = useState("");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
@@ -184,15 +185,31 @@ export default function ProjectBoardPage() {
     );
   }
 
+  function handleTaskTitleChange(value: string) {
+    setTaskTitle(value);
+
+    if (taskTitleError && value.trim()) {
+      setTaskTitleError("");
+    }
+  }
+
   function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const trimmedTitle = taskTitle.trim();
+    const trimmedDescription = taskDescription.trim();
+
+    if (!trimmedTitle) {
+      setTaskTitleError("Task title is required.");
+      return;
+    }
 
     const now = new Date().toISOString();
 
     const newTask: ProjectTask = {
       id: crypto.randomUUID(),
-      title: taskTitle,
-      description: taskDescription || undefined,
+      title: trimmedTitle,
+      description: trimmedDescription || undefined,
       status: taskStatus,
       ownerId: taskOwnerId || undefined,
       createdAt: now,
@@ -205,6 +222,7 @@ export default function ProjectBoardPage() {
     setTaskDescription("");
     setTaskStatus("backlog");
     setTaskOwnerId("");
+    setTaskTitleError("");
   }
 
   function updateTaskStatus(taskId: string, newStatus: ProjectTaskStatus) {
@@ -312,12 +330,28 @@ export default function ProjectBoardPage() {
                 id="task-title"
                 type="text"
                 value={taskTitle}
-                onChange={(event) => setTaskTitle(event.target.value)}
+                onChange={(event) => handleTaskTitleChange(event.target.value)}
                 placeholder="Example: Write the first status update"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                required
+                aria-invalid={taskTitleError ? "true" : "false"}
+                aria-describedby={
+                  taskTitleError ? "task-title-error" : undefined
+                }
+                className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
+                  taskTitleError
+                    ? "border-rose-500 focus:border-rose-400"
+                    : "border-slate-700 focus:border-sky-300"
+                }`}
                 disabled={!activeProject}
               />
+
+              {taskTitleError && (
+                <p
+                  id="task-title-error"
+                  className="mt-2 text-sm font-medium text-rose-300"
+                >
+                  {taskTitleError}
+                </p>
+              )}
             </div>
 
             <div>
