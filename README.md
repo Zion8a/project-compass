@@ -123,7 +123,7 @@ The current version includes:
 * Landing page
 * Project interview
 * My Projects overview
-* Project name validation when creating projects
+* Form validation for project name, task title, risk title and decision title
 * Multiple saved projects in `localStorage`
 * Active project handling
 * Active project shown in the app header
@@ -169,7 +169,8 @@ It demonstrates:
 * Cross-browser landing page testing
 * Chromium-based core flow testing
 * Focused Playwright tests for project overview, members, responsibility, Attention Needed, setup checklist and Markdown export
-* Form validation tested with Playwright
+* Form validation tested with Playwright for projects, tasks, risks and decisions
+* Negative input tests for missing required titles
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
 * Written test strategy and manual test documentation
@@ -179,7 +180,6 @@ It demonstrates:
 * Project Health MVP based on project signals
 * Project Health shown in My Projects, Project Map and Status Report
 * Project setup checklist tested with Playwright
-* Project name validation tested with Playwright
 * Shared project insight logic for maintainability
 * UI language consistency improvement from mixed Swedish/English to standardized English
 * Deployment to Vercel as a live portfolio demo
@@ -240,17 +240,29 @@ The My Projects page allows the user to:
 
 This makes the overview more useful as a project leadership view, not only a list of saved projects.
 
-### Project name validation
+### Form validation
 
-The project creation form validates that a project name has been entered.
+Project Compass includes basic form validation for important user flows.
 
-If the user tries to create a project without a name, the app shows a clear validation message:
+The app currently validates:
+
+* Project name when creating a project
+* Task title when creating a task
+* Risk title when creating a risk
+* Decision title when creating a decision
+
+If a required title or name is missing, the app shows a clear validation message, for example:
 
 ```text
 Project name is required.
+Task title is required.
+Risk title is required.
+Decision title is required.
 ```
 
-The input also uses `aria-invalid` when the validation error is active. This improves both usability and accessibility, and the behavior is covered by Playwright.
+The relevant input is also marked with `aria-invalid="true"` while the validation error is active.
+
+This improves usability, accessibility and testability. The validation behavior is covered by Playwright tests.
 
 ### Active project
 
@@ -740,6 +752,9 @@ Manual testing has been used to verify:
 * Navigation
 * Project creation
 * Project name validation
+* Task title validation
+* Risk title validation
+* Decision title validation
 * Project persistence
 * Member creation
 * Members after reload
@@ -801,8 +816,11 @@ Current automated tests include:
 * Project name validation test
 * Project members test
 * Task responsibility test
+* Task title validation test
 * Risk responsibility test
+* Risk title validation test
 * Decision responsibility test
+* Decision title validation test
 * Project Map Attention Needed test
 * Project setup checklist test
 * Status report Markdown copy test
@@ -872,6 +890,9 @@ Verifies that:
 * User can assign the task to a member
 * Task card shows the responsible member
 * Responsibility persists after reload
+* User sees a validation message when task title is missing
+* Task title input is marked invalid when validation fails
+* Validation message disappears when the user enters a task title
 
 ### Risk responsibility
 
@@ -883,6 +904,9 @@ Verifies that:
 * User can assign the risk to a member
 * Risk card shows the responsible member
 * Responsibility persists after reload
+* User sees a validation message when risk title is missing
+* Risk title input is marked invalid when validation fails
+* Validation message disappears when the user enters a risk title
 
 ### Decision responsibility
 
@@ -894,6 +918,9 @@ Verifies that:
 * User can assign the decision to a member
 * Decision card shows the responsible member
 * Responsibility persists after reload
+* User sees a validation message when decision title is missing
+* Decision title input is marked invalid when validation fails
+* Validation message disappears when the user enters a decision title
 
 ### Project Map Attention Needed
 
@@ -1105,6 +1132,12 @@ Completed:
 * My Projects overview
 * Project name validation on My Projects
 * Project name validation Playwright coverage
+* Task title validation in Workspace
+* Task title validation Playwright coverage
+* Risk title validation in Risk View
+* Risk title validation Playwright coverage
+* Decision title validation in Decision View
+* Decision title validation Playwright coverage
 * Project Health shown in My Projects overview
 * Project members page
 * Members shown in status report
@@ -1181,7 +1214,8 @@ It demonstrates:
 * Building a simple Project Health MVP
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
-* Adding form validation and testing validation behavior
+* Adding form validation for projects, tasks, risks and decisions
+* Testing negative input cases with Playwright
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
 
@@ -1206,6 +1240,7 @@ A typical change should include:
 11. Push to GitHub
 
 This workflow is part of the portfolio value of the project. It shows not only the final application, but also how the work is planned, tested, documented and improved over time.
+
 ---
 
 ## Copyright
