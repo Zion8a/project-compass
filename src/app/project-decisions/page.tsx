@@ -98,6 +98,7 @@ export default function ProjectDecisionsPage() {
   const [decisions, setDecisions] = useState<ProjectDecision[]>([]);
 
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState("");
   const [owner, setOwner] = useState("");
   const [ownerId, setOwnerId] = useState("");
@@ -190,19 +191,38 @@ export default function ProjectDecisionsPage() {
     return "Unassigned";
   }
 
+  function handleTitleChange(value: string) {
+    setTitle(value);
+
+    if (titleError && value.trim()) {
+      setTitleError("");
+    }
+  }
+
   function handleCreateDecision(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedOwner = owner.trim();
+    const trimmedDeadline = deadline.trim();
+    const trimmedConsequence = consequence.trim();
+
+    if (!trimmedTitle) {
+      setTitleError("Decision title is required.");
+      return;
+    }
 
     const now = new Date().toISOString();
 
     const newDecision: ProjectDecision = {
       id: crypto.randomUUID(),
-      title,
-      description: description || undefined,
-      owner: owner || undefined,
+      title: trimmedTitle,
+      description: trimmedDescription || undefined,
+      owner: trimmedOwner || undefined,
       ownerId: ownerId || undefined,
-      deadline: deadline || undefined,
-      consequence: consequence || undefined,
+      deadline: trimmedDeadline || undefined,
+      consequence: trimmedConsequence || undefined,
       status,
       createdAt: now,
       updatedAt: now,
@@ -211,6 +231,7 @@ export default function ProjectDecisionsPage() {
     persistDecisions([...decisions, newDecision]);
 
     setTitle("");
+    setTitleError("");
     setDescription("");
     setOwner("");
     setOwnerId("");
@@ -343,12 +364,28 @@ export default function ProjectDecisionsPage() {
                 id="decision-title"
                 type="text"
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => handleTitleChange(event.target.value)}
                 placeholder="Example: Choose presentation structure"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                required
+                aria-invalid={titleError ? "true" : "false"}
+                aria-describedby={
+                  titleError ? "decision-title-error" : undefined
+                }
+                className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
+                  titleError
+                    ? "border-rose-500 focus:border-rose-400"
+                    : "border-slate-700 focus:border-sky-300"
+                }`}
                 disabled={!activeProject}
               />
+
+              {titleError && (
+                <p
+                  id="decision-title-error"
+                  className="mt-2 text-sm font-medium text-rose-300"
+                >
+                  {titleError}
+                </p>
+              )}
             </div>
 
             <div>

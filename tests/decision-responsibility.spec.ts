@@ -11,6 +11,42 @@ test.describe("Decision responsibility", () => {
     await page.reload();
   });
 
+  test("user sees validation message when decision title is missing", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Decision Validation Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing decision validation.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision Validation Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Decisions" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision View" })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Add decision" }).click();
+
+    await expect(page.getByText("Decision title is required.")).toBeVisible();
+
+    await expect(page.getByLabel("Title")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await page.getByLabel("Title").fill("Validation decision");
+
+    await expect(
+      page.getByText("Decision title is required.")
+    ).not.toBeVisible();
+  });
+
   test("user can assign a decision to a project member and see it after reload", async ({
     page,
   }) => {
