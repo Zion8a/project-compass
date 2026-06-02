@@ -539,10 +539,7 @@ export default function ProjectDecisionsPage() {
           </div>
 
           {decisions.length === 0 ? (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-slate-300">
-              No decisions have been created yet. Add the first decision above
-              to start building the project decision log.
-            </div>
+            <DecisionViewEmptyState />
           ) : (
             <div className="grid gap-5">
               {decisions.map((decision) => (
@@ -619,6 +616,51 @@ export default function ProjectDecisionsPage() {
         </section>
       </section>
     </main>
+  );
+}
+
+function DecisionViewEmptyState() {
+  return (
+    <section className="rounded-3xl border border-dashed border-violet-500/40 bg-violet-500/10 p-6">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-violet-300">
+        Decision view empty state
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold">No decisions yet</h2>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+        Start by capturing the first important decision or open question. A good
+        decision log makes it clear what is undecided, who owns the next step
+        and what the consequence will be.
+      </p>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <EmptyStateTip
+          title="Clarify what is undecided"
+          text="Write the decision so the team can understand what needs to be resolved."
+        />
+
+        <EmptyStateTip
+          title="Name the consequence"
+          text="Describe what time, scope, quality, responsibility or next step depends on the decision."
+        />
+
+        <EmptyStateTip
+          title="Assign responsibility"
+          text="Every important decision should have someone responsible for follow-up."
+        />
+      </div>
+    </section>
+  );
+}
+
+function EmptyStateTip({ title, text }: { title: string; text: string }) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <h3 className="font-semibold text-white">{title}</h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
   );
 }
 

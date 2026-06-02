@@ -11,6 +11,39 @@ test.describe("Decision responsibility", () => {
     await page.reload();
   });
 
+  test("user sees decision view empty state when no decisions exist", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Decision Empty State Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing the decision view empty state.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision Empty State Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Decisions" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision View" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Decision view empty state", { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "No decisions yet" })
+    ).toBeVisible();
+
+    await expect(page.getByText("Clarify what is undecided")).toBeVisible();
+    await expect(page.getByText("Name the consequence")).toBeVisible();
+    await expect(page.getByText("Assign responsibility")).toBeVisible();
+  });
+
   test("user sees validation message when decision title is missing", async ({
     page,
   }) => {
