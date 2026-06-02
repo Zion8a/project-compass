@@ -570,10 +570,7 @@ export default function ProjectRisksPage() {
           </div>
 
           {risks.length === 0 ? (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 text-slate-300">
-              No risks have been created yet. Add the first risk above to start
-              building the project risk picture.
-            </div>
+            <RiskViewEmptyState />
           ) : (
             <div className="grid gap-5">
               {risks.map((risk) => (
@@ -647,6 +644,51 @@ export default function ProjectRisksPage() {
         </section>
       </section>
     </main>
+  );
+}
+
+function RiskViewEmptyState() {
+  return (
+    <section className="rounded-3xl border border-dashed border-amber-500/40 bg-amber-500/10 p-6">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">
+        Risk view empty state
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold">No risks yet</h2>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+        Start by identifying what could affect the project before it becomes
+        urgent. A useful risk explains what could happen, how serious it would
+        be and what action should be taken.
+      </p>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <EmptyStateTip
+          title="Identify uncertainty"
+          text="Look for unclear scope, missing decisions, dependencies, deadlines or resources."
+        />
+
+        <EmptyStateTip
+          title="Think probability and impact"
+          text="A risk becomes easier to discuss when likelihood and consequence are visible."
+        />
+
+        <EmptyStateTip
+          title="Add an action"
+          text="Every important risk should point toward a next step, owner or mitigation."
+        />
+      </div>
+    </section>
+  );
+}
+
+function EmptyStateTip({ title, text }: { title: string; text: string }) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <h3 className="font-semibold text-white">{title}</h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
   );
 }
 

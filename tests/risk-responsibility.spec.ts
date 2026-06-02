@@ -11,6 +11,39 @@ test.describe("Risk responsibility", () => {
     await page.reload();
   });
 
+  test("user sees risk view empty state when no risks exist", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Risk Empty State Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing the risk view empty state.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk Empty State Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Risks" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk View" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Risk view empty state", { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "No risks yet" })
+    ).toBeVisible();
+
+    await expect(page.getByText("Identify uncertainty")).toBeVisible();
+    await expect(page.getByText("Think probability and impact")).toBeVisible();
+    await expect(page.getByText("Add an action")).toBeVisible();
+  });
+
   test("user sees validation message when risk title is missing", async ({
     page,
   }) => {
