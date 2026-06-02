@@ -23,16 +23,40 @@ type ProjectInterviewData = {
   decisions: string;
 };
 
-const riskLevels: { id: ProjectRiskLevel; title: string }[] = [
-  { id: "low", title: "Low" },
-  { id: "medium", title: "Medium" },
-  { id: "high", title: "High" },
+const riskLevels: {
+  id: ProjectRiskLevel;
+  title: string;
+}[] = [
+  {
+    id: "low",
+    title: "Low",
+  },
+  {
+    id: "medium",
+    title: "Medium",
+  },
+  {
+    id: "high",
+    title: "High",
+  },
 ];
 
-const riskStatuses: { id: ProjectRiskStatus; title: string }[] = [
-  { id: "open", title: "Open" },
-  { id: "watching", title: "Watching" },
-  { id: "handled", title: "Handled" },
+const riskStatuses: {
+  id: ProjectRiskStatus;
+  title: string;
+}[] = [
+  {
+    id: "open",
+    title: "Open",
+  },
+  {
+    id: "watching",
+    title: "Watching",
+  },
+  {
+    id: "handled",
+    title: "Handled",
+  },
 ];
 
 function isValidRiskLevel(level: unknown): level is ProjectRiskLevel {
@@ -91,6 +115,7 @@ export default function ProjectRisksPage() {
   const [risks, setRisks] = useState<ProjectRisk[]>([]);
 
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState("");
   const [probability, setProbability] = useState<ProjectRiskLevel>("medium");
   const [impact, setImpact] = useState<ProjectRiskLevel>("medium");
@@ -181,20 +206,38 @@ export default function ProjectRisksPage() {
     return "Unassigned";
   }
 
+  function handleTitleChange(value: string) {
+    setTitle(value);
+
+    if (titleError && value.trim()) {
+      setTitleError("");
+    }
+  }
+
   function handleCreateRisk(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedAction = action.trim();
+    const trimmedOwner = owner.trim();
+
+    if (!trimmedTitle) {
+      setTitleError("Risk title is required.");
+      return;
+    }
 
     const now = new Date().toISOString();
 
     const newRisk: ProjectRisk = {
       id: crypto.randomUUID(),
-      title,
-      description: description || undefined,
+      title: trimmedTitle,
+      description: trimmedDescription || undefined,
       probability,
       impact,
-      action: action || undefined,
-      mitigation: action || undefined,
-      owner: owner || undefined,
+      action: trimmedAction || undefined,
+      mitigation: trimmedAction || undefined,
+      owner: trimmedOwner || undefined,
       ownerId: ownerId || undefined,
       status,
       createdAt: now,
@@ -204,6 +247,7 @@ export default function ProjectRisksPage() {
     persistRisks([...risks, newRisk]);
 
     setTitle("");
+    setTitleError("");
     setDescription("");
     setProbability("medium");
     setImpact("medium");
@@ -329,12 +373,26 @@ export default function ProjectRisksPage() {
                 id="risk-title"
                 type="text"
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => handleTitleChange(event.target.value)}
                 placeholder="Example: The team may not finish on time"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                required
+                aria-invalid={titleError ? "true" : "false"}
+                aria-describedby={titleError ? "risk-title-error" : undefined}
+                className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
+                  titleError
+                    ? "border-rose-500 focus:border-rose-400"
+                    : "border-slate-700 focus:border-sky-300"
+                }`}
                 disabled={!activeProject}
               />
+
+              {titleError && (
+                <p
+                  id="risk-title-error"
+                  className="mt-2 text-sm font-medium text-rose-300"
+                >
+                  {titleError}
+                </p>
+              )}
             </div>
 
             <div>

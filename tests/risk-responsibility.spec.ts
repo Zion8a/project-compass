@@ -11,6 +11,40 @@ test.describe("Risk responsibility", () => {
     await page.reload();
   });
 
+  test("user sees validation message when risk title is missing", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Risk Validation Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing risk validation.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk Validation Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Risks" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk View" })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Add risk" }).click();
+
+    await expect(page.getByText("Risk title is required.")).toBeVisible();
+
+    await expect(page.getByLabel("Title")).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
+
+    await page.getByLabel("Title").fill("Validation risk");
+
+    await expect(page.getByText("Risk title is required.")).not.toBeVisible();
+  });
+
   test("user can assign a risk to a project member and see it after reload", async ({
     page,
   }) => {
