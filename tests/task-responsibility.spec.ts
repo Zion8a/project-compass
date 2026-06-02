@@ -11,6 +11,39 @@ test.describe("Task responsibility", () => {
     await page.reload();
   });
 
+  test("user sees workspace empty state when no tasks exist", async ({
+    page,
+  }) => {
+    await page.getByLabel("Project name").fill("Workspace Empty State Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing the workspace empty state.");
+
+    await page.getByRole("button", { name: "Create project" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace Empty State Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Workspace" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace" })
+    ).toBeVisible();
+
+    await expect(
+  page.getByText("Workspace empty state", { exact: true })
+).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "No tasks yet" })
+    ).toBeVisible();
+
+    await expect(page.getByText("Use a clear verb")).toBeVisible();
+    await expect(page.getByText("Make it assignable")).toBeVisible();
+    await expect(page.getByText("Keep it movable")).toBeVisible();
+  });
+
   test("user sees validation message when task title is missing", async ({
     page,
   }) => {

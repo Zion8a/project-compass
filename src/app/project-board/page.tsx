@@ -429,6 +429,8 @@ export default function ProjectBoardPage() {
           </button>
         </form>
 
+        {tasks.length === 0 && activeProject && <WorkspaceEmptyState />}
+
         <div className="grid gap-4 lg:grid-cols-6">
           {columns.map((column) => {
             const columnTasks = tasks.filter(
@@ -510,6 +512,51 @@ export default function ProjectBoardPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function WorkspaceEmptyState() {
+  return (
+    <section className="mb-10 rounded-3xl border border-dashed border-sky-500/40 bg-sky-500/10 p-6">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">
+        Workspace empty state
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold">No tasks yet</h2>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+        Start by adding the first concrete task. A good task should be small
+        enough to act on, clear enough to assign and connected to the project
+        goal.
+      </p>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <EmptyStateTip
+          title="Use a clear verb"
+          text="Start the title with an action, such as write, review, test, decide or prepare."
+        />
+
+        <EmptyStateTip
+          title="Make it assignable"
+          text="A good task should be clear enough that one person can take responsibility for it."
+        />
+
+        <EmptyStateTip
+          title="Keep it movable"
+          text="Keep the task small enough to move through planned, in progress, review and done."
+        />
+      </div>
+    </section>
+  );
+}
+
+function EmptyStateTip({ title, text }: { title: string; text: string }) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+      <h3 className="font-semibold text-white">{title}</h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
   );
 }
 
