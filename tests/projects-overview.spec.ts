@@ -22,6 +22,10 @@ test.describe("Projects overview", () => {
       "aria-invalid",
       "true"
     );
+    await expect(page.getByLabel("Project name")).toHaveAttribute(
+  "aria-required",
+  "true"
+);
 
     await page.getByLabel("Project name").fill("Validation Demo Project");
 

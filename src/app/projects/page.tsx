@@ -154,14 +154,24 @@ export default function ProjectsPage() {
 
         <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
           <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-lg">
-            <h2 className="text-xl font-semibold">Create new project</h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <h2 id="create-project-heading" className="text-xl font-semibold">
+              Create new project
+            </h2>
+            <p
+              id="create-project-description"
+              className="mt-2 text-sm text-slate-400"
+            >
               Start with a simple project name. More structure can be added
               later through the project interview, project map, members, risks,
               decisions and status report.
             </p>
 
-            <form onSubmit={handleCreateProject} className="mt-6 space-y-4">
+            <form
+              onSubmit={handleCreateProject}
+              className="mt-6 space-y-4"
+              aria-labelledby="create-project-heading"
+              aria-describedby="create-project-description"
+            >
               <div>
                 <label
                   htmlFor="project-name"
@@ -176,6 +186,7 @@ export default function ProjectsPage() {
                     handleProjectNameChange(event.target.value)
                   }
                   placeholder="Example: Website redesign"
+                  aria-required="true"
                   aria-invalid={projectNameError ? "true" : "false"}
                   aria-describedby={
                     projectNameError ? "project-name-error" : undefined
@@ -190,6 +201,8 @@ export default function ProjectsPage() {
                 {projectNameError && (
                   <p
                     id="project-name-error"
+                    role="alert"
+                    aria-live="polite"
                     className="mt-2 text-sm font-medium text-rose-300"
                   >
                     {projectNameError}
