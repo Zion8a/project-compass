@@ -124,6 +124,7 @@ The current version includes:
 * Project interview
 * My Projects overview
 * Form validation for project name, task title, risk title and decision title
+* Improved empty states for Workspace, Risk View and Decision View
 * Multiple saved projects in `localStorage`
 * Active project handling
 * Active project shown in the app header
@@ -171,6 +172,7 @@ It demonstrates:
 * Focused Playwright tests for project overview, members, responsibility, Attention Needed, setup checklist and Markdown export
 * Form validation tested with Playwright for projects, tasks, risks and decisions
 * Negative input tests for missing required titles
+* Empty state behavior tested with Playwright
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
 * Written test strategy and manual test documentation
@@ -211,6 +213,7 @@ It demonstrates that I can:
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
 * Improve form validation and error handling from a user perspective
+* Improve empty states so new users understand what to do next
 
 The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 
@@ -263,6 +266,20 @@ Decision title is required.
 The relevant input is also marked with `aria-invalid="true"` while the validation error is active.
 
 This improves usability, accessibility and testability. The validation behavior is covered by Playwright tests.
+
+### Empty states
+
+Project Compass includes improved empty states for the main project work views.
+
+The app currently gives extra guidance when there are no:
+
+* Tasks in Workspace
+* Risks in Risk View
+* Decisions in Decision View
+
+Instead of only showing an empty list, the app explains what the user should add next and gives short practical tips.
+
+The empty states help the user understand how to move the project forward and make the app easier to use when a project is still new.
 
 ### Active project
 
@@ -660,6 +677,8 @@ The project board allows the user to create and move tasks between:
 
 Tasks can also be assigned to a responsible project member.
 
+When no tasks exist, Workspace shows a guided empty state that explains how to create a useful first task.
+
 ### Risk view
 
 The risk view allows the user to document project risks with:
@@ -673,6 +692,8 @@ The risk view allows the user to document project risks with:
 * Legacy owner note
 * Status
 
+When no risks exist, Risk View shows a guided empty state that explains how to identify uncertainty, think about probability and impact, and add an action.
+
 ### Decision view
 
 The decision view allows the user to document decisions with:
@@ -684,6 +705,8 @@ The decision view allows the user to document decisions with:
 * Deadline
 * Status
 * Consequence
+
+When no decisions exist, Decision View shows a guided empty state that explains how to clarify what is undecided, describe consequences and assign responsibility.
 
 ### Status report
 
@@ -755,6 +778,9 @@ Manual testing has been used to verify:
 * Task title validation
 * Risk title validation
 * Decision title validation
+* Workspace empty state
+* Risk View empty state
+* Decision View empty state
 * Project persistence
 * Member creation
 * Members after reload
@@ -783,6 +809,7 @@ During manual exploratory testing, several usability and navigation issues were 
 * Missing edit interview navigation from the risk view
 * Unclear project opening behavior
 * Missing validation feedback when trying to create a project without a name
+* Empty work views that did not clearly guide the user toward the next step
 * Tests that were too tightly coupled to old UI text
 * Ambiguous Playwright locators when several elements had similar text
 * Navigation timing issues in the old main flow test
@@ -817,10 +844,13 @@ Current automated tests include:
 * Project members test
 * Task responsibility test
 * Task title validation test
+* Workspace empty state test
 * Risk responsibility test
 * Risk title validation test
+* Risk View empty state test
 * Decision responsibility test
 * Decision title validation test
+* Decision View empty state test
 * Project Map Attention Needed test
 * Project setup checklist test
 * Status report Markdown copy test
@@ -886,6 +916,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see Workspace empty state when no tasks exist
 * User can create a task
 * User can assign the task to a member
 * Task card shows the responsible member
@@ -900,6 +931,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see Risk View empty state when no risks exist
 * User can create a risk
 * User can assign the risk to a member
 * Risk card shows the responsible member
@@ -914,6 +946,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see Decision View empty state when no decisions exist
 * User can create a decision
 * User can assign the decision to a member
 * Decision card shows the responsible member
@@ -1138,6 +1171,12 @@ Completed:
 * Risk title validation Playwright coverage
 * Decision title validation in Decision View
 * Decision title validation Playwright coverage
+* Workspace empty state improvement
+* Workspace empty state Playwright coverage
+* Risk View empty state improvement
+* Risk View empty state Playwright coverage
+* Decision View empty state improvement
+* Decision View empty state Playwright coverage
 * Project Health shown in My Projects overview
 * Project members page
 * Members shown in status report
@@ -1174,6 +1213,7 @@ Planned next steps:
 
 * Continue improving migration and cleanup from older `localStorage` keys
 * Continue improving form validation and error handling
+* Continue improving empty states and onboarding support
 * Add more focused Playwright tests per module
 * Improve accessibility
 * Improve Project Health logic over time
@@ -1214,6 +1254,7 @@ It demonstrates:
 * Building a simple Project Health MVP
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
+* Improving empty states so new users understand the next step
 * Adding form validation for projects, tasks, risks and decisions
 * Testing negative input cases with Playwright
 * Improving a status report so it becomes a useful communication artifact
