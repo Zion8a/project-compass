@@ -333,15 +333,22 @@ export default function ProjectRisksPage() {
         <form
           onSubmit={handleCreateRisk}
           className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+          aria-labelledby="create-risk-heading"
+          aria-describedby="create-risk-description"
         >
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
               New risk
             </p>
 
-            <h2 className="text-2xl font-bold">Create risk</h2>
+            <h2 id="create-risk-heading" className="text-2xl font-bold">
+              Create risk
+            </h2>
 
-            <p className="max-w-3xl text-sm leading-6 text-slate-400">
+            <p
+              id="create-risk-description"
+              className="max-w-3xl text-sm leading-6 text-slate-400"
+            >
               Describe the risk clearly enough for someone else to understand
               what could happen, why it matters and what action is needed.
             </p>
@@ -370,13 +377,14 @@ export default function ProjectRisksPage() {
                 Title
               </label>
               <input
-                id="risk-title"
-                type="text"
-                value={title}
-                onChange={(event) => handleTitleChange(event.target.value)}
-                placeholder="Example: The team may not finish on time"
-                aria-invalid={titleError ? "true" : "false"}
-                aria-describedby={titleError ? "risk-title-error" : undefined}
+  id="risk-title"
+  type="text"
+  value={title}
+  onChange={(event) => handleTitleChange(event.target.value)}
+  placeholder="Example: The team may not finish on time"
+  aria-required="true"
+  aria-invalid={titleError ? "true" : "false"}
+  aria-describedby={titleError ? "risk-title-error" : undefined}
                 className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
                   titleError
                     ? "border-rose-500 focus:border-rose-400"
@@ -387,11 +395,13 @@ export default function ProjectRisksPage() {
 
               {titleError && (
                 <p
-                  id="risk-title-error"
-                  className="mt-2 text-sm font-medium text-rose-300"
-                >
-                  {titleError}
-                </p>
+  id="risk-title-error"
+  role="alert"
+  aria-live="polite"
+  className="mt-2 text-sm font-medium text-rose-300"
+>
+  {titleError}
+</p>
               )}
             </div>
 

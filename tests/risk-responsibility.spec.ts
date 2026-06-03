@@ -73,6 +73,11 @@ test.describe("Risk responsibility", () => {
       "true"
     );
 
+    await expect(page.getByLabel("Title")).toHaveAttribute(
+      "aria-required",
+      "true"
+    );
+
     await page.getByLabel("Title").fill("Validation risk");
 
     await expect(page.getByText("Risk title is required.")).not.toBeVisible();
