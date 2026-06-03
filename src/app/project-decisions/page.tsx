@@ -320,21 +320,28 @@ export default function ProjectDecisionsPage() {
         </div>
 
         <form
-          onSubmit={handleCreateDecision}
-          className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-        >
+  onSubmit={handleCreateDecision}
+  className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+  aria-labelledby="create-decision-heading"
+  aria-describedby="create-decision-description"
+>
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
               New decision
             </p>
 
-            <h2 className="text-2xl font-bold">Create decision</h2>
+            <h2 id="create-decision-heading" className="text-2xl font-bold">
+  Create decision
+</h2>
 
-            <p className="max-w-3xl text-sm leading-6 text-slate-400">
-              Describe the decision clearly so it is easy to understand what
-              needs to be decided, who is responsible and what the decision
-              affects.
-            </p>
+<p
+  id="create-decision-description"
+  className="max-w-3xl text-sm leading-6 text-slate-400"
+>
+  Describe the decision clearly so it is easy to understand what
+  needs to be decided, who is responsible and what the decision
+  affects.
+</p>
 
             {!activeProject && (
               <p className="mt-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
@@ -361,15 +368,16 @@ export default function ProjectDecisionsPage() {
               </label>
 
               <input
-                id="decision-title"
-                type="text"
-                value={title}
-                onChange={(event) => handleTitleChange(event.target.value)}
-                placeholder="Example: Choose presentation structure"
-                aria-invalid={titleError ? "true" : "false"}
-                aria-describedby={
-                  titleError ? "decision-title-error" : undefined
-                }
+  id="decision-title"
+  type="text"
+  value={title}
+  onChange={(event) => handleTitleChange(event.target.value)}
+  placeholder="Example: Choose presentation structure"
+  aria-required="true"
+  aria-invalid={titleError ? "true" : "false"}
+  aria-describedby={
+    titleError ? "decision-title-error" : undefined
+  }
                 className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
                   titleError
                     ? "border-rose-500 focus:border-rose-400"
@@ -379,13 +387,15 @@ export default function ProjectDecisionsPage() {
               />
 
               {titleError && (
-                <p
-                  id="decision-title-error"
-                  className="mt-2 text-sm font-medium text-rose-300"
-                >
-                  {titleError}
-                </p>
-              )}
+  <p
+    id="decision-title-error"
+    role="alert"
+    aria-live="polite"
+    className="mt-2 text-sm font-medium text-rose-300"
+  >
+    {titleError}
+  </p>
+)}
             </div>
 
             <div>

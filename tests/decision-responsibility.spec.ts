@@ -72,6 +72,10 @@ test.describe("Decision responsibility", () => {
       "aria-invalid",
       "true"
     );
+    await expect(page.getByLabel("Title")).toHaveAttribute(
+  "aria-required",
+  "true"
+);
 
     await page.getByLabel("Title").fill("Validation decision");
 
