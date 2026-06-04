@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Project map attention needed", () => {
+test.describe("Project map Attention Needed", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/projects");
 
@@ -11,13 +11,13 @@ test.describe("Project map attention needed", () => {
     await page.reload();
   });
 
-  test("project map shows attention needed items from active project data", async ({
+  test("project map shows Attention Needed items from active project data", async ({
     page,
   }) => {
     await page.getByLabel("Project name").fill("Attention Needed Test");
     await page
       .getByLabel("Description")
-      .fill("A project used for testing attention needed.");
+      .fill("A project used for testing Attention Needed.");
 
     await page.getByRole("button", { name: "Create project" }).click();
 
@@ -70,7 +70,7 @@ test.describe("Project map attention needed", () => {
       page.getByRole("heading", { name: "Project Map" })
     ).toBeVisible();
 
-    await expect(page.getByText("Attention needed", { exact: true })).toBeVisible();
+    await expect(page.getByText("Attention Needed", { exact: true })).toBeVisible();
 
     await expect(
   page.getByRole("heading", { name: "1 blocked task" })
