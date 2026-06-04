@@ -81,19 +81,32 @@ test.describe("Project members", () => {
       page.getByRole("heading", { name: /Statusrapport|Status Report/ })
     ).toBeVisible();
 
+    const statusReportMembersSection = page
+  .getByText(/^Project Members$/)
+  .locator("xpath=ancestor::section[1]");
+
+await expect(statusReportMembersSection).toBeVisible();
+
     await expect(
-      page.getByRole("heading", { name: "Project Members" })
+      statusReportMembersSection.getByRole("heading", { name: "1 member" })
     ).toBeVisible();
 
-    await expect(page.getByText("Johan Larsson")).toBeVisible();
-    await expect(page.getByText("Project Lead")).toBeVisible();
-
     await expect(
-      page.getByText("Planning, follow-up and project structure")
+      statusReportMembersSection.getByText("Johan Larsson")
     ).toBeVisible();
 
     await expect(
-      page.getByText("First member added to the project")
+      statusReportMembersSection.getByText("Project Lead")
+    ).toBeVisible();
+
+    await expect(
+      statusReportMembersSection.getByText(
+        "Planning, follow-up and project structure"
+      )
+    ).toBeVisible();
+
+    await expect(
+      statusReportMembersSection.getByText("First member added to the project")
     ).toBeVisible();
   });
 });

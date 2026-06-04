@@ -28,10 +28,12 @@ test("project data is visible in project map and status report", async ({
     page.getByRole("heading", { name: "Project Map" })
   ).toBeVisible();
 
-  await expect(page.getByText("New ways of working")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "New ways of working" })
+  ).toBeVisible();
 
   await expect(
-    page.getByText("Create alignment and a better project structure.")
+    page.getByText("Create alignment and a better project structure.").first()
   ).toBeVisible();
 
   const reportPage = await context.newPage();
@@ -39,7 +41,7 @@ test("project data is visible in project map and status report", async ({
   await reportPage.goto("/project-report");
 
   await expect(
-    reportPage.getByRole("heading", { name: "Status Report" })
+    reportPage.getByRole("heading", { name: "Status Report", exact: true })
   ).toBeVisible();
 
   await expect(
@@ -47,7 +49,9 @@ test("project data is visible in project map and status report", async ({
   ).toBeVisible();
 
   await expect(
-    reportPage.getByText("Create alignment and a better project structure.")
+    reportPage
+      .getByText("Create alignment and a better project structure.")
+      .first()
   ).toBeVisible();
 
   await reportPage.close();
