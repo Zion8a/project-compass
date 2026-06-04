@@ -11,6 +11,34 @@ test.describe("Decision responsibility", () => {
     await page.reload();
   });
 
+  test("user sees no active project state in decision view", async ({
+    page,
+  }) => {
+    await page.goto("/project-decisions");
+
+    await expect(
+      page.getByRole("heading", { name: "Decision View" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "No active project selected" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "Decision View needs an active project before decisions can be created."
+      )
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("link", { name: "Go to My Projects" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("button", { name: "Add decision" })
+    ).not.toBeVisible();
+  });
+
   test("user sees decision view empty state when no decisions exist", async ({
     page,
   }) => {
@@ -72,10 +100,11 @@ test.describe("Decision responsibility", () => {
       "aria-invalid",
       "true"
     );
+
     await expect(page.getByLabel("Title")).toHaveAttribute(
-  "aria-required",
-  "true"
-);
+      "aria-required",
+      "true"
+    );
 
     await page.getByLabel("Title").fill("Validation decision");
 
