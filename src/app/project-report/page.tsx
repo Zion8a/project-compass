@@ -1,15 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import {
   getActiveProject,
   loadProjectCompassState,
   Project,
-  ProjectDecision,
   ProjectDecisionStatus,
-  ProjectRisk,
-  ProjectRiskLevel,
   ProjectRiskStatus,
   ProjectTaskStatus,
 } from "@/lib/projectStorage";
@@ -28,6 +26,8 @@ type ProjectInterviewData = {
   risks: string;
   decisions: string;
 };
+
+type ReportTone = "emerald" | "amber" | "rose";
 
 export default function ProjectReportPage() {
   const [project, setProject] = useState<ProjectInterviewData | null>(null);
@@ -91,6 +91,10 @@ export default function ProjectReportPage() {
       (decision) => decision.status === "decided"
     );
 
+    const statusTone: ReportTone = projectHealth
+      ? getProjectHealthTone(projectHealth)
+      : "emerald";
+
     return {
       totalTasks: tasks.length,
       doneTasks: doneTasks.length,
@@ -103,15 +107,13 @@ export default function ProjectReportPage() {
       statusText:
         projectHealth?.summary ??
         "The project has no clear warning signs based on registered tasks, risks and decisions.",
-      statusTone: projectHealth
-        ? getProjectHealthTone(projectHealth)
-        : "emerald",
+      statusTone,
     };
   }, [tasks, risks, decisions, projectHealth]);
 
   function buildStatusReportMarkdown() {
     const projectName =
-      project?.projectName || activeProject?.name || "Untitled project";
+      activeProject?.name || project?.projectName || "Untitled project";
 
     const memberSection =
       members.length === 0
@@ -255,6 +257,64 @@ export default function ProjectReportPage() {
     }
   }
 
+  if (!activeProject && !project) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <AppHeader currentPage="project-report" />
+
+        <section className="mx-auto max-w-5xl px-6 py-12">
+          <div className="rounded-3xl border border-dashed border-rose-500/40 bg-rose-500/10 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-rose-300">
+              No active project
+            </p>
+
+            <h1 className="mt-2 text-4xl font-bold tracking-tight">
+              No active project selected
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+              Status Report needs an active project before it can summarize
+              status, responsibilities, risks, decisions and next steps.
+            </p>
+
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+              Go to My Projects to create a new project or open an existing one.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/projects"
+                className="inline-flex rounded-2xl bg-white px-5 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+              >
+                Go to My Projects
+              </Link>
+
+              <Link
+                href="/new-project"
+                className="inline-flex rounded-2xl border border-slate-700 px-5 py-3 font-semibold text-slate-100 hover:border-sky-300 hover:text-sky-300"
+              >
+                Create new project
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const projectName =
+    activeProject?.name || project?.projectName || "Untitled project";
+
+  const projectPurpose =
+    project?.purpose ||
+    activeProject?.description ||
+    "No purpose has been defined yet.";
+
+  const projectGoal = project?.goal || "No goal has been defined yet.";
+
+  const projectDeliverables =
+    project?.deliverables || "No deliverables have been defined yet.";
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppHeader currentPage="project-report" />
@@ -268,333 +328,256 @@ export default function ProjectReportPage() {
           <h1 className="text-4xl font-bold tracking-tight">Status Report</h1>
 
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Collect the current project status in one place. Follow up tasks,
-            risks, decisions, responsibility and recommended next steps.
+            A shareable overview of project status, responsibilities, risks,
+            decisions, attention items and recommended next steps.
           </p>
 
-          <p className="mt-3 text-slate-400">
-            {project?.projectName
-              ? `Project: ${project.projectName}`
-              : activeProject?.name
-                ? `Project: ${activeProject.name}`
-                : "No project found yet."}
-          </p>
+          <p className="mt-3 text-slate-400">Project: {projectName}</p>
+        </div>
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button
-              type="button"
-              onClick={handleCopyMarkdownReport}
-              className="w-fit rounded-2xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 shadow-lg transition hover:bg-cyan-300"
-            >
-              Copy status report as Markdown
-            </button>
+        <div className="mb-8 grid gap-4 md:grid-cols-4">
+          <SummaryCard
+            title="Total tasks"
+            value={report.totalTasks.toString()}
+            text="All tasks in the active project."
+          />
 
-            {copyStatus === "copied" && (
-              <p className="text-sm font-medium text-emerald-300">
-                Report copied to clipboard.
-              </p>
-            )}
+          <SummaryCard
+            title="Done tasks"
+            value={report.doneTasks.toString()}
+            text="Tasks that have been completed."
+          />
 
-            {copyStatus === "error" && (
-              <p className="text-sm font-medium text-rose-300">
-                Could not copy report. Try again.
-              </p>
-            )}
-          </div>
+          <SummaryCard
+            title="Blocked tasks"
+            value={report.blockedTasks.toString()}
+            text="Tasks that need attention."
+          />
+
+          <SummaryCard
+            title="Project members"
+            value={members.length.toString()}
+            text="People connected to the active project."
+          />
         </div>
 
         <section
-          className={`mb-8 rounded-3xl border p-6 shadow-2xl ${
-            report.statusTone === "emerald"
-              ? "border-emerald-500/30 bg-emerald-500/10"
-              : report.statusTone === "amber"
-                ? "border-amber-500/30 bg-amber-500/10"
-                : "border-rose-500/30 bg-rose-500/10"
-          }`}
+          className={`rounded-3xl border p-6 shadow-2xl ${getToneClasses(
+            report.statusTone
+          )}`}
         >
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">
-            Overall project status
+          <p className="text-sm font-semibold uppercase tracking-[0.25em]">
+            Overall Project Status
           </p>
 
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-3xl font-bold">{report.statusLabel}</h2>
+          <h2 className="mt-2 text-3xl font-bold">{report.statusLabel}</h2>
 
-              <p className="mt-3 max-w-3xl leading-7 text-slate-200">
-                {report.statusText}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-700/70 bg-slate-950/70 px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Report date
-              </p>
-
-              <p className="mt-2 font-semibold text-white">
-                {new Date().toLocaleDateString("sv-SE")}
-              </p>
-            </div>
-          </div>
+          <p className="mt-3 max-w-3xl text-sm leading-6">
+            {report.statusText}
+          </p>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
-          <SummaryCard
-            title="Tasks"
-            value={report.totalTasks.toString()}
-            text="Total number of tasks."
-          />
-
-          <SummaryCard
-            title="Done"
-            value={report.doneTasks.toString()}
-            text="Completed tasks."
-          />
-
-          <SummaryCard
-            title="Blocked"
-            value={report.blockedTasks.toString()}
-            text="Tasks that are blocked."
-          />
-
-          <SummaryCard
-            title="Open risks"
-            value={report.openRisks.length.toString()}
-            text="Risks that are not handled."
-          />
-
-          <SummaryCard
-            title="High risks"
-            value={report.highRisks.length.toString()}
-            text="Risks with high level."
-          />
-
-          <SummaryCard
-            title="Open decisions"
-            value={report.openDecisions.length.toString()}
-            text="Decisions that remain open."
-          />
-
-          <SummaryCard
-            title="Members"
-            value={members.length.toString()}
-            text="Members in the active project."
-          />
-        </div>
-
-        <div className="mt-10">
-          <ReportSection title="Attention Needed">
-            {attentionItems.length === 0 ? (
-              <p className="text-slate-300">
-                No attention items were found in the active project.
+        <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+                Attention Needed
               </p>
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {attentionItems.map((item) => (
-                  <AttentionReportItem key={item.id} item={item} />
-                ))}
-              </div>
-            )}
-          </ReportSection>
-        </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <ReportSection title="Project purpose">
-            <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.purpose ||
-                activeProject?.description ||
-                "No purpose has been defined yet."}
+              <h2 className="mt-2 text-2xl font-bold">
+                {attentionItems.length === 0
+                  ? "No attention items right now"
+                  : `${attentionItems.length} item${
+                      attentionItems.length === 1 ? "" : "s"
+                    } need attention`}
+              </h2>
+            </div>
+          </div>
+
+          {attentionItems.length === 0 ? (
+            <p className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-100">
+              Nothing urgent was found in tasks, risks or decisions.
             </p>
-          </ReportSection>
+          ) : (
+            <div className="mt-6 grid gap-4">
+              {attentionItems.map((item) => (
+                <AttentionItemCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </section>
 
-          <ReportSection title="Project goal">
-            <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.goal || "No goal has been defined yet."}
-            </p>
-          </ReportSection>
-
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <ReportSection title="Purpose">{projectPurpose}</ReportSection>
+          <ReportSection title="Goal">{projectGoal}</ReportSection>
           <ReportSection title="Deliverables">
-            <p className="whitespace-pre-line leading-7 text-slate-300">
-              {project?.deliverables || "No deliverables have been defined yet."}
+            {projectDeliverables}
+          </ReportSection>
+        </div>
+
+        <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+            Project Members
+          </p>
+
+          <h2 className="mt-2 text-2xl font-bold">
+            {members.length === 0
+              ? "No members added yet"
+              : `${members.length} member${members.length === 1 ? "" : "s"}`}
+          </h2>
+
+          {members.length === 0 ? (
+            <p className="mt-4 text-sm leading-6 text-slate-400">
+              Add project members to make responsibility clearer.
             </p>
-          </ReportSection>
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {members.map((member) => (
+                <article
+                  key={member.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                >
+                  <h3 className="font-semibold text-white">{member.name}</h3>
 
-          <ReportSection title="Recommended next steps">
-            <ul className="space-y-3 text-slate-300">
-              <li>• Follow up blocked tasks.</li>
-              <li>• Prioritize risks with high probability or impact.</li>
-              <li>• Make or clarify open decisions.</li>
-              <li>
-                • Check that important tasks, risks and decisions have
-                responsible owners.
-              </li>
-              <li>• Update the workspace after the next project check-in.</li>
-            </ul>
-          </ReportSection>
-        </div>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Role: {member.role || "Not specified"}
+                  </p>
 
-        <div className="mt-10">
-          <ReportSection title="Project Members">
-            {!activeProject || members.length === 0 ? (
-              <p className="text-slate-300">
-                No project members have been added yet.
-              </p>
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {members.map((member) => (
-                  <article
-                    key={member.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <h3 className="font-semibold text-white">{member.name}</h3>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Responsibility: {member.responsibility || "Not specified"}
+                  </p>
 
-                    <dl className="mt-4 grid gap-3 text-sm">
-                      <div>
-                        <dt className="font-medium text-slate-300">Role</dt>
-                        <dd className="mt-1 text-slate-400">
-                          {member.role || "Not specified"}
-                        </dd>
-                      </div>
+                  {member.comment && (
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      {member.comment}
+                    </p>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
-                      <div>
-                        <dt className="font-medium text-slate-300">
-                          Responsibility
-                        </dt>
-                        <dd className="mt-1 text-slate-400">
-                          {member.responsibility || "Not specified"}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="font-medium text-slate-300">Comment</dt>
-                        <dd className="mt-1 text-slate-400">
-                          {member.comment || "No comment"}
-                        </dd>
-                      </div>
-                    </dl>
-                  </article>
-                ))}
-              </div>
-            )}
-          </ReportSection>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          <ReportSection title="Task Responsibility">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <ResponsibilitySection title="Task Responsibility">
             {tasks.length === 0 ? (
-              <p className="text-slate-300">
+              <p className="text-sm leading-6 text-slate-400">
                 No tasks have been created yet.
               </p>
             ) : (
-              <div className="space-y-4">
-                {tasks.map((task) => (
-                  <ResponsibilityItem
-                    key={task.id}
-                    title={task.title}
-                    status={translateTaskStatus(task.status)}
-                    responsible={getMemberName(task.ownerId)}
-                  />
-                ))}
-              </div>
+              tasks.map((task) => (
+                <ResponsibilityItem
+                  key={task.id}
+                  title={task.title}
+                  meta={`${translateTaskStatus(
+                    task.status
+                  )} • Responsible: ${getMemberName(task.ownerId)}`}
+                />
+              ))
             )}
-          </ReportSection>
+          </ResponsibilitySection>
 
-          <ReportSection title="Risk Responsibility">
+          <ResponsibilitySection title="Risk Responsibility">
             {risks.length === 0 ? (
-              <p className="text-slate-300">
+              <p className="text-sm leading-6 text-slate-400">
                 No risks have been created yet.
               </p>
             ) : (
-              <div className="space-y-4">
-                {risks.map((risk) => (
-                  <ResponsibilityItem
-                    key={risk.id}
-                    title={risk.title}
-                    status={translateRiskStatus(risk.status)}
-                    responsible={getMemberName(risk.ownerId, risk.owner)}
-                  />
-                ))}
-              </div>
+              risks.map((risk) => (
+                <ResponsibilityItem
+                  key={risk.id}
+                  title={risk.title}
+                  meta={`${translateRiskStatus(
+                    risk.status
+                  )} • Responsible: ${getMemberName(
+                    risk.ownerId,
+                    risk.owner
+                  )}`}
+                />
+              ))
             )}
-          </ReportSection>
+          </ResponsibilitySection>
 
-          <ReportSection title="Decision Responsibility">
+          <ResponsibilitySection title="Decision Responsibility">
             {decisions.length === 0 ? (
-              <p className="text-slate-300">
+              <p className="text-sm leading-6 text-slate-400">
                 No decisions have been created yet.
               </p>
             ) : (
-              <div className="space-y-4">
-                {decisions.map((decision) => (
-                  <ResponsibilityItem
-                    key={decision.id}
-                    title={decision.title}
-                    status={translateDecisionStatus(decision.status)}
-                    responsible={getMemberName(
-                      decision.ownerId,
-                      decision.owner
-                    )}
-                  />
-                ))}
-              </div>
+              decisions.map((decision) => (
+                <ResponsibilityItem
+                  key={decision.id}
+                  title={decision.title}
+                  meta={`${translateDecisionStatus(
+                    decision.status
+                  )} • Responsible: ${getMemberName(
+                    decision.ownerId,
+                    decision.owner
+                  )}`}
+                />
+              ))
             )}
-          </ReportSection>
+          </ResponsibilitySection>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <ReportSection title="Open risks">
-            {report.openRisks.length === 0 ? (
-              <p className="text-slate-300">
-                No open risks have been registered.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {report.openRisks.map((risk) => (
-                  <RiskReportItem
-                    key={risk.id}
-                    risk={risk}
-                    responsible={getMemberName(risk.ownerId, risk.owner)}
-                  />
-                ))}
-              </div>
-            )}
-          </ReportSection>
+        <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+            Recommended Next Steps
+          </p>
 
-          <ReportSection title="Open decisions">
-            {report.openDecisions.length === 0 ? (
-              <p className="text-slate-300">
-                No open decisions have been registered.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {report.openDecisions.map((decision) => (
-                  <DecisionReportItem
-                    key={decision.id}
-                    decision={decision}
-                    responsible={getMemberName(
-                      decision.ownerId,
-                      decision.owner
-                    )}
-                  />
-                ))}
-              </div>
-            )}
-          </ReportSection>
-        </div>
+          <h2 className="mt-2 text-2xl font-bold">
+            Keep the project moving
+          </h2>
+
+          <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-300">
+            <li>Follow up blocked tasks.</li>
+            <li>Prioritize high-probability or high-impact risks.</li>
+            <li>Clarify open decisions.</li>
+            <li>
+              Check that important tasks, risks and decisions have responsible
+              owners.
+            </li>
+            <li>Update the workspace after the next project check-in.</li>
+          </ul>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+            Markdown Export
+          </p>
+
+          <h2 className="mt-2 text-2xl font-bold">
+            Copy status report as Markdown
+          </h2>
+
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            Copy the current status report and paste it into GitHub, Teams,
+            documentation, a school assignment or a project meeting note.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleCopyMarkdownReport}
+            className="mt-5 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+          >
+            Copy status report as Markdown
+          </button>
+
+          {copyStatus === "copied" && (
+            <p className="mt-3 text-sm font-medium text-emerald-300">
+              Status report copied as Markdown.
+            </p>
+          )}
+
+          {copyStatus === "error" && (
+            <p className="mt-3 text-sm font-medium text-rose-300">
+              Could not copy the report. Please try again.
+            </p>
+          )}
+        </section>
       </section>
     </main>
   );
-}
-
-function getProjectHealthTone(projectHealth: ProjectHealth) {
-  if (projectHealth.level === "stable") {
-    return "emerald";
-  }
-
-  if (projectHealth.level === "needs-attention") {
-    return "amber";
-  }
-
-  return "rose";
 }
 
 function SummaryCard({
@@ -627,131 +610,78 @@ function ReportSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
-      <h2 className="text-xl font-bold">{title}</h2>
+    <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+        {title}
+      </p>
 
-      <div className="mt-4">{children}</div>
+      <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-300">
+        {children}
+      </p>
     </section>
   );
 }
 
-function AttentionReportItem({ item }: { item: AttentionItem }) {
-  const severityClasses =
-    item.severity === "high"
-      ? "border-red-500/40 bg-red-500/10 text-red-100"
-      : "border-amber-500/40 bg-amber-500/10 text-amber-100";
-
+function ResponsibilitySection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
-    <article className={`rounded-2xl border p-4 ${severityClasses}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
-        {item.severity === "high" ? "High attention" : "Needs attention"}
+    <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+        {title}
       </p>
 
-      <h3 className="mt-2 font-semibold">{item.title}</h3>
-
-      <p className="mt-2 text-sm leading-6 text-slate-200">{item.text}</p>
-    </article>
+      <div className="mt-5 space-y-3">{children}</div>
+    </section>
   );
 }
 
-function ResponsibilityItem({
-  title,
-  status,
-  responsible,
-}: {
-  title: string;
-  status: string;
-  responsible: string;
-}) {
+function ResponsibilityItem({ title, meta }: { title: string; meta: string }) {
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
       <h3 className="font-semibold text-white">{title}</h3>
 
-      <dl className="mt-4 grid gap-3 text-sm">
-        <div>
-          <dt className="font-medium text-slate-300">Status</dt>
-          <dd className="mt-1 text-slate-400">{status}</dd>
-        </div>
-
-        <div>
-          <dt className="font-medium text-slate-300">Responsible</dt>
-          <dd className="mt-1 text-cyan-300">{responsible}</dd>
-        </div>
-      </dl>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{meta}</p>
     </article>
   );
 }
 
-function RiskReportItem({
-  risk,
-  responsible,
-}: {
-  risk: ProjectRisk;
-  responsible: string;
-}) {
+function AttentionItemCard({ item }: { item: AttentionItem }) {
   return (
-    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-      <h3 className="font-semibold text-white">{risk.title}</h3>
+    <article className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+      <h3 className="font-semibold text-amber-100">{item.title}</h3>
 
-      {risk.description && (
-        <p className="mt-2 text-sm leading-6 text-slate-300">
-          {risk.description}
-        </p>
-      )}
-
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Probability: {translateRiskLevel(risk.probability)}
-        </span>
-
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Impact: {translateRiskLevel(risk.impact)}
-        </span>
-
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Responsible: {responsible}
-        </span>
-
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Status: {translateRiskStatus(risk.status)}
-        </span>
-      </div>
+      <p className="mt-2 text-sm leading-6 text-amber-100/80">{item.text}</p>
     </article>
   );
 }
 
-function DecisionReportItem({
-  decision,
-  responsible,
-}: {
-  decision: ProjectDecision;
-  responsible: string;
-}) {
-  return (
-    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-      <h3 className="font-semibold text-white">{decision.title}</h3>
+function getProjectHealthTone(projectHealth: ProjectHealth): ReportTone {
+  if (projectHealth.level === "stable") {
+    return "emerald";
+  }
 
-      {decision.description && (
-        <p className="mt-2 text-sm leading-6 text-slate-300">
-          {decision.description}
-        </p>
-      )}
+  if (projectHealth.level === "needs-attention") {
+    return "amber";
+  }
 
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Responsible: {responsible}
-        </span>
+  return "rose";
+}
 
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Deadline: {decision.deadline || "Not specified"}
-        </span>
+function getToneClasses(tone: ReportTone) {
+  if (tone === "emerald") {
+    return "border-emerald-500/40 bg-emerald-500/10 text-emerald-100";
+  }
 
-        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-          Status: {translateDecisionStatus(decision.status)}
-        </span>
-      </div>
-    </article>
-  );
+  if (tone === "amber") {
+    return "border-amber-500/40 bg-amber-500/10 text-amber-100";
+  }
+
+  return "border-rose-500/40 bg-rose-500/10 text-rose-100";
 }
 
 function translateTaskStatus(status: ProjectTaskStatus) {
@@ -776,18 +706,6 @@ function translateTaskStatus(status: ProjectTaskStatus) {
   }
 
   return "Done";
-}
-
-function translateRiskLevel(level: ProjectRiskLevel) {
-  if (level === "low") {
-    return "Low";
-  }
-
-  if (level === "medium") {
-    return "Medium";
-  }
-
-  return "High";
 }
 
 function translateRiskStatus(status: ProjectRiskStatus) {

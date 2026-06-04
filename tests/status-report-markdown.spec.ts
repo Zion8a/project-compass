@@ -124,7 +124,9 @@ test.describe("Status report Markdown export", () => {
       .getByRole("button", { name: "Copy status report as Markdown" })
       .click();
 
-    await expect(page.getByText("Report copied to clipboard.")).toBeVisible();
+    await expect(
+  page.getByText("Status report copied as Markdown.")
+).toBeVisible();
 
     const copiedMarkdown = await page.evaluate(() =>
       window.localStorage.getItem("copied-markdown-report")
