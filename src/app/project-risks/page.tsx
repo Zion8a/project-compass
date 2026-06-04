@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
 import {
@@ -330,330 +331,352 @@ export default function ProjectRisksPage() {
           />
         </div>
 
-        <form
-          onSubmit={handleCreateRisk}
-          className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-          aria-labelledby="create-risk-heading"
-          aria-describedby="create-risk-description"
-        >
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-              New risk
-            </p>
-
-            <h2 id="create-risk-heading" className="text-2xl font-bold">
-              Create risk
-            </h2>
-
-            <p
-              id="create-risk-description"
-              className="max-w-3xl text-sm leading-6 text-slate-400"
+        {!activeProject ? (
+          <NoActiveProjectState />
+        ) : (
+          <>
+            <form
+              onSubmit={handleCreateRisk}
+              className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+              aria-labelledby="create-risk-heading"
+              aria-describedby="create-risk-description"
             >
-              Describe the risk clearly enough for someone else to understand
-              what could happen, why it matters and what action is needed.
-            </p>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+                  New risk
+                </p>
 
-            {!activeProject && (
-              <p className="mt-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-                No active project found. Open or create a project before adding
-                risks.
-              </p>
-            )}
+                <h2 id="create-risk-heading" className="text-2xl font-bold">
+                  Create risk
+                </h2>
 
-            {activeProject && projectMembers.length === 0 && (
-              <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                Add project members before assigning responsibility. You can
-                still create risks without an owner.
-              </p>
-            )}
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
-            <div>
-              <label
-                htmlFor="risk-title"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Title
-              </label>
-              <input
-  id="risk-title"
-  type="text"
-  value={title}
-  onChange={(event) => handleTitleChange(event.target.value)}
-  placeholder="Example: The team may not finish on time"
-  aria-required="true"
-  aria-invalid={titleError ? "true" : "false"}
-  aria-describedby={titleError ? "risk-title-error" : undefined}
-                className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
-                  titleError
-                    ? "border-rose-500 focus:border-rose-400"
-                    : "border-slate-700 focus:border-sky-300"
-                }`}
-                disabled={!activeProject}
-              />
-
-              {titleError && (
                 <p
-  id="risk-title-error"
-  role="alert"
-  aria-live="polite"
-  className="mt-2 text-sm font-medium text-rose-300"
->
-  {titleError}
-</p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="risk-owner-id"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Responsible member
-              </label>
-              <select
-                id="risk-owner-id"
-                value={ownerId}
-                onChange={(event) => setOwnerId(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              >
-                <option value="">Unassigned</option>
-                {projectMembers.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="risk-owner"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Legacy owner note
-              </label>
-              <input
-                id="risk-owner"
-                type="text"
-                value={owner}
-                onChange={(event) => setOwner(event.target.value)}
-                placeholder="Optional fallback, for example: Johan"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="risk-status"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Status
-              </label>
-              <select
-                id="risk-status"
-                value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as ProjectRiskStatus)
-                }
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              >
-                {riskStatuses.map((riskStatus) => (
-                  <option key={riskStatus.id} value={riskStatus.id}>
-                    {riskStatus.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label
-                htmlFor="risk-description"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Description
-              </label>
-              <textarea
-                id="risk-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Describe what could go wrong and why it matters."
-                rows={3}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="risk-probability"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Probability
-              </label>
-              <select
-                id="risk-probability"
-                value={probability}
-                onChange={(event) =>
-                  setProbability(event.target.value as ProjectRiskLevel)
-                }
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              >
-                {riskLevels.map((level) => (
-                  <option key={level.id} value={level.id}>
-                    {level.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="risk-impact"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Impact
-              </label>
-              <select
-                id="risk-impact"
-                value={impact}
-                onChange={(event) =>
-                  setImpact(event.target.value as ProjectRiskLevel)
-                }
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              >
-                {riskLevels.map((level) => (
-                  <option key={level.id} value={level.id}>
-                    {level.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label
-                htmlFor="risk-action"
-                className="block text-sm font-semibold text-slate-200"
-              >
-                Action
-              </label>
-              <textarea
-                id="risk-action"
-                value={action}
-                onChange={(event) => setAction(event.target.value)}
-                placeholder="What should be done to reduce the risk or handle it if it happens?"
-                rows={3}
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
-                disabled={!activeProject}
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={!activeProject}
-            className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-          >
-            Add risk
-          </button>
-        </form>
-
-        <section className="mt-10">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-                Risk register
-              </p>
-
-              <h2 className="mt-2 text-2xl font-bold">Current risks</h2>
-            </div>
-
-            <span className="w-fit rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
-              {risks.length} risk{risks.length === 1 ? "" : "s"}
-            </span>
-          </div>
-
-          {risks.length === 0 ? (
-            <RiskViewEmptyState />
-          ) : (
-            <div className="grid gap-5">
-              {risks.map((risk) => (
-                <article
-                  key={risk.id}
-                  className="rounded-3xl border border-slate-800 bg-slate-900 p-6"
+                  id="create-risk-description"
+                  className="max-w-3xl text-sm leading-6 text-slate-400"
                 >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold">{risk.title}</h3>
+                  Describe the risk clearly enough for someone else to
+                  understand what could happen, why it matters and what action
+                  is needed.
+                </p>
 
-                      {risk.description && (
-                        <p className="mt-3 max-w-3xl whitespace-pre-line leading-7 text-slate-300">
-                          {risk.description}
-                        </p>
-                      )}
-                    </div>
+                {projectMembers.length === 0 && (
+                  <p className="mt-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                    Add project members before assigning responsibility. You can
+                    still create risks without an owner.
+                  </p>
+                )}
+              </div>
 
-                    <select
-                      value={risk.status}
-                      onChange={(event) =>
-                        updateRiskStatus(
-                          risk.id,
-                          event.target.value as ProjectRiskStatus
-                        )
-                      }
-                      className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="risk-title"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Title
+                  </label>
+                  <input
+                    id="risk-title"
+                    type="text"
+                    value={title}
+                    onChange={(event) => handleTitleChange(event.target.value)}
+                    placeholder="Example: The team may not finish on time"
+                    aria-required="true"
+                    aria-invalid={titleError ? "true" : "false"}
+                    aria-describedby={
+                      titleError ? "risk-title-error" : undefined
+                    }
+                    className={`mt-2 w-full rounded-xl border bg-slate-950 px-4 py-3 text-white outline-none ${
+                      titleError
+                        ? "border-rose-500 focus:border-rose-400"
+                        : "border-slate-700 focus:border-sky-300"
+                    }`}
+                  />
+
+                  {titleError && (
+                    <p
+                      id="risk-title-error"
+                      role="alert"
+                      aria-live="polite"
+                      className="mt-2 text-sm font-medium text-rose-300"
                     >
-                      {riskStatuses.map((riskStatus) => (
-                        <option key={riskStatus.id} value={riskStatus.id}>
-                          {riskStatus.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mt-5 grid gap-4 md:grid-cols-4">
-                    <RiskMeta
-                      label="Probability"
-                      value={translateRiskLevel(risk.probability)}
-                    />
-
-                    <RiskMeta
-                      label="Impact"
-                      value={translateRiskLevel(risk.impact)}
-                    />
-
-                    <RiskMeta label="Responsible" value={getMemberName(risk)} />
-
-                    <RiskMeta
-                      label="Status"
-                      value={translateRiskStatus(risk.status)}
-                    />
-                  </div>
-
-                  {(risk.action || risk.mitigation) && (
-                    <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                        Action
-                      </p>
-
-                      <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
-                        {risk.action || risk.mitigation}
-                      </p>
-                    </div>
+                      {titleError}
+                    </p>
                   )}
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="risk-owner-id"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Responsible member
+                  </label>
+                  <select
+                    id="risk-owner-id"
+                    value={ownerId}
+                    onChange={(event) => setOwnerId(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  >
+                    <option value="">Unassigned</option>
+                    {projectMembers.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="risk-owner"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Legacy owner note
+                  </label>
+                  <input
+                    id="risk-owner"
+                    type="text"
+                    value={owner}
+                    onChange={(event) => setOwner(event.target.value)}
+                    placeholder="Optional fallback, for example: Johan"
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="risk-status"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="risk-status"
+                    value={status}
+                    onChange={(event) =>
+                      setStatus(event.target.value as ProjectRiskStatus)
+                    }
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  >
+                    {riskStatuses.map((riskStatus) => (
+                      <option key={riskStatus.id} value={riskStatus.id}>
+                        {riskStatus.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="risk-description"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="risk-description"
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder="Describe what could go wrong and why it matters."
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="risk-probability"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Probability
+                  </label>
+                  <select
+                    id="risk-probability"
+                    value={probability}
+                    onChange={(event) =>
+                      setProbability(event.target.value as ProjectRiskLevel)
+                    }
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  >
+                    {riskLevels.map((level) => (
+                      <option key={level.id} value={level.id}>
+                        {level.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="risk-impact"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Impact
+                  </label>
+                  <select
+                    id="risk-impact"
+                    value={impact}
+                    onChange={(event) =>
+                      setImpact(event.target.value as ProjectRiskLevel)
+                    }
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  >
+                    {riskLevels.map((level) => (
+                      <option key={level.id} value={level.id}>
+                        {level.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="risk-action"
+                    className="block text-sm font-semibold text-slate-200"
+                  >
+                    Action
+                  </label>
+                  <textarea
+                    id="risk-action"
+                    value={action}
+                    onChange={(event) => setAction(event.target.value)}
+                    placeholder="What should be done to reduce the risk or handle it if it happens?"
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+              >
+                Add risk
+              </button>
+            </form>
+
+            <section className="mt-10">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+                    Risk register
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-bold">Current risks</h2>
+                </div>
+
+                <span className="w-fit rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
+                  {risks.length} risk{risks.length === 1 ? "" : "s"}
+                </span>
+              </div>
+
+              {risks.length === 0 ? (
+                <RiskViewEmptyState />
+              ) : (
+                <div className="grid gap-5">
+                  {risks.map((risk) => (
+                    <article
+                      key={risk.id}
+                      className="rounded-3xl border border-slate-800 bg-slate-900 p-6"
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold">{risk.title}</h3>
+
+                          {risk.description && (
+                            <p className="mt-3 max-w-3xl whitespace-pre-line leading-7 text-slate-300">
+                              {risk.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <select
+                          value={risk.status}
+                          onChange={(event) =>
+                            updateRiskStatus(
+                              risk.id,
+                              event.target.value as ProjectRiskStatus
+                            )
+                          }
+                          className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-300"
+                        >
+                          {riskStatuses.map((riskStatus) => (
+                            <option key={riskStatus.id} value={riskStatus.id}>
+                              {riskStatus.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="mt-5 grid gap-4 md:grid-cols-4">
+                        <RiskMeta
+                          label="Probability"
+                          value={translateRiskLevel(risk.probability)}
+                        />
+
+                        <RiskMeta
+                          label="Impact"
+                          value={translateRiskLevel(risk.impact)}
+                        />
+
+                        <RiskMeta
+                          label="Responsible"
+                          value={getMemberName(risk)}
+                        />
+
+                        <RiskMeta
+                          label="Status"
+                          value={translateRiskStatus(risk.status)}
+                        />
+                      </div>
+
+                      {(risk.action || risk.mitigation) && (
+                        <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                            Action
+                          </p>
+
+                          <p className="mt-2 whitespace-pre-line leading-7 text-slate-200">
+                            {risk.action || risk.mitigation}
+                          </p>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </section>
     </main>
+  );
+}
+
+function NoActiveProjectState() {
+  return (
+    <section className="rounded-3xl border border-dashed border-rose-500/40 bg-rose-500/10 p-6">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-rose-300">
+        No active project
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold">No active project selected</h2>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+        Risk View needs an active project before risks can be created. Go to My
+        Projects to create a new project or open an existing one.
+      </p>
+
+      <div className="mt-5">
+        <Link
+          href="/projects"
+          className="inline-flex rounded-2xl bg-white px-5 py-3 font-semibold text-slate-950 shadow-lg hover:bg-slate-200"
+        >
+          Go to My Projects
+        </Link>
+      </div>
+    </section>
   );
 }
 

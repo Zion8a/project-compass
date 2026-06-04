@@ -11,6 +11,32 @@ test.describe("Risk responsibility", () => {
     await page.reload();
   });
 
+  test("user sees no active project state in risk view", async ({ page }) => {
+    await page.goto("/project-risks");
+
+    await expect(
+      page.getByRole("heading", { name: "Risk View" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "No active project selected" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "Risk View needs an active project before risks can be created."
+      )
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("link", { name: "Go to My Projects" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("button", { name: "Add risk" })
+    ).not.toBeVisible();
+  });
+
   test("user sees risk view empty state when no risks exist", async ({
     page,
   }) => {
