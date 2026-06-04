@@ -124,7 +124,9 @@ The current version includes:
 * Project interview
 * My Projects overview
 * Form validation for project name, task title, risk title and decision title
+* Improved form accessibility for project, task, risk and decision forms
 * Improved empty states for Workspace, Risk View and Decision View
+* Improved no active project handling for Workspace, Risk View, Decision View, Project Map and Status Report
 * Multiple saved projects in `localStorage`
 * Active project handling
 * Active project shown in the app header
@@ -172,7 +174,10 @@ It demonstrates:
 * Focused Playwright tests for project overview, members, responsibility, Attention Needed, setup checklist and Markdown export
 * Form validation tested with Playwright for projects, tasks, risks and decisions
 * Negative input tests for missing required titles
+* Accessibility-focused form improvements
+* Playwright checks for required form fields
 * Empty state behavior tested with Playwright
+* No active project states tested with Playwright
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
 * Written test strategy and manual test documentation
@@ -213,7 +218,9 @@ It demonstrates that I can:
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
 * Improve form validation and error handling from a user perspective
+* Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
+* Improve recovery paths when the user has no active project selected
 
 The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 
@@ -267,6 +274,23 @@ The relevant input is also marked with `aria-invalid="true"` while the validatio
 
 This improves usability, accessibility and testability. The validation behavior is covered by Playwright tests.
 
+### Form accessibility
+
+Project Compass includes accessibility improvements for the most important forms.
+
+The current form accessibility improvements include:
+
+* Labels connected to form fields
+* Required project, task, risk and decision fields marked with `aria-required="true"`
+* Validation state shown with `aria-invalid`
+* Error messages connected to inputs with `aria-describedby`
+* Error messages using `role="alert"` and `aria-live="polite"`
+* Forms connected to headings and help text with `aria-labelledby` and `aria-describedby`
+
+These improvements make validation errors easier to understand and support better use with assistive technologies.
+
+The accessibility behavior is partly covered by Playwright tests that check required fields and validation states.
+
 ### Empty states
 
 Project Compass includes improved empty states for the main project work views.
@@ -280,6 +304,29 @@ The app currently gives extra guidance when there are no:
 Instead of only showing an empty list, the app explains what the user should add next and gives short practical tips.
 
 The empty states help the user understand how to move the project forward and make the app easier to use when a project is still new.
+
+### No active project handling
+
+Project Compass includes clearer guidance when the user opens an important project page without an active project selected.
+
+The app currently shows a no active project state on:
+
+* Workspace
+* Risk View
+* Decision View
+* Project Map
+* Status Report
+
+Instead of showing disabled forms, empty data or unclear fallback text, these pages now explain why an active project is needed and guide the user back to My Projects.
+
+The no active project states include:
+
+* A clear heading
+* A short explanation of why the page needs an active project
+* A link to My Projects
+* A link to create a new project where relevant
+
+This improves onboarding, error recovery and the overall user flow for new users.
 
 ### Active project
 
@@ -679,6 +726,8 @@ Tasks can also be assigned to a responsible project member.
 
 When no tasks exist, Workspace shows a guided empty state that explains how to create a useful first task.
 
+When no active project exists, Workspace shows a clear no active project state and links the user back to My Projects.
+
 ### Risk view
 
 The risk view allows the user to document project risks with:
@@ -694,6 +743,8 @@ The risk view allows the user to document project risks with:
 
 When no risks exist, Risk View shows a guided empty state that explains how to identify uncertainty, think about probability and impact, and add an action.
 
+When no active project exists, Risk View shows a clear no active project state and links the user back to My Projects.
+
 ### Decision view
 
 The decision view allows the user to document decisions with:
@@ -707,6 +758,8 @@ The decision view allows the user to document decisions with:
 * Consequence
 
 When no decisions exist, Decision View shows a guided empty state that explains how to clarify what is undecided, describe consequences and assign responsibility.
+
+When no active project exists, Decision View shows a clear no active project state and links the user back to My Projects.
 
 ### Status report
 
@@ -730,6 +783,8 @@ The status report summarizes:
 * Recommended next steps
 
 The status report can also be copied as Markdown.
+
+When no active project exists, Status Report shows a clear no active project state and links the user back to My Projects.
 
 ---
 
@@ -778,6 +833,8 @@ Manual testing has been used to verify:
 * Task title validation
 * Risk title validation
 * Decision title validation
+* Form accessibility for project, task, risk and decision forms
+* No active project handling in Workspace, Risk View, Decision View, Project Map and Status Report
 * Workspace empty state
 * Risk View empty state
 * Decision View empty state
@@ -810,6 +867,7 @@ During manual exploratory testing, several usability and navigation issues were 
 * Unclear project opening behavior
 * Missing validation feedback when trying to create a project without a name
 * Empty work views that did not clearly guide the user toward the next step
+* No active project states that needed clearer recovery paths
 * Tests that were too tightly coupled to old UI text
 * Ambiguous Playwright locators when several elements had similar text
 * Navigation timing issues in the old main flow test
@@ -844,16 +902,24 @@ Current automated tests include:
 * Project members test
 * Task responsibility test
 * Task title validation test
+* Task title accessibility check
 * Workspace empty state test
+* Workspace no active project state test
 * Risk responsibility test
 * Risk title validation test
+* Risk title accessibility check
 * Risk View empty state test
+* Risk View no active project state test
 * Decision responsibility test
 * Decision title validation test
+* Decision title accessibility check
 * Decision View empty state test
+* Decision View no active project state test
 * Project Map Attention Needed test
 * Project setup checklist test
+* Project Map no active project state test
 * Status report Markdown copy test
+* Status Report no active project state test
 
 The landing page test is verified across:
 
@@ -891,6 +957,7 @@ Verifies that:
 * User can open My Projects
 * User sees a validation message when project name is missing
 * Project name input is marked invalid when validation fails
+* Project name input is marked as required for assistive technology
 * Validation message disappears when the user enters a project name
 * User can create a project
 * Project appears in the list
@@ -916,6 +983,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see a no active project state when Workspace is opened without an active project
 * User can see Workspace empty state when no tasks exist
 * User can create a task
 * User can assign the task to a member
@@ -923,6 +991,7 @@ Verifies that:
 * Responsibility persists after reload
 * User sees a validation message when task title is missing
 * Task title input is marked invalid when validation fails
+* Task title input is marked as required for assistive technology
 * Validation message disappears when the user enters a task title
 
 ### Risk responsibility
@@ -931,6 +1000,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see a no active project state when Risk View is opened without an active project
 * User can see Risk View empty state when no risks exist
 * User can create a risk
 * User can assign the risk to a member
@@ -938,6 +1008,7 @@ Verifies that:
 * Responsibility persists after reload
 * User sees a validation message when risk title is missing
 * Risk title input is marked invalid when validation fails
+* Risk title input is marked as required for assistive technology
 * Validation message disappears when the user enters a risk title
 
 ### Decision responsibility
@@ -946,6 +1017,7 @@ Verifies that:
 
 * User can create a project
 * User can add a project member
+* User can see a no active project state when Decision View is opened without an active project
 * User can see Decision View empty state when no decisions exist
 * User can create a decision
 * User can assign the decision to a member
@@ -953,6 +1025,7 @@ Verifies that:
 * Responsibility persists after reload
 * User sees a validation message when decision title is missing
 * Decision title input is marked invalid when validation fails
+* Decision title input is marked as required for assistive technology
 * Validation message disappears when the user enters a decision title
 
 ### Project Map Attention Needed
@@ -970,6 +1043,7 @@ Verifies that:
 
 Verifies that:
 
+* User sees a no active project state when Project Map is opened without an active project
 * User can create a project
 * User can open Project Map
 * Project setup checklist is visible
@@ -981,6 +1055,7 @@ Verifies that:
 
 Verifies that:
 
+* User sees a no active project state when Status Report is opened without an active project
 * Status report loads with stored active project data
 * Copy status report as Markdown button is visible
 * User can trigger Markdown copy
@@ -1171,12 +1246,26 @@ Completed:
 * Risk title validation Playwright coverage
 * Decision title validation in Decision View
 * Decision title validation Playwright coverage
+* Project form accessibility improvement
+* Task form accessibility improvement
+* Risk form accessibility improvement
+* Decision form accessibility improvement
 * Workspace empty state improvement
 * Workspace empty state Playwright coverage
 * Risk View empty state improvement
 * Risk View empty state Playwright coverage
 * Decision View empty state improvement
 * Decision View empty state Playwright coverage
+* Workspace no active project state improvement
+* Workspace no active project state Playwright coverage
+* Risk View no active project state improvement
+* Risk View no active project state Playwright coverage
+* Decision View no active project state improvement
+* Decision View no active project state Playwright coverage
+* Project Map no active project state improvement
+* Project Map no active project state Playwright coverage
+* Status Report no active project state improvement
+* Status Report no active project state Playwright coverage
 * Project Health shown in My Projects overview
 * Project members page
 * Members shown in status report
@@ -1214,10 +1303,10 @@ Planned next steps:
 * Continue improving migration and cleanup from older `localStorage` keys
 * Continue improving form validation and error handling
 * Continue improving empty states and onboarding support
-* Add more focused Playwright tests per module
-* Improve accessibility
+* Continue improving accessibility
 * Improve Project Health logic over time
 * Continue improving shared project insight logic over time
+* Add more focused Playwright tests per module
 * Add delete and duplicate project actions
 * Add edit/delete for all main objects
 * Add filtering and sorting
@@ -1255,7 +1344,9 @@ It demonstrates:
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
 * Improving empty states so new users understand the next step
+* Improving recovery paths when required project context is missing
 * Adding form validation for projects, tasks, risks and decisions
+* Improving form accessibility with ARIA attributes and clearer error messages
 * Testing negative input cases with Playwright
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
