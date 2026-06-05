@@ -14,7 +14,9 @@ test.describe("Projects overview", () => {
   }) => {
     await page.goto("/projects");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(page.getByText("Project name is required.")).toBeVisible();
 
@@ -22,10 +24,11 @@ test.describe("Projects overview", () => {
       "aria-invalid",
       "true"
     );
+
     await expect(page.getByLabel("Project name")).toHaveAttribute(
-  "aria-required",
-  "true"
-);
+      "aria-required",
+      "true"
+    );
 
     await page.getByLabel("Project name").fill("Validation Demo Project");
 
@@ -46,7 +49,9 @@ test.describe("Projects overview", () => {
       .getByLabel("Description")
       .fill("A demo project for testing the projects overview.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     const projectCard = page
       .locator("article")
@@ -54,6 +59,7 @@ test.describe("Projects overview", () => {
 
     await expect(projectCard).toBeVisible();
     await expect(projectCard.getByText("Project Compass Demo")).toBeVisible();
+
     await expect(
       projectCard.getByText("A demo project for testing the projects overview.")
     ).toBeVisible();
@@ -62,17 +68,22 @@ test.describe("Projects overview", () => {
 
     await expect(projectCard.getByText("Health", { exact: true })).toBeVisible();
     await expect(projectCard.getByText("Status", { exact: true })).toBeVisible();
+
     await expect(
       projectCard.getByText("Attention items", { exact: true })
     ).toBeVisible();
+
     await expect(
       projectCard.getByText("Members", { exact: true })
     ).toBeVisible();
+
     await expect(projectCard.getByText("Tasks", { exact: true })).toBeVisible();
     await expect(projectCard.getByText("Risks", { exact: true })).toBeVisible();
+
     await expect(
       projectCard.getByText("Decisions", { exact: true })
     ).toBeVisible();
+
     await expect(
       projectCard.getByText("Last updated", { exact: true })
     ).toBeVisible();
@@ -90,9 +101,11 @@ test.describe("Projects overview", () => {
       .filter({ hasText: "Project Compass Demo" });
 
     await expect(reloadedProjectCard).toBeVisible();
+
     await expect(
       reloadedProjectCard.getByText("Project Compass Demo")
     ).toBeVisible();
+
     await expect(
       reloadedProjectCard.getByText(
         "A demo project for testing the projects overview."
@@ -102,6 +115,7 @@ test.describe("Projects overview", () => {
     await expect(
       reloadedProjectCard.getByText("Health", { exact: true })
     ).toBeVisible();
+
     await expect(
       reloadedProjectCard.getByText("Tasks", { exact: true })
     ).toBeVisible();

@@ -123,6 +123,7 @@ The current version includes:
 * Landing page
 * Project interview
 * My Projects overview
+* Example project/demo data so visitors can quickly explore Project Compass without creating all content manually
 * Form validation for project name, task title, risk title and decision title
 * Improved form accessibility for project, task, risk and decision forms
 * Improved empty states for Workspace, Risk View and Decision View
@@ -178,6 +179,7 @@ It demonstrates:
 * Playwright checks for required form fields
 * Empty state behavior tested with Playwright
 * No active project states tested with Playwright
+* Playwright test for creating and exploring the example project demo flow
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
 * Written test strategy and manual test documentation
@@ -198,6 +200,8 @@ The goal is not only to build a working application, but to show how a tester ca
 ## Portfolio value
 
 This repository is intended to show practical QA and test automation skills in a realistic product context.
+
+The example project helps teachers, recruiters and LIA contacts understand the product idea, project flow and QA value within a few minutes.
 
 It demonstrates that I can:
 
@@ -233,6 +237,8 @@ The project shows both a builder mindset and a tester mindset: creating a workin
 The My Projects page allows the user to:
 
 * Create a new project
+* Create an example project with demo data
+* Explore members, tasks, risks, decisions, responsibility, Attention Needed and Project Health without entering all data manually
 * See a validation message if project name is missing
 * Save multiple projects
 * View saved projects
@@ -559,7 +565,7 @@ The current main product flow is:
 
 1. Open the landing page
 2. Go to My Projects
-3. Create or open a project
+3. Create, open or create an example project
 4. Review Project Health in My Projects
 5. Open the project map
 6. Review the Project setup checklist
@@ -627,10 +633,12 @@ project-compass
 │   ├── components
 │   │   └── AppHeader.tsx
 │   └── lib
+│       ├── exampleProject.ts
 │       ├── projectInsights.ts
 │       └── projectStorage.ts
 ├── tests
 │   ├── decision-responsibility.spec.ts
+│   ├── example-project.spec.ts
 │   ├── landing-page.spec.ts
 │   ├── main-flow.spec.ts
 │   ├── project-map-attention.spec.ts
@@ -663,6 +671,8 @@ The landing page introduces Project Compass and provides navigation to:
 The project overview allows the user to:
 
 * Create new projects
+* Create an example project with ready-made demo data
+* Quickly explore the app with members, tasks, risks, decisions and project status data
 * See a validation message if project name is missing
 * View saved projects
 * Open a selected project
@@ -829,6 +839,7 @@ Manual testing has been used to verify:
 * Main MVP flow
 * Navigation
 * Project creation
+* Example project creation from My Projects
 * Project name validation
 * Task title validation
 * Risk title validation
@@ -881,16 +892,17 @@ During manual exploratory testing, several usability and navigation issues were 
 Automated end-to-end tests are written with Playwright and located in:
 
 ```text
+tests/decision-responsibility.spec.ts
+tests/example-project.spec.ts
 tests/landing-page.spec.ts
 tests/main-flow.spec.ts
-tests/projects-overview.spec.ts
-tests/project-members.spec.ts
-tests/task-responsibility.spec.ts
-tests/risk-responsibility.spec.ts
-tests/decision-responsibility.spec.ts
 tests/project-map-attention.spec.ts
+tests/project-members.spec.ts
 tests/project-setup-checklist.spec.ts
+tests/projects-overview.spec.ts
+tests/risk-responsibility.spec.ts
 tests/status-report-markdown.spec.ts
+tests/task-responsibility.spec.ts
 ```
 
 Current automated tests include:
@@ -898,6 +910,7 @@ Current automated tests include:
 * Landing page and navigation test
 * Main project data flow test
 * Projects overview test
+* Example project demo flow test
 * Project name validation test
 * Project members test
 * Task responsibility test
@@ -966,6 +979,17 @@ Verifies that:
 * Active project is shown in the header
 * Project overview shows project summary metrics
 * Project overview shows Project Health information
+
+### Example project demo flow
+
+Verifies that:
+
+* User can create an example project from My Projects
+* Example project appears in the saved projects list
+* Example project becomes the active project
+* User can open the example project in Project Map
+* Project Map shows demo project data, Attention Needed and Project Health
+* Status Report shows example members, tasks, risks and decisions
 
 ### Project members
 
@@ -1091,6 +1115,12 @@ Run the project overview and project validation test:
 npx playwright test tests/projects-overview.spec.ts --project=chromium
 ```
 
+Run the example project demo flow test:
+
+```bash
+npx playwright test tests/example-project.spec.ts --project=chromium
+```
+
 Run the project members test:
 
 ```bash
@@ -1137,6 +1167,7 @@ Run the focused regression suite:
 
 ```bash
 npx playwright test tests/projects-overview.spec.ts --project=chromium
+npx playwright test tests/example-project.spec.ts --project=chromium
 npx playwright test tests/project-members.spec.ts --project=chromium
 npx playwright test tests/task-responsibility.spec.ts --project=chromium
 npx playwright test tests/risk-responsibility.spec.ts --project=chromium
@@ -1238,6 +1269,7 @@ Completed:
 * Multiple saved projects
 * Active project ID
 * My Projects overview
+* Example project/demo data
 * Project name validation on My Projects
 * Project name validation Playwright coverage
 * Task title validation in Workspace
@@ -1290,6 +1322,7 @@ Completed:
 * Attention Needed in Markdown export
 * Copy status report as Markdown
 * Status report Markdown Playwright coverage
+* Example project demo flow Playwright coverage
 * Responsibility model plan
 * Standardized English UI across the main application flow
 * Updated Playwright tests after UI language refactor
@@ -1343,6 +1376,7 @@ It demonstrates:
 * Building a simple Project Health MVP
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
+* Adding demo data so new users and reviewers can understand the app faster
 * Improving empty states so new users understand the next step
 * Improving recovery paths when required project context is missing
 * Adding form validation for projects, tasks, risks and decisions

@@ -12,6 +12,7 @@ import {
   saveProjectCompassState,
   setActiveProject,
 } from "@/lib/projectStorage";
+import { createExampleProject } from "@/lib/exampleProject";
 import {
   getAttentionItems,
   getProjectHealth,
@@ -101,6 +102,19 @@ export default function ProjectsPage() {
     setState(updatedState);
     saveProjectCompassState(updatedState);
     saveLegacyProjectMap(newProject);
+
+    setProjectName("");
+    setProjectDescription("");
+    setProjectNameError("");
+  }
+
+  function handleCreateExampleProject() {
+    const exampleProject = createExampleProject();
+    const updatedState = addProject(state, exampleProject);
+
+    setState(updatedState);
+    saveProjectCompassState(updatedState);
+    saveLegacyProjectMap(exampleProject);
 
     setProjectName("");
     setProjectDescription("");
@@ -236,6 +250,23 @@ export default function ProjectsPage() {
                 Create project
               </button>
             </form>
+
+            <div className="mt-6 border-t border-slate-800 pt-6">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                Explore with demo data
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Explore Project Compass with a ready-made project containing
+                members, tasks, risks, decisions and status data.
+              </p>
+              <button
+                type="button"
+                onClick={handleCreateExampleProject}
+                className="mt-4 w-full rounded-xl border border-cyan-400 px-4 py-3 font-semibold text-cyan-200 transition hover:bg-cyan-400 hover:text-slate-950"
+              >
+                Create example project
+              </button>
+            </div>
           </section>
 
           <section>
