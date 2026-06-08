@@ -482,12 +482,26 @@ export default function ProjectBoardPage() {
                             </p>
                           )}
 
-                          <p className="mt-3 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-300">
-                            Responsible:{" "}
-                            <span className="font-semibold text-cyan-300">
-                              {getMemberName(task.ownerId)}
-                            </span>
-                          </p>
+                          <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-300">
+  <div className="flex flex-col gap-2">
+    <p>
+      Responsible:{" "}
+      <span
+        className={`font-semibold ${
+          task.ownerId ? "text-cyan-300" : "text-amber-300"
+        }`}
+      >
+        {getMemberName(task.ownerId)}
+      </span>
+    </p>
+
+    {!task.ownerId && (
+      <span className="w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-200">
+        Needs owner
+      </span>
+    )}
+  </div>
+</div>
 
                           <label
                             htmlFor={`task-status-${task.id}`}

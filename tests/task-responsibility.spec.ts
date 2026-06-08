@@ -19,7 +19,9 @@ test.describe("Task responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing the workspace empty state.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Workspace Empty State Test" })
@@ -32,8 +34,8 @@ test.describe("Task responsibility", () => {
     ).toBeVisible();
 
     await expect(
-  page.getByText("Workspace empty state", { exact: true })
-).toBeVisible();
+      page.getByText("Workspace empty state", { exact: true })
+    ).toBeVisible();
 
     await expect(
       page.getByRole("heading", { name: "No tasks yet" })
@@ -52,7 +54,9 @@ test.describe("Task responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing task validation.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Task Validation Test" })
@@ -72,14 +76,79 @@ test.describe("Task responsibility", () => {
       "aria-invalid",
       "true"
     );
+
     await expect(page.getByLabel("Title")).toHaveAttribute(
-  "aria-required",
-  "true"
-);
+      "aria-required",
+      "true"
+    );
 
     await page.getByLabel("Title").fill("Validation task");
 
     await expect(page.getByText("Task title is required.")).not.toBeVisible();
+  });
+
+  test("user can see when a task needs an owner", async ({ page }) => {
+    await page.getByLabel("Project name").fill("Task Owner Visibility Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing missing task ownership.");
+
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "Task Owner Visibility Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Workspace" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace" })
+    ).toBeVisible();
+
+    await page.getByLabel("Title").fill("Unassigned follow-up task");
+    await page
+      .getByLabel("Description")
+      .fill("This task should clearly show that it has no owner.");
+
+    await page.getByRole("button", { name: "Add task" }).click();
+
+    const taskCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned follow-up task" });
+
+    await expect(
+      taskCard.getByRole("heading", { name: "Unassigned follow-up task" })
+    ).toBeVisible();
+
+    await expect(taskCard.getByText("Responsible:")).toBeVisible();
+
+    await expect(
+      taskCard.locator("span").filter({ hasText: /^Unassigned$/ })
+    ).toBeVisible();
+
+    await expect(taskCard.getByText("Needs owner")).toBeVisible();
+
+    await page.reload();
+
+    const reloadedTaskCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned follow-up task" });
+
+    await expect(
+      reloadedTaskCard.getByRole("heading", {
+        name: "Unassigned follow-up task",
+      })
+    ).toBeVisible();
+
+    await expect(reloadedTaskCard.getByText("Responsible:")).toBeVisible();
+
+    await expect(
+      reloadedTaskCard.locator("span").filter({ hasText: /^Unassigned$/ })
+    ).toBeVisible();
+
+    await expect(reloadedTaskCard.getByText("Needs owner")).toBeVisible();
   });
 
   test("user can assign a task to a project member and see it after reload", async ({
@@ -90,7 +159,9 @@ test.describe("Task responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing task ownership.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Task Responsibility Test" })
@@ -146,6 +217,8 @@ test.describe("Task responsibility", () => {
       taskCard.locator("span").filter({ hasText: /^Johan Larsson$/ })
     ).toBeVisible();
 
+    await expect(taskCard.getByText("Needs owner")).not.toBeVisible();
+
     await page.reload();
 
     const reloadedTaskCard = page
@@ -163,5 +236,7 @@ test.describe("Task responsibility", () => {
     await expect(
       reloadedTaskCard.locator("span").filter({ hasText: /^Johan Larsson$/ })
     ).toBeVisible();
+
+    await expect(reloadedTaskCard.getByText("Needs owner")).not.toBeVisible();
   });
 });
