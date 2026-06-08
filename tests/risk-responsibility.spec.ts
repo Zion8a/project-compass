@@ -45,7 +45,9 @@ test.describe("Risk responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing the risk view empty state.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Risk Empty State Test" })
@@ -78,7 +80,9 @@ test.describe("Risk responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing risk validation.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Risk Validation Test" })
@@ -109,6 +113,82 @@ test.describe("Risk responsibility", () => {
     await expect(page.getByText("Risk title is required.")).not.toBeVisible();
   });
 
+  test("user can see when a risk needs an owner", async ({ page }) => {
+    await page.getByLabel("Project name").fill("Risk Owner Visibility Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing missing risk ownership.");
+
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk Owner Visibility Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Risks" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Risk View" })
+    ).toBeVisible();
+
+    await page.getByLabel("Title").fill("Unassigned delivery risk");
+
+    await page
+      .getByLabel("Description")
+      .fill("This risk should clearly show that it has no owner.");
+
+    await page.getByLabel("Probability").selectOption("medium");
+    await page.getByLabel("Impact").selectOption("high");
+
+    await page
+      .getByLabel("Action")
+      .fill("Clarify who should follow up this risk.");
+
+    await page.getByRole("button", { name: "Add risk" }).click();
+
+    const riskCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned delivery risk" });
+
+    await expect(
+      riskCard.getByRole("heading", { name: "Unassigned delivery risk" })
+    ).toBeVisible();
+
+    await expect(riskCard.getByText("Responsible")).toBeVisible();
+
+    await expect(
+      riskCard.getByText("Unassigned", { exact: true })
+    ).toBeVisible();
+
+    await expect(riskCard.getByText("Needs owner")).toBeVisible();
+
+    await page.reload();
+
+    const reloadedRiskCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned delivery risk" });
+
+    await expect(
+      reloadedRiskCard.getByRole("heading", {
+        name: "Unassigned delivery risk",
+      })
+    ).toBeVisible();
+
+    await expect(reloadedRiskCard.getByText("Responsible")).toBeVisible();
+
+    await expect(
+      reloadedRiskCard.getByText("Unassigned", { exact: true })
+    ).toBeVisible();
+
+    await expect(reloadedRiskCard.getByText("Needs owner")).toBeVisible();
+
+    await expect(
+      reloadedRiskCard.getByText("Clarify who should follow up this risk.")
+    ).toBeVisible();
+  });
+
   test("user can assign a risk to a project member and see it after reload", async ({
     page,
   }) => {
@@ -117,7 +197,9 @@ test.describe("Risk responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing risk ownership.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Risk Responsibility Test" })
@@ -180,6 +262,8 @@ test.describe("Risk responsibility", () => {
       riskCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
 
+    await expect(riskCard.getByText("Needs owner")).not.toBeVisible();
+
     await expect(riskCard.getByText("High")).toHaveCount(2);
 
     await page.reload();
@@ -197,6 +281,8 @@ test.describe("Risk responsibility", () => {
     await expect(
       reloadedRiskCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
+
+    await expect(reloadedRiskCard.getByText("Needs owner")).not.toBeVisible();
 
     await expect(reloadedRiskCard.getByText("High")).toHaveCount(2);
 

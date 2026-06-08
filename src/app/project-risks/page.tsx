@@ -207,6 +207,10 @@ export default function ProjectRisksPage() {
     return "Unassigned";
   }
 
+  function riskNeedsOwner(risk: ProjectRisk) {
+    return !risk.ownerId && !risk.owner;
+  }
+
   function handleTitleChange(value: string) {
     setTitle(value);
 
@@ -620,9 +624,9 @@ export default function ProjectRisksPage() {
                           value={translateRiskLevel(risk.impact)}
                         />
 
-                        <RiskMeta
-                          label="Responsible"
+                        <RiskOwnerMeta
                           value={getMemberName(risk)}
+                          needsOwner={riskNeedsOwner(risk)}
                         />
 
                         <RiskMeta
@@ -755,6 +759,36 @@ function RiskMeta({ label, value }: { label: string; value: string }) {
       </p>
 
       <p className="mt-2 font-semibold text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function RiskOwnerMeta({
+  value,
+  needsOwner,
+}: {
+  value: string;
+  needsOwner: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        Responsible
+      </p>
+
+      <p
+        className={`mt-2 font-semibold ${
+          needsOwner ? "text-amber-300" : "text-slate-100"
+        }`}
+      >
+        {value}
+      </p>
+
+      {needsOwner && (
+        <span className="mt-3 inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-200">
+          Needs owner
+        </span>
+      )}
     </div>
   );
 }
