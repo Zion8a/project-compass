@@ -132,13 +132,15 @@ export default function ProjectReportPage() {
             .join("\n");
 
     const attentionSection =
-      attentionItems.length === 0
-        ? "No attention items were found in the active project."
-        : attentionItems
-            .map((item) => {
-              return `- **${item.title}** — ${item.text}`;
-            })
-            .join("\n");
+  attentionItems.length === 0
+    ? "No attention items were found in the active project."
+    : attentionItems
+        .map((item) => {
+          return `- **${formatAttentionSeverity(item.severity)}** — **${
+            item.title
+          }** — ${item.text}`;
+        })
+        .join("\n");
 
     const taskSection =
       tasks.length === 0

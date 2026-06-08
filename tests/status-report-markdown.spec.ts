@@ -173,7 +173,8 @@ test.describe("Status report Markdown export", () => {
     const copiedMarkdown = await page.evaluate(() =>
       window.localStorage.getItem("copied-markdown-report")
     );
-expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
+
+    expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
     expect(copiedMarkdown).toContain("## Project Members");
     expect(copiedMarkdown).toContain("Johan Larsson");
     expect(copiedMarkdown).toContain("Write project update");
@@ -183,8 +184,14 @@ expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
     expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
 
     expect(copiedMarkdown).toContain("## Attention Needed");
-    expect(copiedMarkdown).toContain("1 task without owner");
-    expect(copiedMarkdown).toContain("1 high risk");
-    expect(copiedMarkdown).toContain("1 open decision");
+    expect(copiedMarkdown).toContain(
+      "- **Medium** — **1 task without owner** — Tasks without an owner can easily be missed or delayed."
+    );
+    expect(copiedMarkdown).toContain(
+      "- **High** — **1 high risk** — High risks should be reviewed and handled before they affect the project."
+    );
+    expect(copiedMarkdown).toContain(
+      "- **High** — **1 open decision** — Open decisions can block direction, scope or next steps."
+    );
   });
 });
