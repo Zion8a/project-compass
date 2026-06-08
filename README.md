@@ -139,6 +139,9 @@ The current version includes:
 * Task responsibility
 * Risk responsibility
 * Decision responsibility
+* Missing task ownership highlighted in Workspace
+* Missing risk ownership highlighted in Risk View
+* Missing decision ownership highlighted in Decision View
 * Risk register
 * Decision log
 * Status report
@@ -183,6 +186,7 @@ It demonstrates:
 * Empty state behavior tested with Playwright
 * No active project states tested with Playwright
 * Attention Needed severity and Markdown export behavior tested with Playwright
+* Missing ownership indicators for tasks, risks and decisions tested with Playwright
 * Playwright test for creating and exploring the example project demo flow
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
@@ -227,6 +231,7 @@ It demonstrates that I can:
 * Build a product while continuously evaluating quality and risk
 * Turn project data into actionable project leadership signals
 * Improve status reporting so risks, blocked work and missing ownership become visible
+* Make missing responsibility visible directly in the views where work, risks and decisions are managed
 * Improve form validation and error handling from a user perspective
 * Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
@@ -419,6 +424,16 @@ The first version of the responsibility model is intentionally simple:
 * Responsibility persists after reload
 * Status report shows responsibility overview
 * Unassigned items can be detected by Attention Needed
+* Missing ownership is highlighted directly in Workspace, Risk View and Decision View
+
+When an item has no responsible person, the app shows:
+
+```text
+Responsible: Unassigned
+Needs owner
+```
+
+This makes missing ownership visible where the work is managed, instead of only showing it later in a report.
 
 This supports the core project question:
 
@@ -438,6 +453,7 @@ The user can:
 * See the responsible member on the task card
 * Reload the page and keep the responsibility assignment
 
+If a task has no responsible member, Workspace shows `Unassigned` and a `Needs owner` badge.
 Tasks are stored in the active project data model.
 
 ### Risk responsibility
@@ -451,6 +467,7 @@ The user can:
 * See the responsible member on the risk card
 * Reload the page and keep the responsibility assignment
 
+If a risk has no responsible member or legacy owner note, Risk View shows `Unassigned` and a `Needs owner` badge.
 Risks are stored in the active project data model.
 
 ### Decision responsibility
@@ -464,6 +481,7 @@ The user can:
 * See the responsible member on the decision card
 * Reload the page and keep the responsibility assignment
 
+If a decision has no responsible member or legacy owner note, Decision View shows `Unassigned` and a `Needs owner` badge.
 Decisions are stored in the active project data model.
 
 ### Attention Needed
@@ -759,6 +777,7 @@ The project board allows the user to create and move tasks between:
 * Done
 
 Tasks can also be assigned to a responsible project member.
+Tasks without a responsible member are marked with `Needs owner`.
 
 When no tasks exist, Workspace shows a guided empty state that explains how to create a useful first task.
 
@@ -777,6 +796,8 @@ The risk view allows the user to document project risks with:
 * Legacy owner note
 * Status
 
+Risks without a responsible member or legacy owner note are marked with `Needs owner`.
+
 When no risks exist, Risk View shows a guided empty state that explains how to identify uncertainty, think about probability and impact, and add an action.
 
 When no active project exists, Risk View shows a clear no active project state and links the user back to My Projects.
@@ -792,6 +813,8 @@ The decision view allows the user to document decisions with:
 * Deadline
 * Status
 * Consequence
+
+Decisions without a responsible member or legacy owner note are marked with `Needs owner`.
 
 When no decisions exist, Decision View shows a guided empty state that explains how to clarify what is undecided, describe consequences and assign responsibility.
 
@@ -897,6 +920,9 @@ Manual testing has been used to verify:
 * Markdown copy from status report
 * Standardized English UI across the main application flow
 * Vercel deployment smoke test
+* Missing task ownership shown in Workspace
+* Missing risk ownership shown in Risk View
+* Missing decision ownership shown in Decision View
 
 During manual exploratory testing, several usability and navigation issues were found and fixed, including:
 
@@ -1050,6 +1076,9 @@ Verifies that:
 * Task title input is marked invalid when validation fails
 * Task title input is marked as required for assistive technology
 * Validation message disappears when the user enters a task title
+* Tasks without responsible member show Unassigned
+* Tasks without responsible member show Needs owner
+* Tasks with responsible member do not show Needs owner
 
 ### Risk responsibility
 
@@ -1067,6 +1096,9 @@ Verifies that:
 * Risk title input is marked invalid when validation fails
 * Risk title input is marked as required for assistive technology
 * Validation message disappears when the user enters a risk title
+* Risks without responsible member show Unassigned
+* Risks without responsible member show Needs owner
+* Risks with responsible member do not show Needs owner
 
 ### Decision responsibility
 
@@ -1084,6 +1116,9 @@ Verifies that:
 * Decision title input is marked invalid when validation fails
 * Decision title input is marked as required for assistive technology
 * Validation message disappears when the user enters a decision title
+* Decisions without responsible member show Unassigned
+* Decisions without responsible member show Needs owner
+* Decisions with responsible member do not show Needs owner
 
 ### Project Map Attention Needed
 
@@ -1347,6 +1382,12 @@ Completed:
 * Risk responsibility Playwright coverage
 * Decision responsibility in decision view
 * Decision responsibility Playwright coverage
+* Missing task owner indicator in Workspace
+* Missing task owner Playwright coverage
+* Missing risk owner indicator in Risk View
+* Missing risk owner Playwright coverage
+* Missing decision owner indicator in Decision View
+* Missing decision owner Playwright coverage
 * Responsibility overview in status report
 * Active project summary on Project Map
 * Attention Needed preview in My Projects overview
@@ -1430,6 +1471,8 @@ It demonstrates:
 * Turning Attention Needed into clearer project leadership signals
 * Showing priority through High and Medium severity indicators
 * Testing status and reporting improvements with focused Playwright tests
+* Making missing ownership visible directly in the user interface
+* Testing ownership visibility with focused Playwright tests
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
 
