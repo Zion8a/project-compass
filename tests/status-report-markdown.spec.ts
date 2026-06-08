@@ -32,6 +32,15 @@ test.describe("Status report Markdown export", () => {
                   createdAt: now,
                   updatedAt: now,
                 },
+                {
+                  id: "task-2",
+                  title: "Confirm unassigned follow-up",
+                  description:
+                    "This task intentionally has no owner so Attention Needed can show missing ownership.",
+                  status: "planned",
+                  createdAt: now,
+                  updatedAt: now,
+                },
               ],
               risks: [
                 {
@@ -117,6 +126,39 @@ test.describe("Status report Markdown export", () => {
     ).toBeVisible();
 
     await expect(
+      page.getByRole("heading", { name: "3 items need attention" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "1 task without owner" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Tasks without an owner can easily be missed or delayed.")
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "1 high risk" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "High risks should be reviewed and handled before they affect the project."
+      )
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "1 open decision" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Open decisions can block direction, scope or next steps.")
+    ).toBeVisible();
+
+    await expect(page.getByText("High").first()).toBeVisible();
+    await expect(page.getByText("Medium").first()).toBeVisible();
+
+    await expect(
       page.getByRole("button", { name: "Copy status report as Markdown" })
     ).toBeVisible();
 
@@ -125,22 +167,23 @@ test.describe("Status report Markdown export", () => {
       .click();
 
     await expect(
-  page.getByText("Status report copied as Markdown.")
-).toBeVisible();
+      page.getByText("Status report copied as Markdown.")
+    ).toBeVisible();
 
     const copiedMarkdown = await page.evaluate(() =>
       window.localStorage.getItem("copied-markdown-report")
     );
-
-    expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
+expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
     expect(copiedMarkdown).toContain("## Project Members");
     expect(copiedMarkdown).toContain("Johan Larsson");
     expect(copiedMarkdown).toContain("Write project update");
+    expect(copiedMarkdown).toContain("Confirm unassigned follow-up");
     expect(copiedMarkdown).toContain("Unclear ownership");
     expect(copiedMarkdown).toContain("Choose report format");
     expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
 
     expect(copiedMarkdown).toContain("## Attention Needed");
+    expect(copiedMarkdown).toContain("1 task without owner");
     expect(copiedMarkdown).toContain("1 high risk");
     expect(copiedMarkdown).toContain("1 open decision");
   });

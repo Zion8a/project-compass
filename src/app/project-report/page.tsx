@@ -650,12 +650,52 @@ function ResponsibilityItem({ title, meta }: { title: string; meta: string }) {
   );
 }
 
+function getAttentionSeverityClasses(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "border-red-500/40 bg-red-500/10 text-red-100";
+  }
+
+  return "border-amber-500/40 bg-amber-500/10 text-amber-100";
+}
+
+function getAttentionSeverityBadgeClasses(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "border-red-400/50 bg-red-400/10 text-red-100";
+  }
+
+  return "border-amber-400/50 bg-amber-400/10 text-amber-100";
+}
+
+function formatAttentionSeverity(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "High";
+  }
+
+  return "Medium";
+}
+
 function AttentionItemCard({ item }: { item: AttentionItem }) {
   return (
-    <article className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-      <h3 className="font-semibold text-amber-100">{item.title}</h3>
+    <article
+      className={`rounded-2xl border p-4 ${getAttentionSeverityClasses(
+        item.severity
+      )}`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="font-semibold">{item.title}</h3>
 
-      <p className="mt-2 text-sm leading-6 text-amber-100/80">{item.text}</p>
+          <p className="mt-2 text-sm leading-6 opacity-85">{item.text}</p>
+        </div>
+
+        <span
+          className={`w-fit rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${getAttentionSeverityBadgeClasses(
+            item.severity
+          )}`}
+        >
+          {formatAttentionSeverity(item.severity)}
+        </span>
+      </div>
     </article>
   );
 }
