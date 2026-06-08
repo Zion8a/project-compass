@@ -192,6 +192,10 @@ export default function ProjectDecisionsPage() {
     return "Unassigned";
   }
 
+  function decisionNeedsOwner(decision: ProjectDecision) {
+  return !decision.ownerId && !decision.owner;
+}
+
   function handleTitleChange(value: string) {
     setTitle(value);
 
@@ -591,23 +595,23 @@ export default function ProjectDecisionsPage() {
                       </div>
 
                       <div className="mt-5 grid gap-4 md:grid-cols-4">
-                        <DecisionMeta
-                          label="Responsible"
-                          value={getMemberName(decision)}
-                        />
+  <DecisionOwnerMeta
+    value={getMemberName(decision)}
+    needsOwner={decisionNeedsOwner(decision)}
+  />
 
-                        <DecisionMeta
-                          label="Deadline"
-                          value={decision.deadline || "Not specified"}
-                        />
+  <DecisionMeta
+    label="Deadline"
+    value={decision.deadline || "Not specified"}
+  />
 
-                        <DecisionMeta
-                          label="Status"
-                          value={translateDecisionStatus(decision.status)}
-                        />
+  <DecisionMeta
+    label="Status"
+    value={translateDecisionStatus(decision.status)}
+  />
 
-                        <DecisionMeta label="Type" value="Decision" />
-                      </div>
+  <DecisionMeta label="Type" value="Decision" />
+</div>
 
                       {decision.consequence && (
                         <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
@@ -733,6 +737,36 @@ function DecisionMeta({ label, value }: { label: string; value: string }) {
       </p>
 
       <p className="mt-2 font-semibold text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function DecisionOwnerMeta({
+  value,
+  needsOwner,
+}: {
+  value: string;
+  needsOwner: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        Responsible
+      </p>
+
+      <p
+        className={`mt-2 font-semibold ${
+          needsOwner ? "text-amber-300" : "text-slate-100"
+        }`}
+      >
+        {value}
+      </p>
+
+      {needsOwner && (
+        <span className="mt-3 inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-200">
+          Needs owner
+        </span>
+      )}
     </div>
   );
 }

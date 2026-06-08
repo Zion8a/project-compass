@@ -47,7 +47,9 @@ test.describe("Decision responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing the decision view empty state.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Decision Empty State Test" })
@@ -80,7 +82,9 @@ test.describe("Decision responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing decision validation.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Decision Validation Test" })
@@ -113,6 +117,93 @@ test.describe("Decision responsibility", () => {
     ).not.toBeVisible();
   });
 
+  test("user can see when a decision needs an owner", async ({ page }) => {
+    await page.getByLabel("Project name").fill("Decision Owner Visibility Test");
+    await page
+      .getByLabel("Description")
+      .fill("A project used for testing missing decision ownership.");
+
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision Owner Visibility Test" })
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Decisions" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Decision View" })
+    ).toBeVisible();
+
+    await page.getByLabel("Title").fill("Unassigned scope decision");
+
+    await page
+      .getByLabel("Description")
+      .fill("This decision should clearly show that it has no owner.");
+
+    await page.getByLabel("Deadline").fill("2026-06-14");
+
+    await page
+      .getByLabel("Consequence")
+      .fill("The decision affects scope, planning and next steps.");
+
+    await page.getByRole("button", { name: "Add decision" }).click();
+
+    const decisionCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned scope decision" });
+
+    await expect(
+      decisionCard.getByRole("heading", { name: "Unassigned scope decision" })
+    ).toBeVisible();
+
+    await expect(decisionCard.getByText("Responsible")).toBeVisible();
+
+    await expect(
+      decisionCard.getByText("Unassigned", { exact: true })
+    ).toBeVisible();
+
+    await expect(decisionCard.getByText("Needs owner")).toBeVisible();
+
+    await expect(decisionCard.getByText("2026-06-14")).toBeVisible();
+
+    await expect(
+      decisionCard.getByText(
+        "The decision affects scope, planning and next steps."
+      )
+    ).toBeVisible();
+
+    await page.reload();
+
+    const reloadedDecisionCard = page
+      .locator("article")
+      .filter({ hasText: "Unassigned scope decision" });
+
+    await expect(
+      reloadedDecisionCard.getByRole("heading", {
+        name: "Unassigned scope decision",
+      })
+    ).toBeVisible();
+
+    await expect(reloadedDecisionCard.getByText("Responsible")).toBeVisible();
+
+    await expect(
+      reloadedDecisionCard.getByText("Unassigned", { exact: true })
+    ).toBeVisible();
+
+    await expect(reloadedDecisionCard.getByText("Needs owner")).toBeVisible();
+
+    await expect(reloadedDecisionCard.getByText("2026-06-14")).toBeVisible();
+
+    await expect(
+      reloadedDecisionCard.getByText(
+        "The decision affects scope, planning and next steps."
+      )
+    ).toBeVisible();
+  });
+
   test("user can assign a decision to a project member and see it after reload", async ({
     page,
   }) => {
@@ -121,7 +212,9 @@ test.describe("Decision responsibility", () => {
       .getByLabel("Description")
       .fill("A project used for testing decision ownership.");
 
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "Decision Responsibility Test" })
@@ -191,6 +284,8 @@ test.describe("Decision responsibility", () => {
       decisionCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
 
+    await expect(decisionCard.getByText("Needs owner")).not.toBeVisible();
+
     await expect(decisionCard.getByText("2026-06-07")).toBeVisible();
 
     await expect(
@@ -216,6 +311,10 @@ test.describe("Decision responsibility", () => {
     await expect(
       reloadedDecisionCard.getByText("Johan Larsson", { exact: true })
     ).toBeVisible();
+
+    await expect(
+      reloadedDecisionCard.getByText("Needs owner")
+    ).not.toBeVisible();
 
     await expect(reloadedDecisionCard.getByText("2026-06-07")).toBeVisible();
 
