@@ -134,9 +134,6 @@ The current version includes:
 * Project setup checklist on Project Map
 * Project Map
 * Active project summary on Project Map
-* Attention Needed on Project Map
-* Project Health on Project Map
-* Project Health in My Projects overview
 * Project board / Kanban-style task board
 * Project members
 * Task responsibility
@@ -147,10 +144,16 @@ The current version includes:
 * Status report
 * Project members shown in status report
 * Responsibility overview in status report
-* Attention Needed in status report
-* Project Health in status report
+* Project Health in My Projects overview
+* Project Health on Project Map
+* Project Health in Status Report
+* Attention Needed on Project Map
+* Attention Needed in Status Report
+* Attention Needed preview in My Projects overview
+* Attention severity shown as High or Medium in Project Map
+* Attention severity shown as High or Medium in Status Report
+* Attention severity included in Markdown export
 * Copy status report as Markdown
-* Attention Needed included in Markdown export
 * Shared project insight logic for Attention Needed and Project Health
 * Manual regression test documentation
 * Automated end-to-end tests with Playwright
@@ -172,13 +175,14 @@ It demonstrates:
 * Playwright end-to-end testing
 * Cross-browser landing page testing
 * Chromium-based core flow testing
-* Focused Playwright tests for project overview, members, responsibility, Attention Needed, setup checklist and Markdown export
+* Focused Playwright tests for project overview, members, responsibility, Attention Needed, severity indicators, setup checklist and Markdown export
 * Form validation tested with Playwright for projects, tasks, risks and decisions
 * Negative input tests for missing required titles
 * Accessibility-focused form improvements
 * Playwright checks for required form fields
 * Empty state behavior tested with Playwright
 * No active project states tested with Playwright
+* Attention Needed severity and Markdown export behavior tested with Playwright
 * Playwright test for creating and exploring the example project demo flow
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
@@ -221,6 +225,8 @@ It demonstrates that I can:
 * Use Git commits to document progress and technical decisions
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
+* Turn project data into actionable project leadership signals
+* Improve status reporting so risks, blocked work and missing ownership become visible
 * Improve form validation and error handling from a user perspective
 * Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
@@ -248,6 +254,8 @@ The My Projects page allows the user to:
 * See calculated Project Health
 * See a short health summary
 * See number of attention items
+* Preview the most important Attention Needed items directly in the project card
+* See whether attention items are High or Medium priority
 * See number of members
 * See number of tasks
 * See number of risks
@@ -382,7 +390,7 @@ It includes:
 * Project setup checklist
 * Active project summary
 * Project Health
-* Attention Needed
+* Attention Needed with High and Medium severity
 * Project direction cards
 * Recommended next step
 
@@ -462,7 +470,7 @@ Decisions are stored in the active project data model.
 
 Project Compass can highlight project items that need project leader attention.
 
-The first version of Attention Needed checks the active project for:
+The current version of Attention Needed checks the active project for:
 
 * Blocked tasks
 * Tasks without owner
@@ -471,7 +479,23 @@ The first version of Attention Needed checks the active project for:
 * Decisions without owner
 * Open decisions
 
-This helps the user move from simply storing project information to understanding what should be followed up next.
+Attention Needed is shown in:
+
+* My Projects overview
+* Project Map
+* Status Report
+* Markdown export
+
+Attention items now include a severity level:
+
+* High
+* Medium
+
+High severity is used for signals such as blocked tasks, high risks and open decisions.
+
+Medium severity is used for missing ownership, such as tasks, risks or decisions without a responsible person.
+
+This helps the user move from simply storing project information to understanding what should be followed up next and what should be prioritized first.
 
 ### Project Health
 
@@ -524,7 +548,7 @@ The status report summarizes:
 * High risks
 * Open decisions
 * Number of members
-* Attention Needed
+* Attention Needed with High and Medium severity
 * Project purpose
 * Project goal
 * Project members
@@ -545,7 +569,7 @@ The exported report includes:
 * Date
 * Overall project status
 * Summary metrics
-* Attention Needed
+* Attention Needed with High and Medium severity
 * Purpose
 * Goal
 * Deliverables
@@ -566,11 +590,11 @@ The current main product flow is:
 1. Open the landing page
 2. Go to My Projects
 3. Create, open or create an example project
-4. Review Project Health in My Projects
+4. Review Project Health and Attention Needed preview in My Projects
 5. Open the project map
 6. Review the Project setup checklist
 7. Review active project summary
-8. Review Attention Needed
+8. Review Attention Needed with severity
 9. Review Project Health
 10. Add project members
 11. Open the workspace
@@ -680,6 +704,8 @@ The project overview allows the user to:
 * See project health
 * See health summary
 * See attention item count
+* Preview the most important Attention Needed items directly in the project card
+* See whether attention items are High or Medium priority
 * See project member count
 * See task count
 * See risk count
@@ -706,7 +732,7 @@ It includes:
 * Project direction
 * Project setup checklist
 * Active project summary
-* Attention Needed
+* Attention Needed with High and Medium severity
 * Project Health
 * Recommended next step
 
@@ -783,7 +809,7 @@ The status report summarizes:
 * High risks
 * Open decisions
 * Number of members
-* Attention Needed
+* Attention Needed with High and Medium severity
 * Project purpose
 * Project goal
 * Project members
@@ -861,11 +887,13 @@ Manual testing has been used to verify:
 * Decision responsibility in decision view
 * Decision responsibility after reload
 * Responsibility overview in status report
-* Attention Needed on Project Map
+* Attention Needed preview in My Projects
+* Attention Needed severity in Project Map
+* Attention Needed severity in Status Report
+* Attention Needed severity in Markdown export
 * Project Health on Project Map
 * Project Health in My Projects
 * Project setup checklist on Project Map
-* Attention Needed in Status Report
 * Markdown copy from status report
 * Standardized English UI across the main application flow
 * Vercel deployment smoke test
@@ -929,9 +957,12 @@ Current automated tests include:
 * Decision View empty state test
 * Decision View no active project state test
 * Project Map Attention Needed test
+* Project Map severity-aware Attention Needed test
 * Project setup checklist test
 * Project Map no active project state test
 * Status report Markdown copy test
+* Status Report severity-aware Attention Needed test
+* Status Report Markdown severity export test
 * Status Report no active project state test
 
 The landing page test is verified across:
@@ -979,6 +1010,8 @@ Verifies that:
 * Active project is shown in the header
 * Project overview shows project summary metrics
 * Project overview shows Project Health information
+* Project overview shows an Attention Needed preview
+* Project overview shows stable projects with no current attention items
 
 ### Example project demo flow
 
@@ -1062,6 +1095,8 @@ Verifies that:
 * User can create an open decision without owner
 * Project Map shows Attention Needed
 * Attention Needed shows blocked task, missing ownership, high risk and open decision signals
+* Attention Needed items show severity labels
+* High and Medium severity indicators are visible
 
 ### Project setup checklist
 
@@ -1086,6 +1121,9 @@ Verifies that:
 * Confirmation message is shown
 * Exported Markdown contains project name, members, task, risk and decision data
 * Exported Markdown contains Attention Needed
+* Status Report shows Attention Needed severity labels
+* Exported Markdown contains Attention Needed severity
+* Exported Markdown distinguishes High and Medium attention items
 
 ---
 
@@ -1311,17 +1349,24 @@ Completed:
 * Decision responsibility Playwright coverage
 * Responsibility overview in status report
 * Active project summary on Project Map
+* Attention Needed preview in My Projects overview
 * Attention Needed on Project Map
+* Attention severity in Project Map
+* Attention Needed in Status Report
+* Attention severity in Status Report
+* Attention severity in Markdown export
 * Project Health MVP on Project Map
 * Shared project insight logic for Attention Needed and Project Health
 * Project Map Attention Needed Playwright coverage
+* Project Map severity-aware Attention Needed Playwright coverage
 * Project setup checklist Playwright coverage
 * Status Report uses active project data
-* Attention Needed in Status Report
 * Project Health in Status Report
 * Attention Needed in Markdown export
 * Copy status report as Markdown
 * Status report Markdown Playwright coverage
+* Status Report severity-aware Attention Needed Playwright coverage
+* Markdown export severity Playwright coverage
 * Example project demo flow Playwright coverage
 * Responsibility model plan
 * Standardized English UI across the main application flow
@@ -1382,6 +1427,9 @@ It demonstrates:
 * Adding form validation for projects, tasks, risks and decisions
 * Improving form accessibility with ARIA attributes and clearer error messages
 * Testing negative input cases with Playwright
+* Turning Attention Needed into clearer project leadership signals
+* Showing priority through High and Medium severity indicators
+* Testing status and reporting improvements with focused Playwright tests
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
 
