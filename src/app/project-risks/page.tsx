@@ -99,8 +99,10 @@ function loadLegacyRisks(): ProjectRisk[] {
         mitigation:
           typeof risk.mitigation === "string" ? risk.mitigation : undefined,
         owner: typeof risk.owner === "string" ? risk.owner : undefined,
-        ownerId: typeof risk.ownerId === "string" ? risk.ownerId : undefined,
-        status: isValidRiskStatus(risk.status) ? risk.status : "open",
+ownerId: typeof risk.ownerId === "string" ? risk.ownerId : undefined,
+relatedTaskId:
+  typeof risk.relatedTaskId === "string" ? risk.relatedTaskId : undefined,
+status: isValidRiskStatus(risk.status) ? risk.status : "open",
         createdAt: typeof risk.createdAt === "string" ? risk.createdAt : now,
         updatedAt: typeof risk.updatedAt === "string" ? risk.updatedAt : now,
       }));
@@ -122,8 +124,9 @@ export default function ProjectRisksPage() {
   const [impact, setImpact] = useState<ProjectRiskLevel>("medium");
   const [action, setAction] = useState("");
   const [owner, setOwner] = useState("");
-  const [ownerId, setOwnerId] = useState("");
-  const [status, setStatus] = useState<ProjectRiskStatus>("open");
+const [ownerId, setOwnerId] = useState("");
+const [relatedTaskId, setRelatedTaskId] = useState("");
+const [status, setStatus] = useState<ProjectRiskStatus>("open");
 
   useEffect(() => {
     const savedProject = localStorage.getItem("project-compass-current-project");
@@ -211,6 +214,17 @@ export default function ProjectRisksPage() {
     return !risk.ownerId && !risk.owner;
   }
 
+  function getRelatedTaskTitle(risk: ProjectRisk) {
+  if (!risk.relatedTaskId || !activeProject) {
+    return "No related task";
+  }
+
+  return (
+    activeProject.tasks.find((task) => task.id === risk.relatedTaskId)?.title ||
+    "Unknown task"
+  );
+}
+
   function handleTitleChange(value: string) {
     setTitle(value);
 
@@ -235,19 +249,20 @@ export default function ProjectRisksPage() {
     const now = new Date().toISOString();
 
     const newRisk: ProjectRisk = {
-      id: crypto.randomUUID(),
-      title: trimmedTitle,
-      description: trimmedDescription || undefined,
-      probability,
-      impact,
-      action: trimmedAction || undefined,
-      mitigation: trimmedAction || undefined,
-      owner: trimmedOwner || undefined,
-      ownerId: ownerId || undefined,
-      status,
-      createdAt: now,
-      updatedAt: now,
-    };
+  id: crypto.randomUUID(),
+  title: trimmedTitle,
+  description: trimmedDescription || undefined,
+  probability,
+  impact,
+  action: trimmedAction || undefined,
+  mitigation: trimmedAction || undefined,
+  owner: trimmedOwner || undefined,
+  ownerId: ownerId || undefined,
+  relatedTaskId: relatedTaskId || undefined,
+  status,
+  createdAt: now,
+  updatedAt: now,
+};
 
     persistRisks([...risks, newRisk]);
 
@@ -258,8 +273,9 @@ export default function ProjectRisksPage() {
     setImpact("medium");
     setAction("");
     setOwner("");
-    setOwnerId("");
-    setStatus("open");
+setOwnerId("");
+setRelatedTaskId("");
+setStatus("open");
   }
 
   function updateRiskStatus(riskId: string, newStatus: ProjectRiskStatus) {
@@ -430,6 +446,28 @@ export default function ProjectRisksPage() {
                     ))}
                   </select>
                 </div>
+
+                <div>
+  <label
+    htmlFor="risk-related-task-id"
+    className="block text-sm font-semibold text-slate-200"
+  >
+    Related task
+  </label>
+  <select
+    id="risk-related-task-id"
+    value={relatedTaskId}
+    onChange={(event) => setRelatedTaskId(event.target.value)}
+    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+  >
+    <option value="">No related task</option>
+    {activeProject.tasks.map((task) => (
+      <option key={task.id} value={task.id}>
+        {task.title}
+      </option>
+    ))}
+  </select>
+</div>
 
                 <div>
                   <label
@@ -613,27 +651,32 @@ export default function ProjectRisksPage() {
                         </select>
                       </div>
 
-                      <div className="mt-5 grid gap-4 md:grid-cols-4">
-                        <RiskMeta
-                          label="Probability"
-                          value={translateRiskLevel(risk.probability)}
-                        />
+                      <div className="mt-5 grid gap-4 md:grid-cols-5">
+  <RiskMeta
+    label="Probability"
+    value={translateRiskLevel(risk.probability)}
+  />
 
-                        <RiskMeta
-                          label="Impact"
-                          value={translateRiskLevel(risk.impact)}
-                        />
+  <RiskMeta
+    label="Impact"
+    value={translateRiskLevel(risk.impact)}
+  />
 
-                        <RiskOwnerMeta
-                          value={getMemberName(risk)}
-                          needsOwner={riskNeedsOwner(risk)}
-                        />
+  <RiskOwnerMeta
+    value={getMemberName(risk)}
+    needsOwner={riskNeedsOwner(risk)}
+  />
 
-                        <RiskMeta
-                          label="Status"
-                          value={translateRiskStatus(risk.status)}
-                        />
-                      </div>
+  <RiskMeta
+    label="Related task"
+    value={getRelatedTaskTitle(risk)}
+  />
+
+  <RiskMeta
+    label="Status"
+    value={translateRiskStatus(risk.status)}
+  />
+</div>
 
                       {(risk.action || risk.mitigation) && (
                         <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">

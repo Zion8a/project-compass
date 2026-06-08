@@ -47,6 +47,7 @@ export type ProjectRisk = {
   action?: string;
   owner?: string;
   ownerId?: string;
+  relatedTaskId?: string;
   status: ProjectRiskStatus;
   createdAt: string;
   updatedAt: string;
