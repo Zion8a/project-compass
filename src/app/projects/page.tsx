@@ -39,11 +39,27 @@ function getProjectHealthClasses(projectHealth: ProjectHealth) {
     return "border-emerald-500/40 bg-emerald-500/10 text-emerald-200";
   }
 
+  function getAttentionSeverityClasses(severity: "medium" | "high") {
+  if (severity === "high") {
+    return "border-red-500/40 bg-red-500/10 text-red-200";
+  }
+
+  return "border-amber-500/40 bg-amber-500/10 text-amber-200";
+}
+
   if (projectHealth.level === "needs-attention") {
     return "border-amber-500/40 bg-amber-500/10 text-amber-200";
   }
 
   return "border-red-500/40 bg-red-500/10 text-red-200";
+}
+
+function getAttentionSeverityClasses(severity: "medium" | "high") {
+  if (severity === "high") {
+    return "border-red-500/40 bg-red-500/10 text-red-200";
+  }
+
+  return "border-amber-500/40 bg-amber-500/10 text-amber-200";
 }
 
 export default function ProjectsPage() {
@@ -408,6 +424,57 @@ export default function ProjectsPage() {
                               </dd>
                             </div>
                           </dl>
+                          <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+    <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+      Attention needed
+    </h4>
+    <span className="text-xs font-medium text-slate-500">
+      {attentionItems.length} item{attentionItems.length === 1 ? "" : "s"}
+    </span>
+  </div>
+
+  {attentionItems.length === 0 ? (
+    <p className="mt-3 text-sm text-slate-400">
+      No attention items right now.
+    </p>
+  ) : (
+    <div className="mt-3 space-y-3">
+      {attentionItems.slice(0, 3).map((item) => (
+        <div
+          key={item.id}
+          className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-100">
+                {item.title}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-400">
+                {item.text}
+              </p>
+            </div>
+
+            <span
+              className={`w-fit rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${getAttentionSeverityClasses(
+                item.severity
+              )}`}
+            >
+              {item.severity}
+            </span>
+          </div>
+        </div>
+      ))}
+
+      {attentionItems.length > 3 && (
+        <p className="text-sm text-slate-500">
+          +{attentionItems.length - 3} more attention item
+          {attentionItems.length - 3 === 1 ? "" : "s"}
+        </p>
+      )}
+    </div>
+  )}
+</div>
                         </div>
 
                         <button

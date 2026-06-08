@@ -94,6 +94,14 @@ test.describe("Projects overview", () => {
       )
     ).toBeVisible();
 
+    await expect(
+      projectCard.getByRole("heading", { name: "Attention needed" })
+    ).toBeVisible();
+
+    await expect(
+      projectCard.getByText("No attention items right now.")
+    ).toBeVisible();
+
     await page.reload();
 
     const reloadedProjectCard = page
@@ -119,5 +127,64 @@ test.describe("Projects overview", () => {
     await expect(
       reloadedProjectCard.getByText("Tasks", { exact: true })
     ).toBeVisible();
+
+    await expect(
+      reloadedProjectCard.getByRole("heading", { name: "Attention needed" })
+    ).toBeVisible();
+
+    await expect(
+      reloadedProjectCard.getByText("No attention items right now.")
+    ).toBeVisible();
+  });
+
+  test("user can see attention needed preview for an example project", async ({
+    page,
+  }) => {
+    await page.goto("/projects");
+
+    await page
+      .getByRole("button", { name: "Create example project" })
+      .click();
+
+    const projectCard = page
+      .locator("article")
+      .filter({ hasText: "Project Compass Demo Project" });
+
+    await expect(projectCard).toBeVisible();
+
+    await expect(
+      projectCard.getByRole("heading", { name: "Attention needed" })
+    ).toBeVisible();
+
+    await expect(projectCard.getByText("6 items")).toBeVisible();
+
+    await expect(projectCard.getByText("1 blocked task")).toBeVisible();
+
+    await expect(
+      projectCard.getByText(
+        "Blocked tasks may prevent the project from moving forward."
+      )
+    ).toBeVisible();
+
+    await expect(projectCard.getByText("1 task without owner")).toBeVisible();
+
+    await expect(
+      projectCard.getByText(
+        "Tasks without an owner can easily be missed or delayed."
+      )
+    ).toBeVisible();
+
+    await expect(projectCard.getByText("1 risk without owner")).toBeVisible();
+
+    await expect(
+      projectCard.getByText(
+        "Risks without a responsible person may not be followed up."
+      )
+    ).toBeVisible();
+
+    await expect(projectCard.getByText("+3 more attention items")).toBeVisible();
+
+    await expect(projectCard.getByText("high").first()).toBeVisible();
+    await expect(projectCard.getByText("medium").first()).toBeVisible();
   });
 });
