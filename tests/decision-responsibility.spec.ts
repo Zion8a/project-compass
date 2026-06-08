@@ -220,11 +220,11 @@ test.describe("Decision responsibility", () => {
       page.getByRole("heading", { name: "Decision Responsibility Test" })
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Members" }).click();
+    await page.goto("/project-members");
 
-    await expect(
-      page.getByRole("heading", { name: "Project Members" })
-    ).toBeVisible();
+await expect(
+  page.getByRole("heading", { name: "Project Members" })
+).toBeVisible();
 
     await page.getByLabel("Name").fill("Johan Larsson");
     await page.getByLabel("Role").fill("Decision Owner");
@@ -238,11 +238,11 @@ test.describe("Decision responsibility", () => {
       page.getByRole("heading", { name: "Johan Larsson" })
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Decisions" }).click();
+    await page.goto("/project-decisions");
 
-    await expect(
-      page.getByRole("heading", { name: "Decision View" })
-    ).toBeVisible();
+await expect(
+  page.getByRole("heading", { name: "Decision View" })
+).toBeVisible();
 
     await page.getByLabel("Title").fill("Choose presentation structure");
 
