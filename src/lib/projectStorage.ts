@@ -61,6 +61,7 @@ export type ProjectDecision = {
   description?: string;
   owner?: string;
   ownerId?: string;
+  relatedTaskId?: string;
   deadline?: string;
   consequence?: string;
   status: ProjectDecisionStatus;

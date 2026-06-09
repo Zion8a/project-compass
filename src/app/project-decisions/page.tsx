@@ -70,8 +70,12 @@ function loadLegacyDecisions(): ProjectDecision[] {
             : undefined,
         owner: typeof decision.owner === "string" ? decision.owner : undefined,
         ownerId:
-          typeof decision.ownerId === "string" ? decision.ownerId : undefined,
-        deadline:
+  typeof decision.ownerId === "string" ? decision.ownerId : undefined,
+relatedTaskId:
+  typeof decision.relatedTaskId === "string"
+    ? decision.relatedTaskId
+    : undefined,
+deadline:
           typeof decision.deadline === "string"
             ? decision.deadline
             : undefined,
@@ -102,8 +106,9 @@ export default function ProjectDecisionsPage() {
   const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState("");
   const [owner, setOwner] = useState("");
-  const [ownerId, setOwnerId] = useState("");
-  const [deadline, setDeadline] = useState("");
+const [ownerId, setOwnerId] = useState("");
+const [relatedTaskId, setRelatedTaskId] = useState("");
+const [deadline, setDeadline] = useState("");
   const [consequence, setConsequence] = useState("");
   const [status, setStatus] = useState<ProjectDecisionStatus>("open");
 
@@ -196,6 +201,17 @@ export default function ProjectDecisionsPage() {
   return !decision.ownerId && !decision.owner;
 }
 
+function getRelatedTaskTitle(decision: ProjectDecision) {
+  if (!decision.relatedTaskId || !activeProject) {
+    return "No related task";
+  }
+
+  return (
+    activeProject.tasks.find((task) => task.id === decision.relatedTaskId)
+      ?.title || "Unknown task"
+  );
+}
+
   function handleTitleChange(value: string) {
     setTitle(value);
 
@@ -221,17 +237,18 @@ export default function ProjectDecisionsPage() {
     const now = new Date().toISOString();
 
     const newDecision: ProjectDecision = {
-      id: crypto.randomUUID(),
-      title: trimmedTitle,
-      description: trimmedDescription || undefined,
-      owner: trimmedOwner || undefined,
-      ownerId: ownerId || undefined,
-      deadline: trimmedDeadline || undefined,
-      consequence: trimmedConsequence || undefined,
-      status,
-      createdAt: now,
-      updatedAt: now,
-    };
+  id: crypto.randomUUID(),
+  title: trimmedTitle,
+  description: trimmedDescription || undefined,
+  owner: trimmedOwner || undefined,
+  ownerId: ownerId || undefined,
+  relatedTaskId: relatedTaskId || undefined,
+  deadline: trimmedDeadline || undefined,
+  consequence: trimmedConsequence || undefined,
+  status,
+  createdAt: now,
+  updatedAt: now,
+};
 
     persistDecisions([...decisions, newDecision]);
 
@@ -239,8 +256,9 @@ export default function ProjectDecisionsPage() {
     setTitleError("");
     setDescription("");
     setOwner("");
-    setOwnerId("");
-    setDeadline("");
+setOwnerId("");
+setRelatedTaskId("");
+setDeadline("");
     setConsequence("");
     setStatus("open");
   }
@@ -426,6 +444,29 @@ export default function ProjectDecisionsPage() {
                 </div>
 
                 <div>
+  <label
+    htmlFor="decision-related-task-id"
+    className="block text-sm font-semibold text-slate-200"
+  >
+    Related task
+  </label>
+
+  <select
+    id="decision-related-task-id"
+    value={relatedTaskId}
+    onChange={(event) => setRelatedTaskId(event.target.value)}
+    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-sky-300"
+  >
+    <option value="">No related task</option>
+    {activeProject.tasks.map((task) => (
+      <option key={task.id} value={task.id}>
+        {task.title}
+      </option>
+    ))}
+  </select>
+</div>
+
+                <div>
                   <label
                     htmlFor="decision-owner"
                     className="block text-sm font-semibold text-slate-200"
@@ -594,10 +635,15 @@ export default function ProjectDecisionsPage() {
                         </select>
                       </div>
 
-                      <div className="mt-5 grid gap-4 md:grid-cols-4">
+                     <div className="mt-5 grid gap-4 md:grid-cols-5">
   <DecisionOwnerMeta
     value={getMemberName(decision)}
     needsOwner={decisionNeedsOwner(decision)}
+  />
+
+  <DecisionMeta
+    label="Related task"
+    value={getRelatedTaskTitle(decision)}
   />
 
   <DecisionMeta
