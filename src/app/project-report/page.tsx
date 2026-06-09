@@ -178,18 +178,21 @@ export default function ProjectReportPage() {
         .join("\n");
 
     const decisionSection =
-      decisions.length === 0
-        ? "No decisions have been created yet."
-        : decisions
-            .map((decision) => {
-              return `- **${decision.title}** — ${translateDecisionStatus(
-                decision.status
-              )} — Responsible: ${getMemberName(
-                decision.ownerId,
-                decision.owner
-              )}`;
-            })
-            .join("\n");
+  decisions.length === 0
+    ? "No decisions have been created yet."
+    : decisions
+        .map((decision) => {
+          return [
+            `- **${decision.title}** â€” ${translateDecisionStatus(
+              decision.status
+            )} â€” Responsible: ${getMemberName(
+              decision.ownerId,
+              decision.owner
+            )}`,
+            `  - Affects task: ${getRelatedTaskTitle(decision.relatedTaskId)}`,
+          ].join("\n");
+        })
+        .join("\n");
 
     return [
       `# Status Report – ${projectName}`,
@@ -520,17 +523,17 @@ export default function ProjectReportPage() {
               </p>
             ) : (
               decisions.map((decision) => (
-                <ResponsibilityItem
-                  key={decision.id}
-                  title={decision.title}
-                  meta={`${translateDecisionStatus(
-                    decision.status
-                  )} • Responsible: ${getMemberName(
-                    decision.ownerId,
-                    decision.owner
-                  )}`}
-                />
-              ))
+  <ResponsibilityItem
+    key={decision.id}
+    title={decision.title}
+    meta={`${translateDecisionStatus(
+      decision.status
+    )} â€¢ Responsible: ${getMemberName(
+      decision.ownerId,
+      decision.owner
+    )} â€¢ Affects task: ${getRelatedTaskTitle(decision.relatedTaskId)}`}
+  />
+))
             )}
           </ResponsibilitySection>
         </div>
