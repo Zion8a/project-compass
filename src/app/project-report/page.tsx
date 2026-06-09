@@ -74,6 +74,16 @@ export default function ProjectReportPage() {
     return "Unassigned";
   }
 
+  function getRelatedTaskTitle(relatedTaskId?: string) {
+  if (!relatedTaskId) {
+    return "No related task";
+  }
+
+  return (
+    tasks.find((task) => task.id === relatedTaskId)?.title || "Unknown task"
+  );
+}
+
   const report = useMemo(() => {
     const doneTasks = tasks.filter((task) => task.status === "done");
     const blockedTasks = tasks.filter((task) => task.status === "blocked");
@@ -154,15 +164,18 @@ export default function ProjectReportPage() {
             .join("\n");
 
     const riskSection =
-      risks.length === 0
-        ? "No risks have been created yet."
-        : risks
-            .map((risk) => {
-              return `- **${risk.title}** — ${translateRiskStatus(
-                risk.status
-              )} — Responsible: ${getMemberName(risk.ownerId, risk.owner)}`;
-            })
-            .join("\n");
+  risks.length === 0
+    ? "No risks have been created yet."
+    : risks
+        .map((risk) => {
+          return [
+            `- **${risk.title}** â€” ${translateRiskStatus(
+              risk.status
+            )} â€” Responsible: ${getMemberName(risk.ownerId, risk.owner)}`,
+            `  - Affects task: ${getRelatedTaskTitle(risk.relatedTaskId)}`,
+          ].join("\n");
+        })
+        .join("\n");
 
     const decisionSection =
       decisions.length === 0
@@ -486,17 +499,17 @@ export default function ProjectReportPage() {
               </p>
             ) : (
               risks.map((risk) => (
-                <ResponsibilityItem
-                  key={risk.id}
-                  title={risk.title}
-                  meta={`${translateRiskStatus(
-                    risk.status
-                  )} • Responsible: ${getMemberName(
-                    risk.ownerId,
-                    risk.owner
-                  )}`}
-                />
-              ))
+  <ResponsibilityItem
+    key={risk.id}
+    title={risk.title}
+    meta={`${translateRiskStatus(
+      risk.status
+    )} â€¢ Responsible: ${getMemberName(
+      risk.ownerId,
+      risk.owner
+    )} â€¢ Affects task: ${getRelatedTaskTitle(risk.relatedTaskId)}`}
+  />
+))
             )}
           </ResponsibilitySection>
 
