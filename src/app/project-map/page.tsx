@@ -139,6 +139,12 @@ export default function ProjectMapPage() {
   const risksWithoutRelatedTasks =
     activeProject?.risks.filter((risk) => !risk.relatedTaskId) ?? [];
 
+    const decisionsWithRelatedTasks =
+  activeProject?.decisions.filter((decision) => decision.relatedTaskId) ?? [];
+
+const decisionsWithoutRelatedTasks =
+  activeProject?.decisions.filter((decision) => !decision.relatedTaskId) ?? [];
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppHeader currentPage="project-map" />
@@ -235,6 +241,79 @@ export default function ProjectMapPage() {
               />
             </div>
           </section>
+
+                  <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
+                Traceability
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold">
+                Decision to task links
+              </h2>
+            </div>
+
+            <p className="text-sm text-slate-400">
+              {decisionsWithRelatedTasks.length} of {decisionsCount} decision
+              {decisionsCount === 1 ? "" : "s"} linked to tasks.
+            </p>
+          </div>
+
+          {decisionsCount === 0 ? (
+            <p className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-400">
+              No decisions have been added yet. Add decisions before connecting
+              them to tasks.
+            </p>
+          ) : (
+            <div className="mt-6 grid gap-4">
+              {activeProject?.decisions.map((decision) => {
+                const relatedTask = activeProject.tasks.find(
+                  (task) => task.id === decision.relatedTaskId
+                );
+
+                return (
+                  <article
+                    key={decision.id}
+                    className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <h3 className="font-semibold text-white">
+                          {decision.title}
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                          {relatedTask
+                            ? `Affects task: ${relatedTask.title}`
+                            : "No related task connected yet."}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`w-fit rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+                          relatedTask
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                            : "border-amber-500/40 bg-amber-500/10 text-amber-200"
+                        }`}
+                      >
+                        {relatedTask ? "Linked" : "Unlinked"}
+                      </span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          {decisionsWithoutRelatedTasks.length > 0 && (
+            <p className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-100">
+              {decisionsWithoutRelatedTasks.length} decision
+              {decisionsWithoutRelatedTasks.length === 1 ? "" : "s"} still need
+              a related task to improve traceability.
+            </p>
+          )}
+        </section>
 
           <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
