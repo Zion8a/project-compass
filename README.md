@@ -138,6 +138,11 @@ The current version includes:
 * Project members
 * Task responsibility
 * Risk responsibility
+* Risk-to-task linking
+* Related task shown in Risk View
+* Risk-to-task traceability shown in Project Map
+* Risk-to-task traceability shown in Status Report
+* Risk-to-task traceability included in Markdown export
 * Decision responsibility
 * Missing task ownership highlighted in Workspace
 * Missing risk ownership highlighted in Risk View
@@ -190,6 +195,9 @@ It demonstrates:
 * Playwright test for creating and exploring the example project demo flow
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
+* Risk-to-task traceability implemented as part of Version 1.3
+* Traceability shown in Risk View, Project Map, Status Report and Markdown export
+* Focused regression testing for risk responsibility, Project Map and Status Report after traceability changes
 * Written test strategy and manual test documentation
 * Incremental feature development with clear commits
 * Active project data model for saved projects
@@ -236,6 +244,10 @@ It demonstrates that I can:
 * Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
 * Improve recovery paths when the user has no active project selected
+* Add traceability between project objects in small, safe iterations
+* Connect risks to concrete project work
+* Make relationships visible in both working views and reporting views
+* Improve project reporting by showing how risks affect tasks
 
 The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 
@@ -398,6 +410,8 @@ It includes:
 * Attention Needed with High and Medium severity
 * Project direction cards
 * Recommended next step
+* Traceability overview for risk-to-task links
+* Linked and unlinked risk indicators
 
 The Project Map is one of the key product views because it helps the user understand the project before managing individual tasks.
 
@@ -596,6 +610,7 @@ The exported report includes:
 * Risk responsibility
 * Decision responsibility
 * Recommended next steps
+* Risk-to-task links
 
 This makes the report usable outside the app, for example in GitHub, Teams, documentation, school assignments or project meetings.
 
@@ -795,12 +810,15 @@ The risk view allows the user to document project risks with:
 * Responsible member
 * Legacy owner note
 * Status
+* Related task
 
 Risks without a responsible member or legacy owner note are marked with `Needs owner`.
 
 When no risks exist, Risk View shows a guided empty state that explains how to identify uncertainty, think about probability and impact, and add an action.
 
 When no active project exists, Risk View shows a clear no active project state and links the user back to My Projects.
+
+Risks can also be linked to a related task. This helps the user understand which concrete work a risk may affect.
 
 ### Decision view
 
@@ -840,8 +858,11 @@ The status report summarizes:
 * Risk responsibility
 * Decision responsibility
 * Recommended next steps
+* Risk-to-task links
 
 The status report can also be copied as Markdown.
+
+Risk-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
 
 When no active project exists, Status Report shows a clear no active project state and links the user back to My Projects.
 
@@ -923,6 +944,10 @@ Manual testing has been used to verify:
 * Missing task ownership shown in Workspace
 * Missing risk ownership shown in Risk View
 * Missing decision ownership shown in Decision View
+* Risk-to-task linking in Risk View
+* Risk-to-task traceability in Project Map
+* Risk-to-task traceability in Status Report
+* Risk-to-task links in Markdown export
 
 During manual exploratory testing, several usability and navigation issues were found and fixed, including:
 
@@ -990,6 +1015,7 @@ Current automated tests include:
 * Status Report severity-aware Attention Needed test
 * Status Report Markdown severity export test
 * Status Report no active project state test
+* Risk-to-task traceability regression through existing risk, Project Map and Status Report tests
 
 The landing page test is verified across:
 
@@ -1099,6 +1125,7 @@ Verifies that:
 * Risks without responsible member show Unassigned
 * Risks without responsible member show Needs owner
 * Risks with responsible member do not show Needs owner
+* Risks can be linked to a related task
 
 ### Decision responsibility
 
@@ -1132,6 +1159,8 @@ Verifies that:
 * Attention Needed shows blocked task, missing ownership, high risk and open decision signals
 * Attention Needed items show severity labels
 * High and Medium severity indicators are visible
+* Project Map shows risk-to-task traceability
+* Project Map distinguishes linked and unlinked risks
 
 ### Project setup checklist
 
@@ -1159,6 +1188,8 @@ Verifies that:
 * Status Report shows Attention Needed severity labels
 * Exported Markdown contains Attention Needed severity
 * Exported Markdown distinguishes High and Medium attention items
+* Status Report shows which task a risk affects
+* Exported Markdown includes risk-to-task links
 
 ---
 
@@ -1371,6 +1402,10 @@ Completed:
 * Project Map no active project state Playwright coverage
 * Status Report no active project state improvement
 * Status Report no active project state Playwright coverage
+* Risk-to-task linking in Risk View
+* Risk-to-task traceability on Project Map
+* Risk-to-task traceability in Status Report
+* Risk-to-task links in Markdown export
 * Project Health shown in My Projects overview
 * Project members page
 * Members shown in status report
@@ -1432,6 +1467,8 @@ Planned next steps:
 * Consider persistent backend storage in a later version
 * Add a clearer “What I learned” section
 * Add a QA/test module in a later version
+* Continue Version 1.3 traceability by linking decisions to tasks or risks
+* Continue Version 1.3 traceability by linking tasks to goals or deliverables
 
 ---
 
@@ -1475,6 +1512,9 @@ It demonstrates:
 * Testing ownership visibility with focused Playwright tests
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
+* Adding traceability between risks and tasks
+* Making project relationships visible across working views, overview views and reports
+* Testing traceability changes through focused regression tests
 
 ---
 
