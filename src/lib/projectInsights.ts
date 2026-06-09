@@ -14,6 +14,11 @@ export type ProjectHealth = {
   reasons: string[];
 };
 
+export type RecommendedNextStep = {
+  title: string;
+  text: string;
+};
+
 export function getAttentionItems(project: Project): AttentionItem[] {
   const blockedTasks = project.tasks.filter(
     (task) => task.status === "blocked"
@@ -180,5 +185,76 @@ export function getProjectHealth(
     summary:
       "No blocked tasks, high risks, open decisions or missing owners were found.",
     reasons: ["No current attention signals."],
+  };
+}
+
+export function getRecommendedNextStep(
+  project: Project,
+  attentionItems: AttentionItem[]
+): RecommendedNextStep {
+  const blockedTasksCount = project.tasks.filter(
+    (task) => task.status === "blocked"
+  ).length;
+
+  const highRisksCount = project.risks.filter(
+    (risk) => risk.probability === "high" || risk.impact === "high"
+  ).length;
+
+  const openDecisionsCount = project.decisions.filter(
+    (decision) => decision.status === "open"
+  ).length;
+
+  const itemsWithoutOwnerCount = attentionItems.filter(
+    (item) =>
+      item.id === "tasks-without-owner" ||
+      item.id === "risks-without-owner" ||
+      item.id === "decisions-without-owner"
+  ).length;
+
+  if (blockedTasksCount > 0) {
+    return {
+      title: "Resolve blocked work",
+      text: "Start by reviewing blocked tasks. Blocked work can stop progress even if the rest of the project looks stable.",
+    };
+  }
+
+  if (highRisksCount > 0) {
+    return {
+      title: "Review high risks",
+      text: "Review high risks and make sure each risk has a clear action, owner and follow-up plan.",
+    };
+  }
+
+  if (openDecisionsCount > 0) {
+    return {
+      title: "Close open decisions",
+      text: "Review open decisions and clarify what needs to be decided, who owns the decision and what the consequence is.",
+    };
+  }
+
+  if (itemsWithoutOwnerCount > 0) {
+    return {
+      title: "Assign ownership",
+      text: "Assign owners to unassigned tasks, risks and decisions before adding more work to the project.",
+    };
+  }
+
+  if (project.tasks.length === 0) {
+    return {
+      title: "Create the first task",
+      text: "The project has direction, but no tasks yet. Add the first concrete task to make the work actionable.",
+    };
+  }
+
+  if (project.members.length === 0) {
+    return {
+      title: "Add project members",
+      text: "Add project members so responsibility, follow-up and status become easier to understand.",
+    };
+  }
+
+  return {
+    title: "Prepare the next checkpoint",
+    text: "The project has no urgent attention signals. Review progress, confirm priorities and prepare the next delivery checkpoint.",
   };
 }
