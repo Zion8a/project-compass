@@ -114,10 +114,11 @@ export default function ProjectReportPage() {
       openDecisions,
       decidedDecisions,
       statusLabel: projectHealth?.title ?? "Stable",
-      statusText:
-        projectHealth?.summary ??
-        "The project has no clear warning signs based on registered tasks, risks and decisions.",
-      statusTone,
+statusText:
+  projectHealth?.summary ??
+  "The project has no clear warning signs based on registered tasks, risks and decisions.",
+statusReasons: projectHealth?.reasons ?? ["No current attention signals."],
+statusTone,
     };
   }, [tasks, risks, decisions, projectHealth]);
 
@@ -200,12 +201,16 @@ export default function ProjectReportPage() {
       `Date: ${new Date().toLocaleDateString("sv-SE")}`,
       "",
       "## Overall Project Status",
-      "",
-      `**${report.statusLabel}**`,
-      "",
-      report.statusText,
-      "",
-      "## Summary",
+"",
+`**${report.statusLabel}**`,
+"",
+report.statusText,
+"",
+"### Main reasons",
+"",
+...report.statusReasons.map((reason) => `- ${reason}`),
+"",
+"## Summary",
       "",
       `- Total tasks: ${report.totalTasks}`,
       `- Done tasks: ${report.doneTasks}`,
@@ -393,6 +398,19 @@ export default function ProjectReportPage() {
           <p className="mt-3 max-w-3xl text-sm leading-6">
             {report.statusText}
           </p>
+          <div className="mt-5">
+  <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-80">
+    Main reasons
+  </p>
+
+  <ul className="mt-3 grid gap-2 text-sm leading-6">
+    {report.statusReasons.map((reason) => (
+      <li key={reason} className="rounded-2xl bg-slate-950/40 px-4 py-2">
+        {reason}
+      </li>
+    ))}
+  </ul>
+</div>
         </section>
 
         <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
