@@ -2,7 +2,7 @@
 
 # Project Compass
 
-Project Compass is a project clarity and project management MVP built with Next.js, TypeScript, Tailwind CSS and Playwright.
+Project Compass is a project clarity and project management MVP built with Next.js, TypeScript, Tailwind CSS, Playwright, GitHub Actions and Vercel.
 
 The goal of the project is to explore how a project tool can help users understand, structure and lead a project before it becomes only a list of tasks.
 
@@ -16,6 +16,7 @@ Many project tools start with boards, cards and task tracking. Project Compass s
 * What is blocked?
 * Which risks need attention?
 * Which decisions are still open?
+* Which tasks are affected by risks or decisions?
 * How healthy is the project right now?
 * What should happen next?
 
@@ -23,11 +24,21 @@ Project Compass helps teams turn unclear work into a manageable project.
 
 ---
 
+## Live demo
+
+Project Compass is deployed on Vercel:
+
+https://project-compass-seven.vercel.app/
+
+The app currently uses `localStorage`, which means saved projects are stored locally in the browser used for testing.
+
+---
+
 ## Screenshots
 
 ### My Projects overview
 
-The My Projects overview shows saved projects, active project status, Project Health, attention items and key project metrics.
+The My Projects overview shows saved projects, active project status, Project Health, Attention Needed and key project metrics.
 
 ![My Projects overview](public/screenshots/my-projects-overview.png)
 
@@ -45,19 +56,9 @@ Project Compass interprets project signals and highlights blocked work, missing 
 
 ### Status Report
 
-The Status Report summarizes project status, tasks, risks, decisions, members, Attention Needed and recommended next steps.
+The Status Report summarizes project status, tasks, risks, decisions, members, Attention Needed, traceability and recommended next steps.
 
 ![Status Report](public/screenshots/status-report.png)
-
----
-
-## Live demo
-
-Project Compass is deployed on Vercel:
-
-https://project-compass-seven.vercel.app/
-
-The app currently uses `localStorage`, which means saved projects are stored locally in the browser used for testing.
 
 ---
 
@@ -67,7 +68,7 @@ Project Compass is not intended to be a copy of Trello, Jira, Taiga, Asana, Clic
 
 Its strength is project clarity.
 
-The app is designed for smaller projects where direction, responsibility, risks, decisions and status matter more than advanced enterprise workflow features.
+The app is designed for smaller projects where direction, responsibility, risks, decisions, traceability and status matter more than advanced enterprise workflow features.
 
 Examples of suitable use cases:
 
@@ -104,8 +105,9 @@ The app focuses on:
 * Tasks
 * Risks
 * Decisions
-* Attention needed
-* Project health
+* Attention Needed
+* Project Health
+* Traceability
 * Status
 * Next steps
 * Shareable reporting
@@ -123,50 +125,94 @@ The current version includes:
 * Landing page
 * Project interview
 * My Projects overview
-* Example project/demo data so visitors can quickly explore Project Compass without creating all content manually
-* Form validation for project name, task title, risk title and decision title
-* Improved form accessibility for project, task, risk and decision forms
-* Improved empty states for Workspace, Risk View and Decision View
-* Improved no active project handling for Workspace, Risk View, Decision View, Project Map and Status Report
+* Example project/demo data
 * Multiple saved projects in `localStorage`
 * Active project handling
 * Active project shown in the app header
-* Project setup checklist on Project Map
-* Project Map
-* Active project summary on Project Map
-* Project board / Kanban-style task board
 * Project members
-* Task responsibility
-* Risk responsibility
-* Risk-to-task linking
-* Related task shown in Risk View
-* Risk-to-task traceability shown in Project Map
-* Risk-to-task traceability shown in Status Report
-* Risk-to-task traceability included in Markdown export
-* Decision responsibility
-* Missing task ownership highlighted in Workspace
-* Missing risk ownership highlighted in Risk View
-* Missing decision ownership highlighted in Decision View
+* Project board / Kanban-style task board
 * Risk register
 * Decision log
-* Status report
-* Project members shown in status report
-* Responsibility overview in status report
-* Project Health in My Projects overview
-* Project Health on Project Map
-* Project Health in Status Report
-* Attention Needed on Project Map
-* Attention Needed in Status Report
-* Attention Needed preview in My Projects overview
-* Attention severity shown as High or Medium in Project Map
-* Attention severity shown as High or Medium in Status Report
-* Attention severity included in Markdown export
-* Copy status report as Markdown
-* Shared project insight logic for Attention Needed and Project Health
+* Project setup checklist
+* Project Map
+* Project Health
+* Attention Needed
+* Status Report
+* Markdown export
+* Responsibility model for tasks, risks and decisions
+* Missing ownership indicators
+* Risk-to-task traceability
+* Decision-to-task traceability
+* Traceability overview in Project Map
+* Traceability in Status Report
+* Traceability in Markdown export
+* Form validation for project name, task title, risk title and decision title
+* Improved form accessibility
+* Improved empty states
+* Improved no active project handling
+* Shared project insight logic
 * Manual regression test documentation
 * Automated end-to-end tests with Playwright
 * GitHub Actions CI
 * Live deployment on Vercel
+
+### Version 1.1 – Stabilization and clarity
+
+Version 1.1 focused on making the app easier to understand, safer to use and easier to demonstrate.
+
+Completed improvements include:
+
+* Better empty states
+* Clearer no active project handling
+* Project setup checklist
+* Improved Project Map
+* Clearer active project overview
+* Basic form validation
+* Better error messages
+* Improved navigation
+* Example project/demo data
+* README improvements
+* Playwright coverage for important flows
+
+### Version 1.2 – Responsibility and Attention Needed
+
+Version 1.2 focused on making the app more useful for project leadership.
+
+Completed improvements include:
+
+* Tasks can have a responsible member
+* Risks can have a responsible member
+* Decisions can have a responsible member
+* Tasks without owner are highlighted
+* Risks without owner are highlighted
+* Decisions without owner are highlighted
+* Blocked tasks are detected
+* High risks are detected
+* Open decisions are detected
+* Attention Needed is shown in My Projects, Project Map, Status Report and Markdown export
+* Attention items have High or Medium severity
+* Project Health is shown in My Projects, Project Map and Status Report
+* Shared project insight logic was extracted to reduce duplication
+
+### Version 1.3 – Traceability MVP
+
+Version 1.3 focuses on showing how project objects are connected.
+
+Completed traceability improvements include:
+
+* Risks can be linked to related tasks
+* Decisions can be linked to related tasks
+* Risk View shows related task
+* Decision View shows related task
+* Project Map shows risk-to-task links
+* Project Map shows decision-to-task links
+* Project Map distinguishes linked and unlinked items
+* Status Report shows which task a risk affects
+* Status Report shows which task a decision affects
+* Markdown export includes risk-to-task links
+* Markdown export includes decision-to-task links
+
+This means Project Compass now shows not only that a risk or decision exists, but also which concrete work it affects.
 
 ---
 
@@ -182,31 +228,21 @@ It demonstrates:
 * Bug fixing and regression verification
 * Playwright end-to-end testing
 * Cross-browser landing page testing
-* Chromium-based core flow testing
-* Focused Playwright tests for project overview, members, responsibility, Attention Needed, severity indicators, setup checklist and Markdown export
-* Form validation tested with Playwright for projects, tasks, risks and decisions
-* Negative input tests for missing required titles
+* Chromium-based focused product testing
+* Form validation testing
+* Negative input testing
 * Accessibility-focused form improvements
-* Playwright checks for required form fields
-* Empty state behavior tested with Playwright
-* No active project states tested with Playwright
-* Attention Needed severity and Markdown export behavior tested with Playwright
-* Missing ownership indicators for tasks, risks and decisions tested with Playwright
-* Playwright test for creating and exploring the example project demo flow
+* Empty state testing
+* No active project state testing
+* Responsibility testing for tasks, risks and decisions
+* Attention Needed testing
+* Project Health testing
+* Markdown export testing
+* Traceability regression through existing risk, decision, Project Map and Status Report tests
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
-* Risk-to-task traceability implemented as part of Version 1.3
-* Traceability shown in Risk View, Project Map, Status Report and Markdown export
-* Focused regression testing for risk responsibility, Project Map and Status Report after traceability changes
 * Written test strategy and manual test documentation
 * Incremental feature development with clear commits
-* Active project data model for saved projects
-* Attention Needed logic based on project data
-* Project Health MVP based on project signals
-* Project Health shown in My Projects, Project Map and Status Report
-* Project setup checklist tested with Playwright
-* Shared project insight logic for maintainability
-* UI language consistency improvement from mixed Swedish/English to standardized English
 * Deployment to Vercel as a live portfolio demo
 
 The goal is not only to build a working application, but to show how a tester can think about product quality, user flows, risk, regression, automation and maintainability.
@@ -223,7 +259,7 @@ It demonstrates that I can:
 
 * Understand and structure a product idea
 * Identify important user flows
-* Document scope, user stories, roadmap and test strategy
+* Document scope, roadmap and test strategy
 * Think through product changes before coding
 * Work in small, testable and committable steps
 * Perform manual regression testing
@@ -238,22 +274,22 @@ It demonstrates that I can:
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
 * Turn project data into actionable project leadership signals
-* Improve status reporting so risks, blocked work and missing ownership become visible
-* Make missing responsibility visible directly in the views where work, risks and decisions are managed
+* Make missing responsibility visible directly in the user interface
+* Connect risks to concrete project work
+* Connect decisions to concrete project work
+* Add traceability between project objects in small, safe iterations
+* Extend an existing traceability model without rebuilding the whole data structure
+* Improve status reporting so risks, decisions, blocked work and missing ownership become visible
 * Improve form validation and error handling from a user perspective
 * Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
 * Improve recovery paths when the user has no active project selected
-* Add traceability between project objects in small, safe iterations
-* Connect risks to concrete project work
-* Make relationships visible in both working views and reporting views
-* Improve project reporting by showing how risks affect tasks
 
 The project shows both a builder mindset and a tester mindset: creating a working MVP while continuously asking what could break, what should be verified and how quality can be made visible.
 
 ---
 
-## Current features
+## Main features
 
 ### My Projects overview
 
@@ -261,109 +297,42 @@ The My Projects page allows the user to:
 
 * Create a new project
 * Create an example project with demo data
-* Explore members, tasks, risks, decisions, responsibility, Attention Needed and Project Health without entering all data manually
-* See a validation message if project name is missing
 * Save multiple projects
 * View saved projects
 * Open a selected project
 * See which project is active
 * See project status
 * See calculated Project Health
-* See a short health summary
-* See number of attention items
-* Preview the most important Attention Needed items directly in the project card
+* See Attention Needed preview
 * See whether attention items are High or Medium priority
-* See number of members
-* See number of tasks
-* See number of risks
-* See number of decisions
+* See project member count
+* See task count
+* See risk count
+* See decision count
 * See when the project was last updated
 
 This makes the overview more useful as a project leadership view, not only a list of saved projects.
 
-### Form validation
+### Example project
 
-Project Compass includes basic form validation for important user flows.
+The example project allows visitors to explore Project Compass without creating all content manually.
 
-The app currently validates:
+It includes example:
 
-* Project name when creating a project
-* Task title when creating a task
-* Risk title when creating a risk
-* Decision title when creating a decision
+* Members
+* Tasks
+* Risks
+* Decisions
+* Responsibility
+* Attention Needed
+* Project Health
+* Traceability
 
-If a required title or name is missing, the app shows a clear validation message, for example:
+This makes the app easier to demonstrate to teachers, recruiters and LIA contacts.
 
-```text
-Project name is required.
-Task title is required.
-Risk title is required.
-Decision title is required.
-```
-
-The relevant input is also marked with `aria-invalid="true"` while the validation error is active.
-
-This improves usability, accessibility and testability. The validation behavior is covered by Playwright tests.
-
-### Form accessibility
-
-Project Compass includes accessibility improvements for the most important forms.
-
-The current form accessibility improvements include:
-
-* Labels connected to form fields
-* Required project, task, risk and decision fields marked with `aria-required="true"`
-* Validation state shown with `aria-invalid`
-* Error messages connected to inputs with `aria-describedby`
-* Error messages using `role="alert"` and `aria-live="polite"`
-* Forms connected to headings and help text with `aria-labelledby` and `aria-describedby`
-
-These improvements make validation errors easier to understand and support better use with assistive technologies.
-
-The accessibility behavior is partly covered by Playwright tests that check required fields and validation states.
-
-### Empty states
-
-Project Compass includes improved empty states for the main project work views.
-
-The app currently gives extra guidance when there are no:
-
-* Tasks in Workspace
-* Risks in Risk View
-* Decisions in Decision View
-
-Instead of only showing an empty list, the app explains what the user should add next and gives short practical tips.
-
-The empty states help the user understand how to move the project forward and make the app easier to use when a project is still new.
-
-### No active project handling
-
-Project Compass includes clearer guidance when the user opens an important project page without an active project selected.
-
-The app currently shows a no active project state on:
-
-* Workspace
-* Risk View
-* Decision View
-* Project Map
-* Status Report
-
-Instead of showing disabled forms, empty data or unclear fallback text, these pages now explain why an active project is needed and guide the user back to My Projects.
-
-The no active project states include:
-
-* A clear heading
-* A short explanation of why the page needs an active project
-* A link to My Projects
-* A link to create a new project where relevant
-
-This improves onboarding, error recovery and the overall user flow for new users.
-
-### Active project
+### Active project model
 
 The application stores an active project ID.
-
-The active project is shown in the shared app header, which helps the user understand which project they are currently working with.
 
 The active project owns:
 
@@ -380,7 +349,7 @@ Project Map includes a Project setup checklist.
 
 The checklist helps a new user understand what structure the project already has and what should be added next.
 
-The first version checks whether the project has:
+The checklist checks whether the project has:
 
 * Project name
 * Purpose or description
@@ -394,11 +363,9 @@ The first version checks whether the project has:
 
 The checklist is intentionally simple. It does not store separate checkbox state. Instead, it calculates progress from existing project data.
 
-This keeps the feature lightweight, testable and aligned with the MVP approach.
-
 ### Project Map
 
-The Project Map summarizes the active project and gives the user an overview before moving into detailed task work.
+The Project Map summarizes the active project and gives the user an overview before moving into detailed work.
 
 It includes:
 
@@ -408,10 +375,12 @@ It includes:
 * Active project summary
 * Project Health
 * Attention Needed with High and Medium severity
+* Traceability overview for risk-to-task links
+* Traceability overview for decision-to-task links
+* Linked and unlinked risk indicators
+* Linked and unlinked decision indicators
 * Project direction cards
 * Recommended next step
-* Traceability overview for risk-to-task links
-* Linked and unlinked risk indicators
 
 The Project Map is one of the key product views because it helps the user understand the project before managing individual tasks.
 
@@ -426,51 +395,27 @@ Each project can have members with:
 
 Members are saved per project and persist after page reload.
 
-### Responsibility model
-
-Tasks, risks and decisions can be connected to a responsible project member.
-
-The first version of the responsibility model is intentionally simple:
-
-* One responsible member per item
-* Optional responsibility
-* Clear display on cards
-* Responsibility persists after reload
-* Status report shows responsibility overview
-* Unassigned items can be detected by Attention Needed
-* Missing ownership is highlighted directly in Workspace, Risk View and Decision View
-
-When an item has no responsible person, the app shows:
-
-```text
-Responsible: Unassigned
-Needs owner
-```
-
-This makes missing ownership visible where the work is managed, instead of only showing it later in a report.
-
-This supports the core project question:
-
-```text
-Who owns what right now?
-```
-
 ### Task responsibility
 
 Tasks in the workspace can have a responsible member.
 
 The user can:
 
-* Add members to the active project
 * Create a task
 * Assign the task to a project member
 * See the responsible member on the task card
 * Reload the page and keep the responsibility assignment
 
-If a task has no responsible member, Workspace shows `Unassigned` and a `Needs owner` badge.
+If a task has no responsible member, Workspace shows:
+
+```text
+Responsible: Unassigned
+Needs owner
+```
+
 Tasks are stored in the active project data model.
 
-### Risk responsibility
+### Risk responsibility and traceability
 
 Risks in the risk register can have a responsible member.
 
@@ -478,13 +423,21 @@ The user can:
 
 * Create a risk
 * Assign the risk to a project member
+* Link the risk to a related task
 * See the responsible member on the risk card
-* Reload the page and keep the responsibility assignment
+* See which task the risk affects
+* Reload the page and keep the responsibility and traceability data
 
-If a risk has no responsible member or legacy owner note, Risk View shows `Unassigned` and a `Needs owner` badge.
-Risks are stored in the active project data model.
+If a risk has no responsible member or legacy owner note, Risk View shows:
 
-### Decision responsibility
+```text
+Responsible: Unassigned
+Needs owner
+```
+
+Risks can also be linked to a related task. This helps the user understand which concrete work a risk may affect.
+
+### Decision responsibility and traceability
 
 Decisions in the decision log can have a responsible member.
 
@@ -492,11 +445,19 @@ The user can:
 
 * Create a decision
 * Assign the decision to a project member
+* Link the decision to a related task
 * See the responsible member on the decision card
-* Reload the page and keep the responsibility assignment
+* See which task the decision affects
+* Reload the page and keep the responsibility and traceability data
 
-If a decision has no responsible member or legacy owner note, Decision View shows `Unassigned` and a `Needs owner` badge.
-Decisions are stored in the active project data model.
+If a decision has no responsible member or legacy owner note, Decision View shows:
+
+```text
+Responsible: Unassigned
+Needs owner
+```
+
+Decisions can also be linked to a related task. This helps the user understand which concrete work a decision affects and why the decision matters.
 
 ### Attention Needed
 
@@ -518,7 +479,7 @@ Attention Needed is shown in:
 * Status Report
 * Markdown export
 
-Attention items now include a severity level:
+Attention items include a severity level:
 
 * High
 * Medium
@@ -526,8 +487,6 @@ Attention items now include a severity level:
 High severity is used for signals such as blocked tasks, high risks and open decisions.
 
 Medium severity is used for missing ownership, such as tasks, risks or decisions without a responsible person.
-
-This helps the user move from simply storing project information to understanding what should be followed up next and what should be prioritized first.
 
 ### Project Health
 
@@ -557,7 +516,11 @@ This is intentionally kept simple in the first version. The goal is to make proj
 
 ### Shared project insight logic
 
-Attention Needed and Project Health are calculated through shared project insight logic in `src/lib/projectInsights.ts`.
+Attention Needed and Project Health are calculated through shared project insight logic in:
+
+```text
+src/lib/projectInsights.ts
+```
 
 This helper currently includes:
 
@@ -587,9 +550,13 @@ The status report summarizes:
 * Task responsibility
 * Risk responsibility
 * Decision responsibility
+* Risk-to-task links
+* Decision-to-task links
 * Recommended next steps
 
 The status report is intended to become the main communication artifact for a project.
+
+Risk-to-task and decision-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
 
 ### Markdown report export
 
@@ -609,10 +576,70 @@ The exported report includes:
 * Task responsibility
 * Risk responsibility
 * Decision responsibility
-* Recommended next steps
 * Risk-to-task links
+* Decision-to-task links
+* Recommended next steps
 
 This makes the report usable outside the app, for example in GitHub, Teams, documentation, school assignments or project meetings.
+
+### Form validation
+
+Project Compass includes basic form validation for important user flows.
+
+The app currently validates:
+
+* Project name when creating a project
+* Task title when creating a task
+* Risk title when creating a risk
+* Decision title when creating a decision
+
+If a required title or name is missing, the app shows a clear validation message, for example:
+
+```text
+Project name is required.
+Task title is required.
+Risk title is required.
+Decision title is required.
+```
+
+The relevant input is also marked with `aria-invalid="true"` while the validation error is active.
+
+### Form accessibility
+
+Project Compass includes accessibility improvements for the most important forms.
+
+The current form accessibility improvements include:
+
+* Labels connected to form fields
+* Required project, task, risk and decision fields marked with `aria-required="true"`
+* Validation state shown with `aria-invalid`
+* Error messages connected to inputs with `aria-describedby`
+* Error messages using `role="alert"` and `aria-live="polite"`
+* Forms connected to headings and help text with `aria-labelledby` and `aria-describedby`
+
+These improvements make validation errors easier to understand and support better use with assistive technologies.
+
+### Empty states and no active project handling
+
+Project Compass includes improved empty states for the main project work views.
+
+The app gives extra guidance when there are no:
+
+* Tasks in Workspace
+* Risks in Risk View
+* Decisions in Decision View
+
+Project Compass also includes clearer guidance when the user opens an important project page without an active project selected.
+
+The app currently shows a no active project state on:
+
+* Workspace
+* Risk View
+* Decision View
+* Project Map
+* Status Report
+
+These states explain why an active project is needed and guide the user back to My Projects.
 
 ---
 
@@ -629,17 +656,20 @@ The current main product flow is:
 7. Review active project summary
 8. Review Attention Needed with severity
 9. Review Project Health
-10. Add project members
-11. Open the workspace
-12. Create tasks
-13. Assign task responsibility
-14. Add risks to the risk register
-15. Assign risk responsibility
-16. Add decisions to the decision log
-17. Assign decision responsibility
-18. Open the status report
-19. Review project status, members, responsibilities, risks, decisions and attention items
-20. Copy the status report as Markdown
+10. Review traceability between risks, decisions and tasks
+11. Add project members
+12. Open the workspace
+13. Create tasks
+14. Assign task responsibility
+15. Add risks to the risk register
+16. Assign risk responsibility
+17. Link risks to related tasks
+18. Add decisions to the decision log
+19. Assign decision responsibility
+20. Link decisions to related tasks
+21. Open the status report
+22. Review project status, members, responsibilities, risks, decisions, attention items and traceability
+23. Copy the status report as Markdown
 
 The original MVP flow from project interview to project map and status report still exists, but the current product direction is the project platform flow.
 
@@ -711,163 +741,6 @@ project-compass
 
 ---
 
-## Pages
-
-### Landing page
-
-The landing page introduces Project Compass and provides navigation to:
-
-* My Projects
-* Project interview
-* Project map
-* Workspace
-* Status report
-
-### My Projects
-
-The project overview allows the user to:
-
-* Create new projects
-* Create an example project with ready-made demo data
-* Quickly explore the app with members, tasks, risks, decisions and project status data
-* See a validation message if project name is missing
-* View saved projects
-* Open a selected project
-* See which project is active
-* See project health
-* See health summary
-* See attention item count
-* Preview the most important Attention Needed items directly in the project card
-* See whether attention items are High or Medium priority
-* See project member count
-* See task count
-* See risk count
-* See decision count
-* See when the project was last updated
-
-### Project interview
-
-The project interview collects basic project information:
-
-* Project name
-* Purpose
-* Goal / desired effect
-* Deliverables
-* Risks
-* Decisions
-
-### Project map
-
-The project map summarizes the project and gives the user an overview before moving into task work.
-
-It includes:
-
-* Project direction
-* Project setup checklist
-* Active project summary
-* Attention Needed with High and Medium severity
-* Project Health
-* Recommended next step
-
-### Project members
-
-The members page allows the user to add people to the active project.
-
-Each member can have:
-
-* Name
-* Role
-* Responsibility
-* Comment
-
-### Project board
-
-The project board allows the user to create and move tasks between:
-
-* Backlog
-* Planned
-* In progress
-* Blocked
-* Review
-* Done
-
-Tasks can also be assigned to a responsible project member.
-Tasks without a responsible member are marked with `Needs owner`.
-
-When no tasks exist, Workspace shows a guided empty state that explains how to create a useful first task.
-
-When no active project exists, Workspace shows a clear no active project state and links the user back to My Projects.
-
-### Risk view
-
-The risk view allows the user to document project risks with:
-
-* Title
-* Description
-* Probability
-* Impact
-* Action
-* Responsible member
-* Legacy owner note
-* Status
-* Related task
-
-Risks without a responsible member or legacy owner note are marked with `Needs owner`.
-
-When no risks exist, Risk View shows a guided empty state that explains how to identify uncertainty, think about probability and impact, and add an action.
-
-When no active project exists, Risk View shows a clear no active project state and links the user back to My Projects.
-
-Risks can also be linked to a related task. This helps the user understand which concrete work a risk may affect.
-
-### Decision view
-
-The decision view allows the user to document decisions with:
-
-* Title
-* Description
-* Responsible member
-* Legacy owner note
-* Deadline
-* Status
-* Consequence
-
-Decisions without a responsible member or legacy owner note are marked with `Needs owner`.
-
-When no decisions exist, Decision View shows a guided empty state that explains how to clarify what is undecided, describe consequences and assign responsibility.
-
-When no active project exists, Decision View shows a clear no active project state and links the user back to My Projects.
-
-### Status report
-
-The status report summarizes:
-
-* Overall project status
-* Total tasks
-* Done tasks
-* Blocked tasks
-* Open risks
-* High risks
-* Open decisions
-* Number of members
-* Attention Needed with High and Medium severity
-* Project purpose
-* Project goal
-* Project members
-* Task responsibility
-* Risk responsibility
-* Decision responsibility
-* Recommended next steps
-* Risk-to-task links
-
-The status report can also be copied as Markdown.
-
-Risk-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
-
-When no active project exists, Status Report shows a clear no active project state and links the user back to My Projects.
-
----
-
 ## Documentation
 
 The repository includes product and QA documentation.
@@ -884,6 +757,7 @@ docs/responsibility-model-plan.md
 
 Important planning documents:
 
+* `product-vision.md` describes the product idea and positioning.
 * `project-platform-roadmap.md` describes the move from single-project MVP to project platform.
 * `responsibility-model-plan.md` describes how ownership should work for tasks, risks and decisions.
 * `test-strategy.md` describes the testing approach.
@@ -914,42 +788,32 @@ Manual testing has been used to verify:
 * Task title validation
 * Risk title validation
 * Decision title validation
-* Form accessibility for project, task, risk and decision forms
-* No active project handling in Workspace, Risk View, Decision View, Project Map and Status Report
-* Workspace empty state
-* Risk View empty state
-* Decision View empty state
+* Form accessibility
+* No active project handling
+* Empty states
 * Project persistence
-* Member creation
-* Members after reload
-* Member count in project overview
-* Members in status report
-* Task responsibility in workspace
-* Task responsibility after reload
-* Risk responsibility in risk view
-* Risk responsibility after reload
-* Decision responsibility in decision view
-* Decision responsibility after reload
-* Responsibility overview in status report
-* Attention Needed preview in My Projects
-* Attention Needed severity in Project Map
-* Attention Needed severity in Status Report
-* Attention Needed severity in Markdown export
-* Project Health on Project Map
-* Project Health in My Projects
-* Project setup checklist on Project Map
-* Markdown copy from status report
-* Standardized English UI across the main application flow
-* Vercel deployment smoke test
-* Missing task ownership shown in Workspace
-* Missing risk ownership shown in Risk View
-* Missing decision ownership shown in Decision View
+* Member creation and persistence
+* Task responsibility
+* Risk responsibility
+* Decision responsibility
+* Missing ownership indicators
+* Attention Needed
+* Attention Needed severity
+* Project Health
+* Project setup checklist
+* Markdown copy from Status Report
 * Risk-to-task linking in Risk View
 * Risk-to-task traceability in Project Map
 * Risk-to-task traceability in Status Report
 * Risk-to-task links in Markdown export
+* Decision-to-task linking in Decision View
+* Decision-to-task traceability in Project Map
+* Decision-to-task traceability in Status Report
+* Decision-to-task links in Markdown export
+* Standardized English UI across the main application flow
+* Vercel deployment smoke test
 
-During manual exploratory testing, several usability and navigation issues were found and fixed, including:
+During manual exploratory testing, several usability, navigation and test stability issues were found and fixed, including:
 
 * Missing navigation to the project board from the landing page
 * Missing home navigation from project pages
@@ -984,38 +848,35 @@ tests/status-report-markdown.spec.ts
 tests/task-responsibility.spec.ts
 ```
 
-Current automated tests include:
+Current automated test coverage includes:
 
-* Landing page and navigation test
-* Main project data flow test
-* Projects overview test
-* Example project demo flow test
-* Project name validation test
-* Project members test
-* Task responsibility test
-* Task title validation test
-* Task title accessibility check
-* Workspace empty state test
-* Workspace no active project state test
-* Risk responsibility test
-* Risk title validation test
-* Risk title accessibility check
-* Risk View empty state test
-* Risk View no active project state test
-* Decision responsibility test
-* Decision title validation test
-* Decision title accessibility check
-* Decision View empty state test
-* Decision View no active project state test
-* Project Map Attention Needed test
-* Project Map severity-aware Attention Needed test
-* Project setup checklist test
-* Project Map no active project state test
-* Status report Markdown copy test
-* Status Report severity-aware Attention Needed test
-* Status Report Markdown severity export test
-* Status Report no active project state test
-* Risk-to-task traceability regression through existing risk, Project Map and Status Report tests
+* Landing page and navigation
+* Main project data flow
+* Projects overview
+* Example project demo flow
+* Project name validation
+* Project members
+* Task responsibility
+* Task validation and accessibility
+* Workspace empty state
+* Workspace no active project state
+* Risk responsibility
+* Risk validation and accessibility
+* Risk View empty state
+* Risk View no active project state
+* Decision responsibility
+* Decision validation and accessibility
+* Decision View empty state
+* Decision View no active project state
+* Project Map Attention Needed
+* Project Map severity-aware Attention Needed
+* Project setup checklist
+* Project Map no active project state
+* Status report Markdown copy
+* Status Report severity-aware Attention Needed
+* Status Report Markdown severity export
+* Status Report no active project state
+* Traceability regression through existing risk, decision, Project Map and Status Report tests
 
 The landing page test is verified across:
 
@@ -1106,7 +967,7 @@ Verifies that:
 * Tasks without responsible member show Needs owner
 * Tasks with responsible member do not show Needs owner
 
-### Risk responsibility
+### Risk responsibility and traceability
 
 Verifies that:
 
@@ -1127,7 +988,7 @@ Verifies that:
 * Risks with responsible member do not show Needs owner
 * Risks can be linked to a related task
 
-### Decision responsibility
+### Decision responsibility and traceability
 
 Verifies that:
 
@@ -1146,8 +1007,9 @@ Verifies that:
 * Decisions without responsible member show Unassigned
 * Decisions without responsible member show Needs owner
 * Decisions with responsible member do not show Needs owner
+* Decisions can be linked to a related task
 
-### Project Map Attention Needed
+### Project Map Attention Needed and traceability
 
 Verifies that:
 
@@ -1161,6 +1023,8 @@ Verifies that:
 * High and Medium severity indicators are visible
 * Project Map shows risk-to-task traceability
 * Project Map distinguishes linked and unlinked risks
+* Project Map shows decision-to-task traceability
+* Project Map distinguishes linked and unlinked decisions
 
 ### Project setup checklist
 
@@ -1190,6 +1054,8 @@ Verifies that:
 * Exported Markdown distinguishes High and Medium attention items
 * Status Report shows which task a risk affects
 * Exported Markdown includes risk-to-task links
+* Status Report shows which task a decision affects
+* Exported Markdown includes decision-to-task links
 
 ---
 
@@ -1213,7 +1079,7 @@ Run the main flow test in Chromium:
 npx playwright test tests/main-flow.spec.ts --project=chromium
 ```
 
-Run the project overview and project validation test:
+Run the project overview test:
 
 ```bash
 npx playwright test tests/projects-overview.spec.ts --project=chromium
@@ -1344,115 +1210,16 @@ Known limitations:
 * Old legacy project interview data still exists beside the newer active project model
 * Some project fields are still simpler than the long-term roadmap model
 * Editing and deleting all object types is not fully implemented yet
+* Filtering and sorting are not fully implemented yet
+* Traceability is intentionally simple and does not yet include advanced dependency graphs
 
 These limitations are intentional at this stage. The focus is on product clarity, QA value, testability and a strong portfolio case.
 
 ---
 
-## Current status
+## Planned next steps
 
-The project is functional, deployed and has passed repeated manual and automated regression testing.
-
-Completed:
-
-* Project interview
-* Project map
-* Project setup checklist on Project Map
-* Project board
-* Risk register
-* Decision log
-* Status report
-* Manual regression test documentation
-* Playwright setup
-* Landing page automated test
-* Main flow automated test in Chromium
-* Shared application header and improved navigation
-* UX improvements across the full main flow
-* Improved page introductions, help texts and visual hierarchy
-* Project platform roadmap
-* Multiple saved projects
-* Active project ID
-* My Projects overview
-* Example project/demo data
-* Project name validation on My Projects
-* Project name validation Playwright coverage
-* Task title validation in Workspace
-* Task title validation Playwright coverage
-* Risk title validation in Risk View
-* Risk title validation Playwright coverage
-* Decision title validation in Decision View
-* Decision title validation Playwright coverage
-* Project form accessibility improvement
-* Task form accessibility improvement
-* Risk form accessibility improvement
-* Decision form accessibility improvement
-* Workspace empty state improvement
-* Workspace empty state Playwright coverage
-* Risk View empty state improvement
-* Risk View empty state Playwright coverage
-* Decision View empty state improvement
-* Decision View empty state Playwright coverage
-* Workspace no active project state improvement
-* Workspace no active project state Playwright coverage
-* Risk View no active project state improvement
-* Risk View no active project state Playwright coverage
-* Decision View no active project state improvement
-* Decision View no active project state Playwright coverage
-* Project Map no active project state improvement
-* Project Map no active project state Playwright coverage
-* Status Report no active project state improvement
-* Status Report no active project state Playwright coverage
-* Risk-to-task linking in Risk View
-* Risk-to-task traceability on Project Map
-* Risk-to-task traceability in Status Report
-* Risk-to-task links in Markdown export
-* Project Health shown in My Projects overview
-* Project members page
-* Members shown in status report
-* Project member Playwright coverage
-* Active project data model for tasks, risks and decisions
-* Task responsibility in workspace
-* Task responsibility Playwright coverage
-* Risk responsibility in risk view
-* Risk responsibility Playwright coverage
-* Decision responsibility in decision view
-* Decision responsibility Playwright coverage
-* Missing task owner indicator in Workspace
-* Missing task owner Playwright coverage
-* Missing risk owner indicator in Risk View
-* Missing risk owner Playwright coverage
-* Missing decision owner indicator in Decision View
-* Missing decision owner Playwright coverage
-* Responsibility overview in status report
-* Active project summary on Project Map
-* Attention Needed preview in My Projects overview
-* Attention Needed on Project Map
-* Attention severity in Project Map
-* Attention Needed in Status Report
-* Attention severity in Status Report
-* Attention severity in Markdown export
-* Project Health MVP on Project Map
-* Shared project insight logic for Attention Needed and Project Health
-* Project Map Attention Needed Playwright coverage
-* Project Map severity-aware Attention Needed Playwright coverage
-* Project setup checklist Playwright coverage
-* Status Report uses active project data
-* Project Health in Status Report
-* Attention Needed in Markdown export
-* Copy status report as Markdown
-* Status report Markdown Playwright coverage
-* Status Report severity-aware Attention Needed Playwright coverage
-* Markdown export severity Playwright coverage
-* Example project demo flow Playwright coverage
-* Responsibility model plan
-* Standardized English UI across the main application flow
-* Updated Playwright tests after UI language refactor
-* Cleaned up encoding issues from earlier copied text
-* Vercel deployment
-* Live demo link in README
-* Screenshots in README
-
-Planned next steps:
+Recommended next steps:
 
 * Continue improving migration and cleanup from older `localStorage` keys
 * Continue improving form validation and error handling
@@ -1460,6 +1227,8 @@ Planned next steps:
 * Continue improving accessibility
 * Improve Project Health logic over time
 * Continue improving shared project insight logic over time
+* Continue Version 1.3 traceability by linking decisions to risks
+* Continue Version 1.3 traceability by linking tasks to goals or deliverables
 * Add more focused Playwright tests per module
 * Add delete and duplicate project actions
 * Add edit/delete for all main objects
@@ -1467,8 +1236,6 @@ Planned next steps:
 * Consider persistent backend storage in a later version
 * Add a clearer “What I learned” section
 * Add a QA/test module in a later version
-* Continue Version 1.3 traceability by linking decisions to tasks or risks
-* Continue Version 1.3 traceability by linking tasks to goals or deliverables
 
 ---
 
@@ -1507,14 +1274,13 @@ It demonstrates:
 * Testing negative input cases with Playwright
 * Turning Attention Needed into clearer project leadership signals
 * Showing priority through High and Medium severity indicators
-* Testing status and reporting improvements with focused Playwright tests
 * Making missing ownership visible directly in the user interface
-* Testing ownership visibility with focused Playwright tests
+* Adding traceability between risks and tasks
+* Adding traceability between decisions and tasks
+* Extending traceability consistently across forms, cards, overview pages, reports and Markdown export
+* Testing traceability changes through focused regression tests
 * Improving a status report so it becomes a useful communication artifact
 * Connecting product thinking, QA thinking and portfolio value in one project
-* Adding traceability between risks and tasks
-* Making project relationships visible across working views, overview views and reports
-* Testing traceability changes through focused regression tests
 
 ---
 
