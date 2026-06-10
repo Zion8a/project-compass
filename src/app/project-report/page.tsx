@@ -15,6 +15,7 @@ import {
   AttentionItem,
   getAttentionItems,
   getProjectHealth,
+  getRecommendedNextStep,
   ProjectHealth,
 } from "@/lib/projectInsights";
 
@@ -55,8 +56,13 @@ export default function ProjectReportPage() {
   const members = activeProject?.members ?? [];
 
   const attentionItems = activeProject ? getAttentionItems(activeProject) : [];
+
   const projectHealth = activeProject
     ? getProjectHealth(activeProject, attentionItems)
+    : null;
+
+  const recommendedNextStep = activeProject
+    ? getRecommendedNextStep(activeProject, attentionItems)
     : null;
 
   function getMemberName(ownerId?: string, fallbackOwner?: string) {
@@ -75,20 +81,21 @@ export default function ProjectReportPage() {
   }
 
   function getRelatedTaskTitle(relatedTaskId?: string) {
-  if (!relatedTaskId) {
-    return "No related task";
-  }
+    if (!relatedTaskId) {
+      return "No related task";
+    }
 
-  return (
-    tasks.find((task) => task.id === relatedTaskId)?.title || "Unknown task"
-  );
-}
+    return (
+      tasks.find((task) => task.id === relatedTaskId)?.title || "Unknown task"
+    );
+  }
 
   const report = useMemo(() => {
     const doneTasks = tasks.filter((task) => task.status === "done");
     const blockedTasks = tasks.filter((task) => task.status === "blocked");
 
     const openRisks = risks.filter((risk) => risk.status !== "handled");
+
     const highRisks = risks.filter(
       (risk) => risk.probability === "high" || risk.impact === "high"
     );
@@ -114,13 +121,18 @@ export default function ProjectReportPage() {
       openDecisions,
       decidedDecisions,
       statusLabel: projectHealth?.title ?? "Stable",
-statusText:
-  projectHealth?.summary ??
-  "The project has no clear warning signs based on registered tasks, risks and decisions.",
-statusReasons: projectHealth?.reasons ?? ["No current attention signals."],
-statusTone,
+      statusText:
+        projectHealth?.summary ??
+        "The project has no clear warning signs based on registered tasks, risks and decisions.",
+      statusReasons: projectHealth?.reasons ?? ["No current attention signals."],
+      recommendedNextStepTitle:
+        recommendedNextStep?.title ?? "Prepare the next checkpoint",
+      recommendedNextStepText:
+        recommendedNextStep?.text ??
+        "Review progress, confirm priorities and prepare the next delivery checkpoint.",
+      statusTone,
     };
-  }, [tasks, risks, decisions, projectHealth]);
+  }, [tasks, risks, decisions, projectHealth, recommendedNextStep]);
 
   function buildStatusReportMarkdown() {
     const projectName =
@@ -143,15 +155,13 @@ statusTone,
             .join("\n");
 
     const attentionSection =
-  attentionItems.length === 0
-    ? "No attention items were found in the active project."
-    : attentionItems
-        .map((item) => {
-          return `- **${formatAttentionSeverity(item.severity)}** — **${
-            item.title
-          }** — ${item.text}`;
-        })
-        .join("\n");
+      attentionItems.length === 0
+        ? "No attention items were found in the active project."
+        : attentionItems
+            .map((item) => {
+              return `- **${formatAttentionSeverity(item.severity)}** — **${item.title}** — ${item.text}`;
+            })
+            .join("\n");
 
     const taskSection =
       tasks.length === 0
@@ -165,35 +175,37 @@ statusTone,
             .join("\n");
 
     const riskSection =
-  risks.length === 0
-    ? "No risks have been created yet."
-    : risks
-        .map((risk) => {
-          return [
-            `- **${risk.title}** â€” ${translateRiskStatus(
-              risk.status
-            )} â€” Responsible: ${getMemberName(risk.ownerId, risk.owner)}`,
-            `  - Affects task: ${getRelatedTaskTitle(risk.relatedTaskId)}`,
-          ].join("\n");
-        })
-        .join("\n");
+      risks.length === 0
+        ? "No risks have been created yet."
+        : risks
+            .map((risk) => {
+              return [
+                `- **${risk.title}** — ${translateRiskStatus(
+                  risk.status
+                )} — Responsible: ${getMemberName(risk.ownerId, risk.owner)}`,
+                `  - Affects task: ${getRelatedTaskTitle(risk.relatedTaskId)}`,
+              ].join("\n");
+            })
+            .join("\n");
 
     const decisionSection =
-  decisions.length === 0
-    ? "No decisions have been created yet."
-    : decisions
-        .map((decision) => {
-          return [
-            `- **${decision.title}** â€” ${translateDecisionStatus(
-              decision.status
-            )} â€” Responsible: ${getMemberName(
-              decision.ownerId,
-              decision.owner
-            )}`,
-            `  - Affects task: ${getRelatedTaskTitle(decision.relatedTaskId)}`,
-          ].join("\n");
-        })
-        .join("\n");
+      decisions.length === 0
+        ? "No decisions have been created yet."
+        : decisions
+            .map((decision) => {
+              return [
+                `- **${decision.title}** — ${translateDecisionStatus(
+                  decision.status
+                )} — Responsible: ${getMemberName(
+                  decision.ownerId,
+                  decision.owner
+                )}`,
+                `  - Affects task: ${getRelatedTaskTitle(
+                  decision.relatedTaskId
+                )}`,
+              ].join("\n");
+            })
+            .join("\n");
 
     return [
       `# Status Report – ${projectName}`,
@@ -201,16 +213,16 @@ statusTone,
       `Date: ${new Date().toLocaleDateString("sv-SE")}`,
       "",
       "## Overall Project Status",
-"",
-`**${report.statusLabel}**`,
-"",
-report.statusText,
-"",
-"### Main reasons",
-"",
-...report.statusReasons.map((reason) => `- ${reason}`),
-"",
-"## Summary",
+      "",
+      `**${report.statusLabel}**`,
+      "",
+      report.statusText,
+      "",
+      "### Main reasons",
+      "",
+      ...report.statusReasons.map((reason) => `- ${reason}`),
+      "",
+      "## Summary",
       "",
       `- Total tasks: ${report.totalTasks}`,
       `- Done tasks: ${report.doneTasks}`,
@@ -254,13 +266,11 @@ report.statusText,
       "",
       decisionSection,
       "",
-      "## Recommended Next Steps",
+      "## Recommended Next Step",
       "",
-      "- Follow up blocked tasks.",
-      "- Prioritize high-probability or high-impact risks.",
-      "- Clarify open decisions.",
-      "- Check that important tasks, risks and decisions have responsible owners.",
-      "- Update the workspace after the next project check-in.",
+      `**${report.recommendedNextStepTitle}**`,
+      "",
+      report.recommendedNextStepText,
     ].join("\n");
   }
 
@@ -398,19 +408,23 @@ report.statusText,
           <p className="mt-3 max-w-3xl text-sm leading-6">
             {report.statusText}
           </p>
-          <div className="mt-5">
-  <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-80">
-    Main reasons
-  </p>
 
-  <ul className="mt-3 grid gap-2 text-sm leading-6">
-    {report.statusReasons.map((reason) => (
-      <li key={reason} className="rounded-2xl bg-slate-950/40 px-4 py-2">
-        {reason}
-      </li>
-    ))}
-  </ul>
-</div>
+          <div className="mt-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-80">
+              Main reasons
+            </p>
+
+            <ul className="mt-3 grid gap-2 text-sm leading-6">
+              {report.statusReasons.map((reason) => (
+                <li
+                  key={reason}
+                  className="rounded-2xl bg-slate-950/40 px-4 py-2"
+                >
+                  {reason}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
@@ -520,17 +534,19 @@ report.statusText,
               </p>
             ) : (
               risks.map((risk) => (
-  <ResponsibilityItem
-    key={risk.id}
-    title={risk.title}
-    meta={`${translateRiskStatus(
-      risk.status
-    )} â€¢ Responsible: ${getMemberName(
-      risk.ownerId,
-      risk.owner
-    )} â€¢ Affects task: ${getRelatedTaskTitle(risk.relatedTaskId)}`}
-  />
-))
+                <ResponsibilityItem
+                  key={risk.id}
+                  title={risk.title}
+                  meta={`${translateRiskStatus(
+                    risk.status
+                  )} • Responsible: ${getMemberName(
+                    risk.ownerId,
+                    risk.owner
+                  )} • Affects task: ${getRelatedTaskTitle(
+                    risk.relatedTaskId
+                  )}`}
+                />
+              ))
             )}
           </ResponsibilitySection>
 
@@ -541,40 +557,35 @@ report.statusText,
               </p>
             ) : (
               decisions.map((decision) => (
-  <ResponsibilityItem
-    key={decision.id}
-    title={decision.title}
-    meta={`${translateDecisionStatus(
-      decision.status
-    )} â€¢ Responsible: ${getMemberName(
-      decision.ownerId,
-      decision.owner
-    )} â€¢ Affects task: ${getRelatedTaskTitle(decision.relatedTaskId)}`}
-  />
-))
+                <ResponsibilityItem
+                  key={decision.id}
+                  title={decision.title}
+                  meta={`${translateDecisionStatus(
+                    decision.status
+                  )} • Responsible: ${getMemberName(
+                    decision.ownerId,
+                    decision.owner
+                  )} • Affects task: ${getRelatedTaskTitle(
+                    decision.relatedTaskId
+                  )}`}
+                />
+              ))
             )}
           </ResponsibilitySection>
         </div>
 
         <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">
-            Recommended Next Steps
+            Recommended Next Step
           </p>
 
           <h2 className="mt-2 text-2xl font-bold">
-            Keep the project moving
+            {report.recommendedNextStepTitle}
           </h2>
 
-          <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-300">
-            <li>Follow up blocked tasks.</li>
-            <li>Prioritize high-probability or high-impact risks.</li>
-            <li>Clarify open decisions.</li>
-            <li>
-              Check that important tasks, risks and decisions have responsible
-              owners.
-            </li>
-            <li>Update the workspace after the next project check-in.</li>
-          </ul>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            {report.recommendedNextStepText}
+          </p>
         </section>
 
         <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
@@ -671,12 +682,18 @@ function ResponsibilitySection({
         {title}
       </p>
 
-      <div className="mt-5 space-y-3">{children}</div>
+      <div className="mt-5 space-y-4">{children}</div>
     </section>
   );
 }
 
-function ResponsibilityItem({ title, meta }: { title: string; meta: string }) {
+function ResponsibilityItem({
+  title,
+  meta,
+}: {
+  title: string;
+  meta: string;
+}) {
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
       <h3 className="font-semibold text-white">{title}</h3>
@@ -684,30 +701,6 @@ function ResponsibilityItem({ title, meta }: { title: string; meta: string }) {
       <p className="mt-2 text-sm leading-6 text-slate-400">{meta}</p>
     </article>
   );
-}
-
-function getAttentionSeverityClasses(severity: AttentionItem["severity"]) {
-  if (severity === "high") {
-    return "border-red-500/40 bg-red-500/10 text-red-100";
-  }
-
-  return "border-amber-500/40 bg-amber-500/10 text-amber-100";
-}
-
-function getAttentionSeverityBadgeClasses(severity: AttentionItem["severity"]) {
-  if (severity === "high") {
-    return "border-red-400/50 bg-red-400/10 text-red-100";
-  }
-
-  return "border-amber-400/50 bg-amber-400/10 text-amber-100";
-}
-
-function formatAttentionSeverity(severity: AttentionItem["severity"]) {
-  if (severity === "high") {
-    return "High";
-  }
-
-  return "Medium";
 }
 
 function AttentionItemCard({ item }: { item: AttentionItem }) {
@@ -736,6 +729,66 @@ function AttentionItemCard({ item }: { item: AttentionItem }) {
   );
 }
 
+function translateTaskStatus(status: ProjectTaskStatus) {
+  const labels: Record<string, string> = {
+    backlog: "Backlog",
+    planned: "Planned",
+    todo: "To do",
+    "in-progress": "In progress",
+    blocked: "Blocked",
+    review: "Review",
+    done: "Done",
+  };
+
+  return labels[status] ?? status;
+}
+
+function translateRiskStatus(status: ProjectRiskStatus) {
+  const labels: Record<string, string> = {
+    open: "Open",
+    monitoring: "Monitoring",
+    handled: "Handled",
+    mitigated: "Mitigated",
+    closed: "Closed",
+  };
+
+  return labels[status] ?? status;
+}
+
+function translateDecisionStatus(status: ProjectDecisionStatus) {
+  const labels: Record<string, string> = {
+    open: "Open",
+    decided: "Decided",
+    deferred: "Deferred",
+  };
+
+  return labels[status] ?? status;
+}
+
+function getAttentionSeverityClasses(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "border-red-500/40 bg-red-500/10 text-red-100";
+  }
+
+  return "border-amber-500/40 bg-amber-500/10 text-amber-100";
+}
+
+function getAttentionSeverityBadgeClasses(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "border-red-400/50 bg-red-400/10 text-red-100";
+  }
+
+  return "border-amber-400/50 bg-amber-400/10 text-amber-100";
+}
+
+function formatAttentionSeverity(severity: AttentionItem["severity"]) {
+  if (severity === "high") {
+    return "High";
+  }
+
+  return "Medium";
+}
+
 function getProjectHealthTone(projectHealth: ProjectHealth): ReportTone {
   if (projectHealth.level === "stable") {
     return "emerald";
@@ -760,50 +813,14 @@ function getToneClasses(tone: ReportTone) {
   return "border-rose-500/40 bg-rose-500/10 text-rose-100";
 }
 
-function translateTaskStatus(status: ProjectTaskStatus) {
-  if (status === "backlog") {
-    return "Backlog";
+function getProjectHealthClasses(projectHealth: ProjectHealth) {
+  if (projectHealth.level === "stable") {
+    return "border-emerald-500/40 bg-emerald-500/10 text-emerald-100";
   }
 
-  if (status === "planned") {
-    return "Planned";
+  if (projectHealth.level === "needs-attention") {
+    return "border-amber-500/40 bg-amber-500/10 text-amber-100";
   }
 
-  if (status === "in-progress") {
-    return "In progress";
-  }
-
-  if (status === "blocked") {
-    return "Blocked";
-  }
-
-  if (status === "review") {
-    return "Review";
-  }
-
-  return "Done";
-}
-
-function translateRiskStatus(status: ProjectRiskStatus) {
-  if (status === "open") {
-    return "Open";
-  }
-
-  if (status === "watching") {
-    return "Watching";
-  }
-
-  return "Handled";
-}
-
-function translateDecisionStatus(status: ProjectDecisionStatus) {
-  if (status === "open") {
-    return "Open";
-  }
-
-  if (status === "decided") {
-    return "Decided";
-  }
-
-  return "Postponed";
+  return "border-red-500/40 bg-red-500/10 text-red-100";
 }
