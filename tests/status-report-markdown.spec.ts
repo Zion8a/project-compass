@@ -159,6 +159,20 @@ test.describe("Status report Markdown export", () => {
     await expect(page.getByText("Medium").first()).toBeVisible();
 
     await expect(
+  page.getByText("Recommended Next Step", { exact: true })
+).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "Review high risks" })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "Review high risks and make sure each risk has a clear action, owner and follow-up plan."
+      )
+    ).toBeVisible();
+
+    await expect(
       page.getByRole("button", { name: "Copy status report as Markdown" })
     ).toBeVisible();
 
@@ -192,6 +206,12 @@ test.describe("Status report Markdown export", () => {
     );
     expect(copiedMarkdown).toContain(
       "- **High** — **1 open decision** — Open decisions can block direction, scope or next steps."
+    );
+
+    expect(copiedMarkdown).toContain("## Recommended Next Step");
+    expect(copiedMarkdown).toContain("**Review high risks**");
+    expect(copiedMarkdown).toContain(
+      "Review high risks and make sure each risk has a clear action, owner and follow-up plan."
     );
   });
 });
