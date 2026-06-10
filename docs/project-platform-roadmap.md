@@ -31,8 +31,10 @@ The current MVP already includes:
 * Attention Needed
 * Project Health
 * Project Health reasons
+* Project Health Score
 * Recommended Next Step logic
 * Recommended Next Step in Status Report and Markdown export
+* Project Health Score in Status Report and Markdown export
 * Risk-to-task traceability
 * Decision-to-task traceability
 * Markdown status report export
@@ -51,7 +53,7 @@ This platform direction makes Project Compass more useful, more realistic and st
 
 Many small projects fail because the team does not lack effort, but clarity.
 
-The current version has moved beyond the original single-project MVP and now supports several saved projects, one active project, project members, responsibility, Attention Needed, Project Health, traceability between project objects and recommended next steps in the Status Report.
+The current version has moved beyond the original single-project MVP and now supports several saved projects, one active project, project members, responsibility, Attention Needed, Project Health, Project Health Score, traceability between project objects and recommended next steps in the Status Report.
 
 The product should continue to solve the following problems:
 
@@ -62,7 +64,7 @@ The product should continue to solve the following problems:
 * Tasks, risks and decisions need clear ownership.
 * Items without ownership need to be visible.
 * Risks and decisions should be connected to the work they affect.
-* The status report should show ownership, team structure, accountability, risk, decisions, traceability, health reasons and next steps.
+* The status report should show ownership, team structure, accountability, risk, decisions, traceability, health reasons, health score and next steps.
 * The app should become less of a single workflow and more of a reusable project clarity platform.
 
 Project Compass should help users answer questions such as:
@@ -152,6 +154,7 @@ It should summarize real project information:
 * relationships between project objects
 * Attention Needed
 * Project Health
+* Project Health Score
 * Project Health reasons
 * Recommended Next Step
 
@@ -190,7 +193,7 @@ Suggested localStorage key:
 project-compass-state
 ```
 
-This makes it possible to store multiple projects, open a selected project, track the active project, keep project data separated, add members per project, connect responsibility to tasks, risks and decisions, connect risks and decisions to related tasks, add Attention Needed, calculate Project Health, show Project Health reasons and recommend next steps.
+This makes it possible to store multiple projects, open a selected project, track the active project, keep project data separated, add members per project, connect responsibility to tasks, risks and decisions, connect risks and decisions to related tasks, add Attention Needed, calculate Project Health, show Project Health reasons, show Project Health Score and recommend next steps.
 
 ### 4.2 Project
 
@@ -353,9 +356,10 @@ Current implemented model:
 ```ts
 type ProjectHealth = {
   level: "stable" | "needs-attention" | "at-risk";
-  title: string;
+  title: "Stable" | "Needs attention" | "At risk";
   summary: string;
   reasons: string[];
+  score: number;
 };
 ```
 
@@ -367,7 +371,21 @@ The current logic is intentionally simple and based on project signals such as:
 * attention items
 * missing ownership
 
-The Status Report now shows both the Project Health level and the main reasons behind that health level.
+The Status Report now shows:
+
+* Project Health level
+* Project Health Score
+* main reasons behind the current health level
+* Recommended Next Step
+
+The Project Health Score starts at 100 and is reduced when the active project contains attention signals.
+
+Current MVP scoring logic:
+
+* High severity attention item: -15
+* Medium severity attention item: -5
+* Minimum score: 0
+* Maximum score: 100
 
 Examples of Project Health reasons:
 
@@ -377,7 +395,7 @@ Examples of Project Health reasons:
 * Some tasks, risks or decisions are missing clear ownership
 * No current attention signals
 
-Future versions can improve this into a clearer Project Health Score or more detailed health model, but the current MVP already makes the project situation easier to understand.
+Project Health Score is not intended to be an exact project performance metric. It is a simple rule-based MVP indicator designed to make project signals easier to understand and discuss.
 
 ### 4.11 Recommended Next Step
 
@@ -409,7 +427,7 @@ This helps the Status Report become more than a list of project information. It 
 
 ### 4.12 Shared Project Insight Logic
 
-Attention Needed, Project Health and Recommended Next Step are calculated through shared project insight logic in `src/lib/projectInsights.ts`.
+Attention Needed, Project Health, Project Health Score and Recommended Next Step are calculated through shared project insight logic in `src/lib/projectInsights.ts`.
 
 This helper currently contains:
 
@@ -419,7 +437,7 @@ This helper currently contains:
 
 The purpose of this shared logic is to make sure that Project Map, Status Report and My Projects can use the same interpretation of project data.
 
-This reduces duplicated logic, lowers the risk of inconsistent project status between views, and prepares the app for future improvements such as Project Health Score, richer health explanations, recommended next steps based on traceability gaps, shared dashboard summaries, health indicators in My Projects and future QA/test summary insights.
+This reduces duplicated logic, lowers the risk of inconsistent project status between views, and prepares the app for future improvements such as richer health explanations, improved score rules, recommended next steps based on traceability gaps, shared dashboard summaries, health indicators in My Projects and future QA/test summary insights.
 
 This is an important maintainability step because Project Compass should not only display project information, but interpret project signals in a consistent and testable way.
 
@@ -485,19 +503,25 @@ As a project leader, I want to see a simple project health indicator, so that I 
 
 As a project leader, I want to see the main reasons behind the project health status, so that I understand why the project is considered stable, needs attention or is at risk.
 
-### 5.15 Recommended Next Step
+### 5.15 Project Health Score
+
+As a project leader, I want to see a simple Project Health Score, so that I can quickly understand how many attention signals are affecting the project.
+
+The score should support the health level and main reasons, not replace them.
+
+### 5.16 Recommended Next Step
 
 As a project leader, I want the app to recommend a next step, so that I know what to act on after reviewing the project status.
 
-### 5.16 Improved Status Report
+### 5.17 Improved Status Report
 
 As a user, I want the status report to summarize the project clearly, so that I can share project status with a teacher, mentor, stakeholder or recruiter.
 
-### 5.17 Future Export
+### 5.18 Future Export
 
 As a user, I want to export project data and status reports, so that I can document progress outside the app.
 
-### 5.18 Future QA Module
+### 5.19 Future QA Module
 
 As a QA-focused user, I want to add test cases, bugs and test summaries, so that Project Compass can also support simple test leadership.
 
@@ -588,6 +612,10 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 * The health state is shown in the Status Report.
 * The health explanation includes the main reasons or a clear summary.
 * The Markdown export includes main Project Health reasons.
+* The health score is shown in the Status Report.
+* The health score is included in the Markdown export.
+* The health score is tested through the Status Report Markdown export test.
+* The health score is clearly described as a simple rule-based MVP indicator.
 
 ### 6.9 Recommended Next Step
 
@@ -613,10 +641,12 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 * The status report includes responsibilities.
 * The status report includes Attention Needed.
 * The status report includes Project Health.
+* The status report includes Project Health Score.
 * The status report includes main Project Health reasons.
 * The status report includes risk-to-task links.
 * The status report includes decision-to-task links.
 * The status report includes Recommended Next Step.
+* The Markdown export includes Project Health Score.
 * The report can be copied or exported as Markdown.
 * The report should be useful as a real project communication artifact.
 
@@ -624,7 +654,7 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 
 * Existing Playwright tests should continue to pass.
 * New core flows should be covered by Playwright tests when relevant.
-* At minimum, tests should cover landing page, main flow, project creation, project persistence, member creation, responsibility, Attention Needed, Project Health, Project Health reasons, Recommended Next Step, traceability and Markdown export.
+* At minimum, tests should cover landing page, main flow, project creation, project persistence, member creation, responsibility, Attention Needed, Project Health, Project Health Score, Project Health reasons, Recommended Next Step, traceability and Markdown export.
 
 ### 6.12 Future Export
 
@@ -698,11 +728,13 @@ Current important Playwright coverage includes:
 * show Attention Needed
 * show Project Health
 * show Project Health reasons in Status Report
+* show Project Health Score in Status Report
 * show Recommended Next Step in Status Report
 * show traceability in Project Map
 * show traceability in Status Report
 * generate status report
 * copy Markdown report
+* verify Project Health Score in Markdown export
 * verify Recommended Next Step in Markdown export
 * handle no active project
 
@@ -785,6 +817,9 @@ The goal is to cover important behavior and prevent regressions.
 * Project with some open issues shows Needs attention.
 * Project with several blocked tasks or high risks shows At risk.
 * Health explanation shows the reasons.
+* Project Health Score is shown in the Status Report.
+* Project Health Score is included in the Markdown export.
+* Project Health Score matches the attention signals used by the current MVP rules.
 * Markdown export includes health reasons.
 
 #### Recommended Next Step
@@ -803,6 +838,7 @@ The goal is to cover important behavior and prevent regressions.
 * Status Report shows members and responsibilities.
 * Status Report shows Attention Needed.
 * Status Report shows Project Health.
+* Status Report shows Project Health Score.
 * Status Report shows main Project Health reasons.
 * Status Report shows Recommended Next Step.
 * Status Report shows traceability.
@@ -822,6 +858,7 @@ Important risks:
 * status report shows wrong project data
 * Attention Needed misses important items
 * Project Health gives a misleading status
+* Project Health Score gives a misleading sense of precision
 * Project Health reasons do not match the project data
 * Recommended Next Step is misleading or too generic
 * linked risks or decisions point to missing tasks
@@ -907,14 +944,20 @@ Definition of Done:
 * the health explanation is understandable ✅
 * health reasons are shown in the Status Report ✅
 * health reasons are included in Markdown export ✅
+* Project Health Score is calculated from attention signals ✅
+* Project Health Score is shown in the Status Report ✅
+* Project Health Score is included in Markdown export ✅
+* Project Health Score is tested through Playwright ✅
 * the status report includes Project Health ✅
 * the feature is tested ✅
 
 Implementation note:
 
-Project Health is now shown in the My Projects overview, Project Map and Status Report. In the Status Report, the health state is also supported by main reasons so the user can understand why the project is stable, needs attention or is at risk.
+Project Health is now shown in the My Projects overview, Project Map and Status Report. In the Status Report, the health state is supported by main reasons and a simple Project Health Score so the user can understand why the project is stable, needs attention or is at risk.
 
-The health state is calculated through shared project insight logic in `src/lib/projectInsights.ts`.
+The Project Health Score is intentionally simple and rule-based. It starts at 100 and is reduced by attention signals.
+
+The health state, health reasons and score are calculated through shared project insight logic in `src/lib/projectInsights.ts`.
 
 This means that My Projects, Project Map and Status Report can build on the same project interpretation logic.
 
@@ -936,6 +979,7 @@ Focus areas:
 * responsibilities
 * Attention Needed
 * Project Health
+* Project Health Score
 * main Project Health reasons
 * Recommended Next Step
 * Markdown export
@@ -944,6 +988,7 @@ Implemented so far:
 
 * Status Report gives a clear project overview ✅
 * Status Report shows Project Health ✅
+* Status Report shows Project Health Score ✅
 * Status Report shows main Project Health reasons ✅
 * Status Report shows Attention Needed with severity ✅
 * Status Report shows responsibilities for tasks, risks and decisions ✅
@@ -951,12 +996,15 @@ Implemented so far:
 * Status Report shows decision-to-task traceability ✅
 * Status Report shows a Recommended Next Step ✅
 * Markdown export includes Project Health ✅
+* Markdown export includes Project Health Score ✅
 * Markdown export includes main Project Health reasons ✅
 * Markdown export includes Attention Needed ✅
 * Markdown export includes traceability ✅
 * Markdown export includes Recommended Next Step ✅
 * Playwright verifies Recommended Next Step in the Markdown export ✅
+* Playwright verifies Project Health Score in the Markdown export ✅
 * README has been updated with Project Health recommendations ✅
+* README has been updated with Project Health Score ✅
 
 Definition of Done:
 
@@ -964,13 +1012,14 @@ Definition of Done:
 * the report can be shown to a teacher, mentor, stakeholder or recruiter ✅
 * the report includes both data and interpretation ✅
 * the report explains why the project has its current health status ✅
+* the report shows a simple rule-based Project Health Score ✅
 * the report suggests a recommended next step ✅
 * Markdown export works ✅
 * important report behavior is tested ✅
 
 Implementation note:
 
-This phase is now a strong MVP. The Status Report no longer only lists project data. It interprets the project situation through Project Health, explains the main reasons behind that status and suggests a recommended next step based on project signals.
+This phase is now a strong MVP. The Status Report no longer only lists project data. It interprets the project situation through Project Health, explains the main reasons behind that status, shows a simple Project Health Score and suggests a recommended next step based on project signals.
 
 This supports the core identity of Project Compass: helping users turn unclear work into a manageable project.
 
@@ -1144,49 +1193,51 @@ Definition of Done:
 
 ### 9.1 Product Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| The app becomes too similar to Trello, Jira or Taiga | The product loses its identity | Keep focus on clarity, responsibility, risks, decisions, traceability and status |
-| Too many features are added too fast | The app becomes hard to maintain | Work in small MVP steps |
-| Users do not understand where to start | Poor first impression | Improve empty states, demo data and setup checklist |
-| Status report becomes too generic | Weak product value | Generate report from real project data |
-| Attention Needed becomes noisy | User ignores it | Keep rules simple and relevant |
-| Project Health becomes misleading | User gets false confidence | Show reasons behind every health status |
-| Recommended Next Step becomes too generic | User does not trust the recommendation | Base recommendations on clear project signals |
-| Traceability becomes too complex | User gets confused | Keep relationship types simple and visible |
+| Risk                                                 | Impact                                        | Mitigation                                                                       |
+| ---------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
+| The app becomes too similar to Trello, Jira or Taiga | The product loses its identity                | Keep focus on clarity, responsibility, risks, decisions, traceability and status |
+| Too many features are added too fast                 | The app becomes hard to maintain              | Work in small MVP steps                                                          |
+| Users do not understand where to start               | Poor first impression                         | Improve empty states, demo data and setup checklist                              |
+| Status report becomes too generic                    | Weak product value                            | Generate report from real project data                                           |
+| Attention Needed becomes noisy                       | User ignores it                               | Keep rules simple and relevant                                                   |
+| Project Health becomes misleading                    | User gets false confidence                    | Show reasons behind every health status                                          |
+| Project Health Score feels too exact                 | User may overtrust a simple rule-based signal | Describe it clearly as an MVP indicator, not a validated performance metric      |
+| Recommended Next Step becomes too generic            | User does not trust the recommendation        | Base recommendations on clear project signals                                    |
+| Traceability becomes too complex                     | User gets confused                            | Keep relationship types simple and visible                                       |
 
 ### 9.2 Technical Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| localStorage data structure becomes hard to change | Future features become harder | Keep data model documented |
-| Project data gets mixed between projects | Serious user trust problem | Test active project and project switching carefully |
-| Old saved data breaks after model changes | App may crash | Add safe defaults and migration logic if needed |
-| Owner references break when members change | Wrong or missing responsibility display | Handle missing member references gracefully |
-| Linked task references break when tasks change | Traceability becomes unclear | Show safe fallback such as Unknown task |
-| Shared insight logic becomes inconsistent | Views show different project status | Keep calculations centralized in `projectInsights.ts` |
-| Playwright tests become brittle | CI becomes unreliable | Test behavior, not small visual details |
-| Navigation becomes more complex | User gets lost | Keep active project and main actions visible |
+| Risk                                               | Impact                                  | Mitigation                                            |
+| -------------------------------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| localStorage data structure becomes hard to change | Future features become harder           | Keep data model documented                            |
+| Project data gets mixed between projects           | Serious user trust problem              | Test active project and project switching carefully   |
+| Old saved data breaks after model changes          | App may crash                           | Add safe defaults and migration logic if needed       |
+| Owner references break when members change         | Wrong or missing responsibility display | Handle missing member references gracefully           |
+| Linked task references break when tasks change     | Traceability becomes unclear            | Show safe fallback such as Unknown task               |
+| Shared insight logic becomes inconsistent          | Views show different project status     | Keep calculations centralized in `projectInsights.ts` |
+| Playwright tests become brittle                    | CI becomes unreliable                   | Test behavior, not small visual details               |
+| Navigation becomes more complex                    | User gets lost                          | Keep active project and main actions visible          |
 
 ### 9.3 QA Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| Important flows are only tested manually | Regressions may be missed | Add Playwright tests for critical flows |
-| Tests do not match real user behavior | Low confidence | Write tests around user journeys |
-| Regression suite becomes too large | Hard to maintain | Prioritize high-risk flows |
-| Documentation is not updated | Portfolio value decreases | Update docs as part of Definition of Done |
-| Traceability is not tested after changes | Links may break silently | Include traceability in focused regression |
-| Project Health and recommendations are not tested | Status logic may regress | Add scenario tests for core health and recommendation rules |
+| Risk                                              | Impact                            | Mitigation                                                  |
+| ------------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
+| Important flows are only tested manually          | Regressions may be missed         | Add Playwright tests for critical flows                     |
+| Tests do not match real user behavior             | Low confidence                    | Write tests around user journeys                            |
+| Regression suite becomes too large                | Hard to maintain                  | Prioritize high-risk flows                                  |
+| Documentation is not updated                      | Portfolio value decreases         | Update docs as part of Definition of Done                   |
+| Traceability is not tested after changes          | Links may break silently          | Include traceability in focused regression                  |
+| Project Health and recommendations are not tested | Status logic may regress          | Add scenario tests for core health and recommendation rules |
+| Project Health Score is not tested                | Score logic or export may regress | Verify score in the Status Report Markdown export test      |
 
 ### 9.4 Portfolio Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| The app looks unfinished | Recruiters may not understand the value | Improve README, screenshots and demo flow |
-| The QA value is not visible | The project looks like only frontend work | Document test strategy, test cases and CI |
-| The product story is unclear | The project is harder to explain | Keep the message: project clarity, responsibility, traceability and status |
-| The repo becomes messy | Lower professional impression | Keep commits small and documentation current |
+| Risk                         | Impact                                    | Mitigation                                                                 |
+| ---------------------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
+| The app looks unfinished     | Recruiters may not understand the value   | Improve README, screenshots and demo flow                                  |
+| The QA value is not visible  | The project looks like only frontend work | Document test strategy, test cases and CI                                  |
+| The product story is unclear | The project is harder to explain          | Keep the message: project clarity, responsibility, traceability and status |
+| The repo becomes messy       | Lower professional impression             | Keep commits small and documentation current                               |
 
 ### 9.5 localStorage Limitations
 
@@ -1266,6 +1317,9 @@ Example commit messages:
 * Add project members page
 * Add Attention Needed section
 * Add Project Health indicator
+* Add project health score logic
+* Show project health score in status report
+* Test project health score in status report export
 * Improve status report summary
 * Add traceability between risks and tasks
 * Add traceability between decisions and tasks
@@ -1275,37 +1329,39 @@ Example commit messages:
 * Show recommended next step in status report
 * Test recommended next step in status report export
 * Update README for project health recommendations
-* Update roadmap for project health recommendations
+* Update README for project health score
+* Update roadmap for project health score
 
 ---
 
 ## 11. Recommended Next Implementation Step
 
-The recommended next step after the completed Version 1.3 Traceability MVP was to start Version 1.4 – Status and Project Health.
-
-That work has now started and the first important Version 1.4 improvements are complete.
+Version 1.4 – Status Report and Project Health is now well underway.
 
 Completed Version 1.4 improvements:
 
 * Project Health reasons are shown in the Status Report.
 * Project Health reasons are included in the Markdown export.
+* Project Health Score logic has been added.
+* Project Health Score is shown in the Status Report.
+* Project Health Score is included in the Markdown export.
+* Playwright verifies Project Health Score in the Markdown export.
 * Recommended Next Step logic has been added.
 * Recommended Next Step is shown in the Status Report.
 * Recommended Next Step is included in the Markdown export.
 * Playwright verifies Recommended Next Step in the Markdown export.
-* README has been updated to describe Project Health reasons and Recommended Next Step.
+* README has been updated to describe Project Health reasons, Project Health Score and Recommended Next Step.
 
 Current value:
 
-The Status Report now works more like a project leadership artifact. It does not only summarize tasks, risks, decisions and responsibility. It also explains the project situation and suggests what the project leader should do next.
+The Status Report now works more like a project leadership artifact. It does not only summarize tasks, risks, decisions and responsibility. It also explains the project situation, shows a simple health score and suggests what the project leader should do next.
 
 Recommended next implementation step:
 
-Continue Version 1.4 by improving the status logic further.
+Continue Version 1.4 by improving the automatic status summary text.
 
 Suggested next small steps:
 
-* Consider adding a simple Project Health Score.
 * Improve the automatic status summary text.
 * Add more Project Health scenario tests.
 * Add recommended next steps based on traceability gaps.
@@ -1334,6 +1390,8 @@ Use this checklist when testing Version 1.4 Status Report and Project Health imp
 * Can I open the Status Report for the active project?
 * Does the report show the correct active project?
 * Does the report show Project Health?
+* Does the report show Project Health Score?
+* Does the score make sense based on the current attention signals?
 * Does the health summary make sense for the current project data?
 * Does the report show main Project Health reasons?
 * Do the health reasons match the project data?
@@ -1351,6 +1409,7 @@ Use this checklist when testing Version 1.4 Status Report and Project Health imp
 
 * Does Markdown export include the project name?
 * Does Markdown export include Overall Project Status?
+* Does Markdown export include Project Health Score?
 * Does Markdown export include main Project Health reasons?
 * Does Markdown export include Attention Needed?
 * Does Markdown export include task responsibility?
