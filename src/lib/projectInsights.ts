@@ -9,10 +9,27 @@ export type AttentionItem = {
 
 export type ProjectHealth = {
   level: "stable" | "needs-attention" | "at-risk";
-  title: string;
+  title: "Stable" | "Needs attention" | "At risk";
   summary: string;
   reasons: string[];
+  score: number;
 };
+
+function getProjectHealthScore(attentionItems: AttentionItem[]): number {
+  const startingScore = 100;
+
+  const totalPenalty = attentionItems.reduce((scorePenalty, item) => {
+    if (item.severity === "high") {
+      return scorePenalty + 15;
+    }
+
+    return scorePenalty + 5;
+  }, 0);
+
+  const score = startingScore - totalPenalty;
+
+  return Math.max(0, Math.min(100, score));
+}
 
 export type RecommendedNextStep = {
   title: string;
@@ -131,6 +148,8 @@ export function getProjectHealth(
 
   const reasons: string[] = [];
 
+  const score = getProjectHealthScore(attentionItems);
+
   if (blockedTasksCount > 0) {
     reasons.push(
       `${blockedTasksCount} blocked task${
@@ -163,6 +182,7 @@ export function getProjectHealth(
       summary:
         "This project has several signals that may affect progress, direction or delivery.",
       reasons,
+      score,
     };
   }
 
@@ -176,6 +196,7 @@ export function getProjectHealth(
         reasons.length > 0
           ? reasons
           : ["Some tasks, risks or decisions are missing clear ownership."],
+      score,
     };
   }
 
@@ -185,6 +206,7 @@ export function getProjectHealth(
     summary:
       "No blocked tasks, high risks, open decisions or missing owners were found.",
     reasons: ["No current attention signals."],
+    score,
   };
 }
 
