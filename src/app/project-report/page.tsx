@@ -125,6 +125,7 @@ export default function ProjectReportPage() {
         projectHealth?.summary ??
         "The project has no clear warning signs based on registered tasks, risks and decisions.",
       statusReasons: projectHealth?.reasons ?? ["No current attention signals."],
+      statusScore: projectHealth?.score ?? 100,
       recommendedNextStepTitle:
         recommendedNextStep?.title ?? "Prepare the next checkpoint",
       recommendedNextStepText:
@@ -215,6 +216,8 @@ export default function ProjectReportPage() {
       "## Overall Project Status",
       "",
       `**${report.statusLabel}**`,
+      "",
+      `Project Health Score: ${report.statusScore} / 100`,
       "",
       report.statusText,
       "",
@@ -404,6 +407,10 @@ export default function ProjectReportPage() {
           </p>
 
           <h2 className="mt-2 text-3xl font-bold">{report.statusLabel}</h2>
+
+          <p className="mt-3 text-sm font-semibold">
+            Project Health Score: {report.statusScore} / 100
+          </p>
 
           <p className="mt-3 max-w-3xl text-sm leading-6">
             {report.statusText}
