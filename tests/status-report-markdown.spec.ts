@@ -125,6 +125,8 @@ test.describe("Status report Markdown export", () => {
       page.getByText("Project: Markdown Export Test", { exact: true })
     ).toBeVisible();
 
+    await expect(page.getByText("Project Health Score: 65 / 100")).toBeVisible();
+
     await expect(
       page.getByRole("heading", { name: "3 items need attention" })
     ).toBeVisible();
@@ -159,8 +161,8 @@ test.describe("Status report Markdown export", () => {
     await expect(page.getByText("Medium").first()).toBeVisible();
 
     await expect(
-  page.getByText("Recommended Next Step", { exact: true })
-).toBeVisible();
+      page.getByText("Recommended Next Step", { exact: true })
+    ).toBeVisible();
 
     await expect(
       page.getByRole("heading", { name: "Review high risks" })
@@ -189,6 +191,8 @@ test.describe("Status report Markdown export", () => {
     );
 
     expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
+    expect(copiedMarkdown).toContain("## Overall Project Status");
+    expect(copiedMarkdown).toContain("Project Health Score: 65 / 100");
     expect(copiedMarkdown).toContain("## Project Members");
     expect(copiedMarkdown).toContain("Johan Larsson");
     expect(copiedMarkdown).toContain("Write project update");
