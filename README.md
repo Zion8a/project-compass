@@ -18,6 +18,7 @@ Many project tools start with boards, cards and task tracking. Project Compass s
 * Which decisions are still open?
 * Which tasks are affected by risks or decisions?
 * How healthy is the project right now?
+* Why does the project have that health status?
 * What should happen next?
 
 Project Compass helps teams turn unclear work into a manageable project.
@@ -56,7 +57,7 @@ Project Compass interprets project signals and highlights blocked work, missing 
 
 ### Status Report
 
-The Status Report summarizes project status, tasks, risks, decisions, members, Attention Needed, traceability and recommended next steps.
+The Status Report summarizes project status, tasks, risks, decisions, members, Attention Needed, Project Health, main health reasons, traceability and a recommended next step.
 
 ![Status Report](public/screenshots/status-report.png)
 
@@ -107,9 +108,10 @@ The app focuses on:
 * Decisions
 * Attention Needed
 * Project Health
+* Health reasons
 * Traceability
 * Status
-* Next steps
+* Recommended next step
 * Shareable reporting
 
 The product should help the user move from unclear work to a structured, responsible and manageable project.
@@ -136,7 +138,9 @@ The current version includes:
 * Project setup checklist
 * Project Map
 * Project Health
+* Project Health reasons
 * Attention Needed
+* Recommended Next Step
 * Status Report
 * Markdown export
 * Responsibility model for tasks, risks and decisions
@@ -146,6 +150,9 @@ The current version includes:
 * Traceability overview in Project Map
 * Traceability in Status Report
 * Traceability in Markdown export
+* Recommended Next Step in Status Report
+* Recommended Next Step in Markdown export
+* Playwright coverage for recommended next step in Markdown export
 * Form validation for project name, task title, risk title and decision title
 * Improved form accessibility
 * Improved empty states
@@ -196,7 +203,7 @@ Completed improvements include:
 
 ### Version 1.3 – Traceability MVP
 
-Version 1.3 focuses on showing how project objects are connected.
+Version 1.3 focused on showing how project objects are connected.
 
 Completed traceability improvements include:
 
@@ -213,6 +220,22 @@ Completed traceability improvements include:
 * Markdown export includes decision-to-task links
 
 This means Project Compass now shows not only that a risk or decision exists, but also which concrete work it affects.
+
+### Version 1.4 – Status Report and Project Health
+
+Version 1.4 focuses on making the Status Report more useful as a project communication artifact.
+
+Completed improvements so far include:
+
+* Project Health shown in Status Report
+* Main Project Health reasons shown in Status Report
+* Main Project Health reasons included in Markdown export
+* Recommended Next Step calculated from project signals
+* Recommended Next Step shown in Status Report
+* Recommended Next Step included in Markdown export
+* Playwright test coverage for Recommended Next Step in Markdown export
+
+This means the Status Report no longer only lists project information. It now helps explain the project situation and suggests what the project leader should do next.
 
 ---
 
@@ -237,7 +260,10 @@ It demonstrates:
 * Responsibility testing for tasks, risks and decisions
 * Attention Needed testing
 * Project Health testing
+* Project Health reasons tested through Markdown export coverage
+* Recommended Next Step behavior tested with Playwright
 * Markdown export testing
+* Markdown export verification of project interpretation, health reasons and recommended next step
 * Traceability regression through existing risk, decision, Project Map and Status Report tests
 * GitHub Actions CI pipeline
 * Playwright report artifact upload
@@ -274,12 +300,15 @@ It demonstrates that I can:
 * Refactor duplicated logic into shared helpers
 * Build a product while continuously evaluating quality and risk
 * Turn project data into actionable project leadership signals
+* Explain Project Health with clear health reasons
+* Recommend a next project leadership action based on project data
 * Make missing responsibility visible directly in the user interface
 * Connect risks to concrete project work
 * Connect decisions to concrete project work
 * Add traceability between project objects in small, safe iterations
 * Extend an existing traceability model without rebuilding the whole data structure
 * Improve status reporting so risks, decisions, blocked work and missing ownership become visible
+* Improve Markdown export so project interpretation can be shared outside the app
 * Improve form validation and error handling from a user perspective
 * Improve accessibility for important forms and error messages
 * Improve empty states so new users understand what to do next
@@ -512,11 +541,34 @@ Project Health is currently shown in:
 * Project Map
 * Status Report
 
+In the Status Report, Project Health also includes main reasons. These reasons explain why the project is currently considered stable, in need of attention or at risk.
+
 This is intentionally kept simple in the first version. The goal is to make project status visible and understandable without creating a complex scoring model too early.
+
+### Recommended Next Step
+
+Project Compass can recommend a next project leadership action based on the active project data.
+
+The current Recommended Next Step logic prioritizes:
+
+* Blocked tasks
+* High risks
+* Open decisions
+* Missing ownership
+* Missing tasks
+* Missing members
+* Next checkpoint preparation when no urgent signals exist
+
+The recommendation is shown in:
+
+* Status Report
+* Markdown export
+
+This helps the Status Report become more than a summary. It gives the project leader a clear suggested next action.
 
 ### Shared project insight logic
 
-Attention Needed and Project Health are calculated through shared project insight logic in:
+Attention Needed, Project Health and Recommended Next Step are calculated through shared project insight logic in:
 
 ```text
 src/lib/projectInsights.ts
@@ -526,6 +578,7 @@ This helper currently includes:
 
 * `getAttentionItems(project)`
 * `getProjectHealth(project, attentionItems)`
+* `getRecommendedNextStep(project, attentionItems)`
 
 The purpose is to make sure that My Projects, Project Map and Status Report use the same interpretation of project data.
 
@@ -536,6 +589,7 @@ This reduces duplicated logic, improves maintainability and lowers the risk that
 The status report summarizes:
 
 * Overall project status
+* Main Project Health reasons
 * Total tasks
 * Done tasks
 * Blocked tasks
@@ -552,11 +606,13 @@ The status report summarizes:
 * Decision responsibility
 * Risk-to-task links
 * Decision-to-task links
-* Recommended next steps
+* Recommended Next Step
 
 The status report is intended to become the main communication artifact for a project.
 
 Risk-to-task and decision-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
+
+The Recommended Next Step helps the project leader understand what should happen next based on the current project signals.
 
 ### Markdown report export
 
@@ -567,6 +623,7 @@ The exported report includes:
 * Project name
 * Date
 * Overall project status
+* Main Project Health reasons
 * Summary metrics
 * Attention Needed with High and Medium severity
 * Purpose
@@ -578,7 +635,7 @@ The exported report includes:
 * Decision responsibility
 * Risk-to-task links
 * Decision-to-task links
-* Recommended next steps
+* Recommended Next Step
 
 This makes the report usable outside the app, for example in GitHub, Teams, documentation, school assignments or project meetings.
 
@@ -668,8 +725,9 @@ The current main product flow is:
 19. Assign decision responsibility
 20. Link decisions to related tasks
 21. Open the status report
-22. Review project status, members, responsibilities, risks, decisions, attention items and traceability
-23. Copy the status report as Markdown
+22. Review project status, health reasons, members, responsibilities, risks, decisions, attention items and traceability
+23. Review the Recommended Next Step
+24. Copy the status report as Markdown
 
 The original MVP flow from project interview to project map and status report still exists, but the current product direction is the project platform flow.
 
@@ -800,6 +858,8 @@ Manual testing has been used to verify:
 * Attention Needed
 * Attention Needed severity
 * Project Health
+* Project Health reasons
+* Recommended Next Step
 * Project setup checklist
 * Markdown copy from Status Report
 * Risk-to-task linking in Risk View
@@ -810,6 +870,7 @@ Manual testing has been used to verify:
 * Decision-to-task traceability in Project Map
 * Decision-to-task traceability in Status Report
 * Decision-to-task links in Markdown export
+* Recommended Next Step in Markdown export
 * Standardized English UI across the main application flow
 * Vercel deployment smoke test
 
@@ -876,6 +937,9 @@ Current automated test coverage includes:
 * Status Report severity-aware Attention Needed
 * Status Report Markdown severity export
 * Status Report no active project state
+* Status Report Project Health reasons
+* Status Report Recommended Next Step
+* Recommended Next Step in Markdown export
 * Traceability regression through existing risk, decision, Project Map and Status Report tests
 
 The landing page test is verified across:
@@ -1052,6 +1116,10 @@ Verifies that:
 * Status Report shows Attention Needed severity labels
 * Exported Markdown contains Attention Needed severity
 * Exported Markdown distinguishes High and Medium attention items
+* Status Report shows main Project Health reasons
+* Exported Markdown includes main Project Health reasons
+* Status Report shows a Recommended Next Step
+* Exported Markdown includes Recommended Next Step
 * Status Report shows which task a risk affects
 * Exported Markdown includes risk-to-task links
 * Status Report shows which task a decision affects
@@ -1212,6 +1280,7 @@ Known limitations:
 * Editing and deleting all object types is not fully implemented yet
 * Filtering and sorting are not fully implemented yet
 * Traceability is intentionally simple and does not yet include advanced dependency graphs
+* Project Health is intentionally rule-based and does not yet use a weighted score
 
 These limitations are intentional at this stage. The focus is on product clarity, QA value, testability and a strong portfolio case.
 
@@ -1221,14 +1290,17 @@ These limitations are intentional at this stage. The focus is on product clarity
 
 Recommended next steps:
 
+* Continue improving Status Report as the strongest communication artifact in the app
+* Continue improving Project Health logic over time
+* Consider adding a simple Project Health Score
+* Continue improving recommended next step logic
+* Continue improving shared project insight logic over time
 * Continue improving migration and cleanup from older `localStorage` keys
 * Continue improving form validation and error handling
 * Continue improving empty states and onboarding support
 * Continue improving accessibility
-* Improve Project Health logic over time
-* Continue improving shared project insight logic over time
-* Continue Version 1.3 traceability by linking decisions to risks
-* Continue Version 1.3 traceability by linking tasks to goals or deliverables
+* Continue traceability by linking decisions to risks
+* Continue traceability by linking tasks to goals or deliverables
 * Add more focused Playwright tests per module
 * Add delete and duplicate project actions
 * Add edit/delete for all main objects
@@ -1264,6 +1336,9 @@ It demonstrates:
 * Refactoring project data toward an active project model
 * Building Attention Needed from actual project data
 * Building a simple Project Health MVP
+* Showing Project Health reasons in a status report
+* Adding recommended next step logic based on project data
+* Testing generated project reports through clipboard-based Playwright tests
 * Extracting shared project insight logic
 * Adding onboarding support through a setup checklist
 * Adding demo data so new users and reviewers can understand the app faster
