@@ -31,6 +31,41 @@ function getProjectHealthScore(attentionItems: AttentionItem[]): number {
   return Math.max(0, Math.min(100, score));
 }
 
+function formatProjectSignalList(signals: string[]): string {
+  if (signals.length === 0) {
+    return "";
+  }
+
+  if (signals.length === 1) {
+    return signals[0];
+  }
+
+  if (signals.length === 2) {
+    return `${signals[0]} and ${signals[1]}`;
+  }
+
+  return `${signals.slice(0, -1).join(", ")} and ${
+    signals[signals.length - 1]
+  }`;
+}
+
+function getProjectHealthSummary(
+  level: ProjectHealth["level"],
+  signals: string[]
+): string {
+  const signalList = formatProjectSignalList(signals);
+
+  if (level === "at-risk") {
+    return `This project is at risk because it has ${signalList}. These signals may affect progress, direction or delivery.`;
+  }
+
+  if (level === "needs-attention") {
+    return `This project needs attention because it has ${signalList}. These items should be reviewed by the project leader.`;
+  }
+
+  return "No blocked tasks, high risks, open decisions or missing owners were found.";
+}
+
 export type RecommendedNextStep = {
   title: string;
   text: string;
@@ -146,31 +181,12 @@ export function getProjectHealth(
     (decision) => decision.status === "open"
   ).length;
 
-  const reasons: string[] = [];
-
   const score = getProjectHealthScore(attentionItems);
 
-  if (blockedTasksCount > 0) {
-    reasons.push(
-      `${blockedTasksCount} blocked task${
-        blockedTasksCount === 1 ? "" : "s"
-      }`
-    );
-  }
-
-  if (highRisksCount > 0) {
-    reasons.push(
-      `${highRisksCount} high risk${highRisksCount === 1 ? "" : "s"}`
-    );
-  }
-
-  if (openDecisionsCount > 0) {
-    reasons.push(
-      `${openDecisionsCount} open decision${
-        openDecisionsCount === 1 ? "" : "s"
-      }`
-    );
-  }
+  const reasons =
+    attentionItems.length > 0
+      ? attentionItems.map((item) => item.title)
+      : ["No current attention signals."];
 
   const isAtRisk =
     blockedTasksCount >= 2 || highRisksCount >= 2 || openDecisionsCount >= 3;
@@ -179,8 +195,7 @@ export function getProjectHealth(
     return {
       level: "at-risk",
       title: "At risk",
-      summary:
-        "This project has several signals that may affect progress, direction or delivery.",
+      summary: getProjectHealthSummary("at-risk", reasons),
       reasons,
       score,
     };
@@ -190,12 +205,8 @@ export function getProjectHealth(
     return {
       level: "needs-attention",
       title: "Needs attention",
-      summary:
-        "This project has items that should be reviewed by the project leader.",
-      reasons:
-        reasons.length > 0
-          ? reasons
-          : ["Some tasks, risks or decisions are missing clear ownership."],
+      summary: getProjectHealthSummary("needs-attention", reasons),
+      reasons,
       score,
     };
   }
@@ -203,9 +214,8 @@ export function getProjectHealth(
   return {
     level: "stable",
     title: "Stable",
-    summary:
-      "No blocked tasks, high risks, open decisions or missing owners were found.",
-    reasons: ["No current attention signals."],
+    summary: getProjectHealthSummary("stable", []),
+    reasons,
     score,
   };
 }
