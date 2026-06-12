@@ -32,9 +32,11 @@ The current MVP already includes:
 * Project Health
 * Project Health reasons
 * Project Health Score
+* Improved Project Health summary text
 * Recommended Next Step logic
 * Recommended Next Step in Status Report and Markdown export
 * Project Health Score in Status Report and Markdown export
+* Project Health scenario tests for Stable, Needs attention and At risk
 * Risk-to-task traceability
 * Decision-to-task traceability
 * Markdown status report export
@@ -376,6 +378,7 @@ The Status Report now shows:
 * Project Health level
 * Project Health Score
 * main reasons behind the current health level
+* improved Project Health summary text
 * Recommended Next Step
 
 The Project Health Score starts at 100 and is reduced when the active project contains attention signals.
@@ -394,6 +397,12 @@ Examples of Project Health reasons:
 * 1 open decision
 * Some tasks, risks or decisions are missing clear ownership
 * No current attention signals
+
+Project Health scenario tests now verify that the app can show:
+
+* Stable
+* Needs attention
+* At risk
 
 Project Health Score is not intended to be an exact project performance metric. It is a simple rule-based MVP indicator designed to make project signals easier to understand and discuss.
 
@@ -615,6 +624,9 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 * The health score is shown in the Status Report.
 * The health score is included in the Markdown export.
 * The health score is tested through the Status Report Markdown export test.
+* Stable Project Health behavior is tested through Playwright.
+* Needs attention Project Health behavior is tested through Playwright.
+* At risk Project Health behavior is tested through Playwright.
 * The health score is clearly described as a simple rule-based MVP indicator.
 
 ### 6.9 Recommended Next Step
@@ -654,7 +666,7 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 
 * Existing Playwright tests should continue to pass.
 * New core flows should be covered by Playwright tests when relevant.
-* At minimum, tests should cover landing page, main flow, project creation, project persistence, member creation, responsibility, Attention Needed, Project Health, Project Health Score, Project Health reasons, Recommended Next Step, traceability and Markdown export.
+* At minimum, tests should cover landing page, main flow, project creation, project persistence, member creation, responsibility, Attention Needed, Project Health, Project Health Score, Project Health reasons, Project Health scenarios, Recommended Next Step, traceability and Markdown export.
 
 ### 6.12 Future Export
 
@@ -729,12 +741,14 @@ Current important Playwright coverage includes:
 * show Project Health
 * show Project Health reasons in Status Report
 * show Project Health Score in Status Report
+* show Project Health scenarios for Stable, Needs attention and At risk
 * show Recommended Next Step in Status Report
 * show traceability in Project Map
 * show traceability in Status Report
 * generate status report
 * copy Markdown report
 * verify Project Health Score in Markdown export
+* verify Project Health scenarios for Stable, Needs attention and At risk
 * verify Recommended Next Step in Markdown export
 * handle no active project
 
@@ -747,6 +761,7 @@ tests/task-responsibility.spec.ts
 tests/risk-responsibility.spec.ts
 tests/decision-responsibility.spec.ts
 tests/project-map-attention.spec.ts
+tests/project-health-scenarios.spec.ts
 tests/status-report-markdown.spec.ts
 ```
 
@@ -821,6 +836,9 @@ The goal is to cover important behavior and prevent regressions.
 * Project Health Score is included in the Markdown export.
 * Project Health Score matches the attention signals used by the current MVP rules.
 * Markdown export includes health reasons.
+* Project Health scenario tests cover Stable.
+* Project Health scenario tests cover Needs attention.
+* Project Health scenario tests cover At risk.
 
 #### Recommended Next Step
 
@@ -860,6 +878,7 @@ Important risks:
 * Project Health gives a misleading status
 * Project Health Score gives a misleading sense of precision
 * Project Health reasons do not match the project data
+* Project Health scenario behavior regresses when insight logic changes
 * Recommended Next Step is misleading or too generic
 * linked risks or decisions point to missing tasks
 * old objects without links break after model changes
@@ -948,14 +967,17 @@ Definition of Done:
 * Project Health Score is shown in the Status Report ✅
 * Project Health Score is included in Markdown export ✅
 * Project Health Score is tested through Playwright ✅
+* Project Health scenario tests cover Stable, Needs attention and At risk ✅
 * the status report includes Project Health ✅
 * the feature is tested ✅
 
 Implementation note:
 
-Project Health is now shown in the My Projects overview, Project Map and Status Report. In the Status Report, the health state is supported by main reasons and a simple Project Health Score so the user can understand why the project is stable, needs attention or is at risk.
+Project Health is now shown in the My Projects overview, Project Map and Status Report. In the Status Report, the health state is supported by main reasons, improved summary text and a simple Project Health Score so the user can understand why the project is stable, needs attention or is at risk.
 
 The Project Health Score is intentionally simple and rule-based. It starts at 100 and is reduced by attention signals.
+
+Project Health now has focused Playwright scenario coverage for Stable, Needs attention and At risk. These tests verify that the health level, Project Health Score, health summary and health reasons respond correctly to different project situations.
 
 The health state, health reasons and score are calculated through shared project insight logic in `src/lib/projectInsights.ts`.
 
@@ -990,6 +1012,7 @@ Implemented so far:
 * Status Report shows Project Health ✅
 * Status Report shows Project Health Score ✅
 * Status Report shows main Project Health reasons ✅
+* Status Report shows improved Project Health summary text ✅
 * Status Report shows Attention Needed with severity ✅
 * Status Report shows responsibilities for tasks, risks and decisions ✅
 * Status Report shows risk-to-task traceability ✅
@@ -1003,8 +1026,10 @@ Implemented so far:
 * Markdown export includes Recommended Next Step ✅
 * Playwright verifies Recommended Next Step in the Markdown export ✅
 * Playwright verifies Project Health Score in the Markdown export ✅
+* Playwright verifies Project Health scenarios for Stable, Needs attention and At risk ✅
 * README has been updated with Project Health recommendations ✅
 * README has been updated with Project Health Score ✅
+* README has been updated with Project Health scenario tests ✅
 
 Definition of Done:
 
@@ -1220,15 +1245,16 @@ Definition of Done:
 
 ### 9.3 QA Risks
 
-| Risk                                              | Impact                            | Mitigation                                                  |
-| ------------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
-| Important flows are only tested manually          | Regressions may be missed         | Add Playwright tests for critical flows                     |
-| Tests do not match real user behavior             | Low confidence                    | Write tests around user journeys                            |
-| Regression suite becomes too large                | Hard to maintain                  | Prioritize high-risk flows                                  |
-| Documentation is not updated                      | Portfolio value decreases         | Update docs as part of Definition of Done                   |
-| Traceability is not tested after changes          | Links may break silently          | Include traceability in focused regression                  |
-| Project Health and recommendations are not tested | Status logic may regress          | Add scenario tests for core health and recommendation rules |
-| Project Health Score is not tested                | Score logic or export may regress | Verify score in the Status Report Markdown export test      |
+| Risk                                              | Impact                             | Mitigation                                                               |
+| ------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| Important flows are only tested manually          | Regressions may be missed          | Add Playwright tests for critical flows                                  |
+| Tests do not match real user behavior             | Low confidence                     | Write tests around user journeys                                         |
+| Regression suite becomes too large                | Hard to maintain                   | Prioritize high-risk flows                                               |
+| Documentation is not updated                      | Portfolio value decreases          | Update docs as part of Definition of Done                                |
+| Traceability is not tested after changes          | Links may break silently           | Include traceability in focused regression                               |
+| Project Health and recommendations are not tested | Status logic may regress           | Add scenario tests for core health and recommendation rules              |
+| Project Health Score is not tested                | Score logic or export may regress  | Verify score in the Status Report Markdown export test                   |
+| Project Health scenario behavior is not tested    | Health levels may regress silently | Verify Stable, Needs attention and At risk with focused Playwright tests |
 
 ### 9.4 Portfolio Risks
 
@@ -1320,6 +1346,9 @@ Example commit messages:
 * Add project health score logic
 * Show project health score in status report
 * Test project health score in status report export
+* Improve project health summary text
+* Test project health summary in status report export
+* Add project health scenario tests
 * Improve status report summary
 * Add traceability between risks and tasks
 * Add traceability between decisions and tasks
@@ -1330,13 +1359,15 @@ Example commit messages:
 * Test recommended next step in status report export
 * Update README for project health recommendations
 * Update README for project health score
+* Update README for project health scenario tests
 * Update roadmap for project health score
+* Update roadmap for project health scenario tests
 
 ---
 
 ## 11. Recommended Next Implementation Step
 
-Version 1.4 – Status Report and Project Health is now well underway.
+Version 1.4 – Status Report and Project Health is now strong enough to be considered a solid MVP.
 
 Completed Version 1.4 improvements:
 
@@ -1345,26 +1376,27 @@ Completed Version 1.4 improvements:
 * Project Health Score logic has been added.
 * Project Health Score is shown in the Status Report.
 * Project Health Score is included in the Markdown export.
+* Improved Project Health summary text has been added.
 * Playwright verifies Project Health Score in the Markdown export.
+* Project Health scenario tests verify Stable, Needs attention and At risk.
 * Recommended Next Step logic has been added.
 * Recommended Next Step is shown in the Status Report.
 * Recommended Next Step is included in the Markdown export.
 * Playwright verifies Recommended Next Step in the Markdown export.
-* README has been updated to describe Project Health reasons, Project Health Score and Recommended Next Step.
+* README has been updated to describe Project Health reasons, Project Health Score, Project Health scenario tests and Recommended Next Step.
 
 Current value:
 
-The Status Report now works more like a project leadership artifact. It does not only summarize tasks, risks, decisions and responsibility. It also explains the project situation, shows a simple health score and suggests what the project leader should do next.
+The Status Report now works more like a project leadership artifact. It does not only summarize tasks, risks, decisions and responsibility. It also explains the project situation, shows a simple health score, shows concrete health reasons and suggests what the project leader should do next.
 
 Recommended next implementation step:
 
-Continue Version 1.4 by improving the automatic status summary text.
+Continue Version 1.4 by improving recommendations based on traceability gaps.
 
 Suggested next small steps:
 
-* Improve the automatic status summary text.
-* Add more Project Health scenario tests.
-* Add recommended next steps based on traceability gaps.
+* Add recommended next steps based on unlinked high risks.
+* Add recommended next steps based on open decisions without linked tasks.
 * Add recommended next steps based on missing goals or deliverables.
 * Review whether the Status Report screenshot should be updated.
 * Keep the model simple and understandable.
@@ -1374,6 +1406,7 @@ Suggested checkpoint before the next Version 1.4 change:
 ```bash
 npm run build
 npx playwright test tests/status-report-markdown.spec.ts --project=chromium --workers=1
+npx playwright test tests/project-health-scenarios.spec.ts --project=chromium --workers=1
 npx playwright test tests/project-map-attention.spec.ts --project=chromium --workers=1
 ```
 
@@ -1405,6 +1438,18 @@ Use this checklist when testing Version 1.4 Status Report and Project Health imp
 * Does the report show a Recommended Next Step?
 * Does the recommended next step make sense for the project situation?
 
+### Project Health scenarios
+
+* Does a stable project show Stable?
+* Does a stable project show Project Health Score 100 / 100?
+* Does a stable project show no current attention signals?
+* Does a project with missing ownership show Needs attention?
+* Does a project with missing ownership show a reduced Project Health Score?
+* Does a project with missing ownership show a concrete health summary?
+* Does a project with several high risks show At risk?
+* Does a project with several high risks show a reduced Project Health Score?
+* Do all Project Health scenarios show clear health reasons?
+
 ### Markdown export
 
 * Does Markdown export include the project name?
@@ -1435,6 +1480,7 @@ Recommended command before and after implementation:
 ```bash
 npm run build
 npx playwright test tests/status-report-markdown.spec.ts --project=chromium --workers=1
+npx playwright test tests/project-health-scenarios.spec.ts --project=chromium --workers=1
 npx playwright test tests/project-map-attention.spec.ts --project=chromium --workers=1
 ```
 
