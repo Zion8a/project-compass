@@ -200,6 +200,8 @@ test.describe("Status report Markdown export", () => {
     expect(copiedMarkdown).toContain("Unclear ownership");
     expect(copiedMarkdown).toContain("Choose report format");
     expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
+    expect(copiedMarkdown).toContain("This project needs attention because it has 1 task without owner, 1 high risk and 1 open decision.");
+    
 
     expect(copiedMarkdown).toContain("## Attention Needed");
     expect(copiedMarkdown).toContain(
