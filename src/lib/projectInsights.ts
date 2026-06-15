@@ -173,8 +173,14 @@ export function getProjectHealth(
     (task) => task.status === "blocked"
   ).length;
 
-  const highRisksCount = project.risks.filter(
+    const highRisks = project.risks.filter(
     (risk) => risk.probability === "high" || risk.impact === "high"
+  );
+
+  const highRisksCount = highRisks.length;
+
+  const unlinkedHighRisksCount = highRisks.filter(
+    (risk) => !risk.relatedTaskId
   ).length;
 
   const openDecisionsCount = project.decisions.filter(
@@ -228,8 +234,14 @@ export function getRecommendedNextStep(
     (task) => task.status === "blocked"
   ).length;
 
-  const highRisksCount = project.risks.filter(
+  const highRisks = project.risks.filter(
     (risk) => risk.probability === "high" || risk.impact === "high"
+  );
+
+  const highRisksCount = highRisks.length;
+
+  const unlinkedHighRisksCount = highRisks.filter(
+    (risk) => !risk.relatedTaskId
   ).length;
 
   const openDecisionsCount = project.decisions.filter(
@@ -247,6 +259,13 @@ export function getRecommendedNextStep(
     return {
       title: "Resolve blocked work",
       text: "Start by reviewing blocked tasks. Blocked work can stop progress even if the rest of the project looks stable.",
+    };
+  }
+
+  if (unlinkedHighRisksCount > 0) {
+    return {
+      title: "Link high risks to affected tasks",
+      text: "High risks are easier to manage when they are connected to the work they may affect. Link each high risk to a related task before reviewing the wider risk plan.",
     };
   }
 

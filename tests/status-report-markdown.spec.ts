@@ -1,223 +1,230 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Status report Markdown export", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+test.beforeEach(async ({ page }) => {
+await page.goto("/");
 
-    await page.evaluate(() => {
-      window.localStorage.clear();
+await page.evaluate(() => {
+  window.localStorage.clear();
 
-      const memberId = "member-johan-larsson";
-      const now = new Date().toISOString();
+  const memberId = "member-johan-larsson";
+  const now = new Date().toISOString();
 
-      window.localStorage.setItem(
-        "project-compass-state",
-        JSON.stringify({
-          activeProjectId: "project-markdown-test",
-          projects: [
+  window.localStorage.setItem(
+    "project-compass-state",
+    JSON.stringify({
+      activeProjectId: "project-markdown-test",
+      projects: [
+        {
+          id: "project-markdown-test",
+          name: "Markdown Export Test",
+          description: "A project used for testing Markdown export.",
+          status: "in-progress",
+          createdAt: now,
+          updatedAt: now,
+          tasks: [
             {
-              id: "project-markdown-test",
-              name: "Markdown Export Test",
-              description: "A project used for testing Markdown export.",
+              id: "task-1",
+              title: "Write project update",
+              description: "Prepare the next project update.",
               status: "in-progress",
+              ownerId: memberId,
               createdAt: now,
               updatedAt: now,
-              tasks: [
-                {
-                  id: "task-1",
-                  title: "Write project update",
-                  description: "Prepare the next project update.",
-                  status: "in-progress",
-                  ownerId: memberId,
-                  createdAt: now,
-                  updatedAt: now,
-                },
-                {
-                  id: "task-2",
-                  title: "Confirm unassigned follow-up",
-                  description:
-                    "This task intentionally has no owner so Attention Needed can show missing ownership.",
-                  status: "planned",
-                  createdAt: now,
-                  updatedAt: now,
-                },
-              ],
-              risks: [
-                {
-                  id: "risk-1",
-                  title: "Unclear ownership",
-                  description: "Some work may not have a clear owner.",
-                  probability: "medium",
-                  impact: "high",
-                  action: "Review responsibility before the next meeting.",
-                  mitigation: "Review responsibility before the next meeting.",
-                  owner: "",
-                  ownerId: memberId,
-                  status: "open",
-                  createdAt: now,
-                  updatedAt: now,
-                },
-              ],
-              decisions: [
-                {
-                  id: "decision-1",
-                  title: "Choose report format",
-                  description: "The team needs to agree on report format.",
-                  owner: "",
-                  ownerId: memberId,
-                  deadline: "2026-06-07",
-                  consequence: "The format affects how the report is shared.",
-                  status: "open",
-                  createdAt: now,
-                  updatedAt: now,
-                },
-              ],
-              members: [
-                {
-                  id: memberId,
-                  name: "Johan Larsson",
-                  role: "Project Lead",
-                  responsibility: "Planning and follow-up",
-                  comment: "Responsible for project structure.",
-                  createdAt: now,
-                  updatedAt: now,
-                },
-              ],
+            },
+            {
+              id: "task-2",
+              title: "Confirm unassigned follow-up",
+              description:
+                "This task intentionally has no owner so Attention Needed can show missing ownership.",
+              status: "planned",
+              createdAt: now,
+              updatedAt: now,
             },
           ],
-        })
-      );
-
-      window.localStorage.setItem(
-        "project-compass-current-project",
-        JSON.stringify({
-          projectName: "Markdown Export Test",
-          purpose: "Create a useful project status report.",
-          goal: "Make the report easy to share outside the app.",
-          deliverables:
-            "Markdown export, status summary and responsibility overview.",
-          risks: "The report may miss important project information.",
-          decisions: "Decide what should be included in the exported report.",
-        })
-      );
-    });
-  });
-
-  test("user can copy the status report as Markdown", async ({ page }) => {
-    await page.goto("/project-report");
-
-    await page.evaluate(() => {
-      Object.defineProperty(navigator, "clipboard", {
-        value: {
-          writeText: async (text: string) => {
-            window.localStorage.setItem("copied-markdown-report", text);
-          },
+          risks: [
+            {
+              id: "risk-1",
+              title: "Unclear ownership",
+              description: "Some work may not have a clear owner.",
+              probability: "medium",
+              impact: "high",
+              action: "Review responsibility before the next meeting.",
+              mitigation: "Review responsibility before the next meeting.",
+              owner: "",
+              ownerId: memberId,
+              status: "open",
+              createdAt: now,
+              updatedAt: now,
+            },
+          ],
+          decisions: [
+            {
+              id: "decision-1",
+              title: "Choose report format",
+              description: "The team needs to agree on report format.",
+              owner: "",
+              ownerId: memberId,
+              deadline: "2026-06-07",
+              consequence: "The format affects how the report is shared.",
+              status: "open",
+              createdAt: now,
+              updatedAt: now,
+            },
+          ],
+          members: [
+            {
+              id: memberId,
+              name: "Johan Larsson",
+              role: "Project Lead",
+              responsibility: "Planning and follow-up",
+              comment: "Responsible for project structure.",
+              createdAt: now,
+              updatedAt: now,
+            },
+          ],
         },
-        configurable: true,
-      });
-    });
+      ],
+    })
+  );
 
-    await expect(
-      page.getByRole("heading", { name: /Status Report/ })
-    ).toBeVisible();
+  window.localStorage.setItem(
+    "project-compass-current-project",
+    JSON.stringify({
+      projectName: "Markdown Export Test",
+      purpose: "Create a useful project status report.",
+      goal: "Make the report easy to share outside the app.",
+      deliverables:
+        "Markdown export, status summary and responsibility overview.",
+      risks: "The report may miss important project information.",
+      decisions: "Decide what should be included in the exported report.",
+    })
+  );
+});
 
-    await expect(
-      page.getByText("Project: Markdown Export Test", { exact: true })
-    ).toBeVisible();
+});
 
-    await expect(page.getByText("Project Health Score: 65 / 100")).toBeVisible();
+test("user can copy the status report as Markdown", async ({ page }) => {
+await page.goto("/project-report");
 
-    await expect(
-      page.getByRole("heading", { name: "3 items need attention" })
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole("heading", { name: "1 task without owner" })
-    ).toBeVisible();
-
-    await expect(
-      page.getByText("Tasks without an owner can easily be missed or delayed.")
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole("heading", { name: "1 high risk" })
-    ).toBeVisible();
-
-    await expect(
-      page.getByText(
-        "High risks should be reviewed and handled before they affect the project."
-      )
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole("heading", { name: "1 open decision" })
-    ).toBeVisible();
-
-    await expect(
-      page.getByText("Open decisions can block direction, scope or next steps.")
-    ).toBeVisible();
-
-    await expect(page.getByText("High").first()).toBeVisible();
-    await expect(page.getByText("Medium").first()).toBeVisible();
-
-    await expect(
-      page.getByText("Recommended Next Step", { exact: true })
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole("heading", { name: "Review high risks" })
-    ).toBeVisible();
-
-    await expect(
-      page.getByText(
-        "Review high risks and make sure each risk has a clear action, owner and follow-up plan."
-      )
-    ).toBeVisible();
-
-    await expect(
-      page.getByRole("button", { name: "Copy status report as Markdown" })
-    ).toBeVisible();
-
-    await page
-      .getByRole("button", { name: "Copy status report as Markdown" })
-      .click();
-
-    await expect(
-      page.getByText("Status report copied as Markdown.")
-    ).toBeVisible();
-
-    const copiedMarkdown = await page.evaluate(() =>
-      window.localStorage.getItem("copied-markdown-report")
-    );
-
-    expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
-    expect(copiedMarkdown).toContain("## Overall Project Status");
-    expect(copiedMarkdown).toContain("Project Health Score: 65 / 100");
-    expect(copiedMarkdown).toContain("## Project Members");
-    expect(copiedMarkdown).toContain("Johan Larsson");
-    expect(copiedMarkdown).toContain("Write project update");
-    expect(copiedMarkdown).toContain("Confirm unassigned follow-up");
-    expect(copiedMarkdown).toContain("Unclear ownership");
-    expect(copiedMarkdown).toContain("Choose report format");
-    expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
-    expect(copiedMarkdown).toContain("This project needs attention because it has 1 task without owner, 1 high risk and 1 open decision.");
-    
-
-    expect(copiedMarkdown).toContain("## Attention Needed");
-    expect(copiedMarkdown).toContain(
-      "- **Medium** — **1 task without owner** — Tasks without an owner can easily be missed or delayed."
-    );
-    expect(copiedMarkdown).toContain(
-      "- **High** — **1 high risk** — High risks should be reviewed and handled before they affect the project."
-    );
-    expect(copiedMarkdown).toContain(
-      "- **High** — **1 open decision** — Open decisions can block direction, scope or next steps."
-    );
-
-    expect(copiedMarkdown).toContain("## Recommended Next Step");
-    expect(copiedMarkdown).toContain("**Review high risks**");
-    expect(copiedMarkdown).toContain(
-      "Review high risks and make sure each risk has a clear action, owner and follow-up plan."
-    );
+await page.evaluate(() => {
+  Object.defineProperty(navigator, "clipboard", {
+    value: {
+      writeText: async (text: string) => {
+        window.localStorage.setItem("copied-markdown-report", text);
+      },
+    },
+    configurable: true,
   });
+});
+
+await expect(
+  page.getByRole("heading", { name: /Status Report/ })
+).toBeVisible();
+
+await expect(
+  page.getByText("Project: Markdown Export Test", { exact: true })
+).toBeVisible();
+
+await expect(page.getByText("Project Health Score: 65 / 100")).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "3 items need attention" })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 task without owner" })
+).toBeVisible();
+
+await expect(
+  page.getByText("Tasks without an owner can easily be missed or delayed.")
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 high risk" })
+).toBeVisible();
+
+await expect(
+  page.getByText(
+    "High risks should be reviewed and handled before they affect the project."
+  )
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", { name: "1 open decision" })
+).toBeVisible();
+
+await expect(
+  page.getByText("Open decisions can block direction, scope or next steps.")
+).toBeVisible();
+
+await expect(page.getByText("High").first()).toBeVisible();
+await expect(page.getByText("Medium").first()).toBeVisible();
+
+await expect(
+  page.getByText("Recommended Next Step", { exact: true })
+).toBeVisible();
+
+await expect(
+  page.getByRole("heading", {
+    name: "Link high risks to affected tasks",
+  })
+).toBeVisible();
+
+await expect(
+  page.getByText(
+    "High risks are easier to manage when they are connected to the work they may affect. Link each high risk to a related task before reviewing the wider risk plan."
+  )
+).toBeVisible();
+
+await expect(
+  page.getByRole("button", { name: "Copy status report as Markdown" })
+).toBeVisible();
+
+await page
+  .getByRole("button", { name: "Copy status report as Markdown" })
+  .click();
+
+await expect(
+  page.getByText("Status report copied as Markdown.")
+).toBeVisible();
+
+const copiedMarkdown = await page.evaluate(() =>
+  window.localStorage.getItem("copied-markdown-report")
+);
+
+expect(copiedMarkdown).toContain("# Status Report – Markdown Export Test");
+expect(copiedMarkdown).toContain("## Overall Project Status");
+expect(copiedMarkdown).toContain("Project Health Score: 65 / 100");
+expect(copiedMarkdown).toContain("## Project Members");
+expect(copiedMarkdown).toContain("Johan Larsson");
+expect(copiedMarkdown).toContain("Write project update");
+expect(copiedMarkdown).toContain("Confirm unassigned follow-up");
+expect(copiedMarkdown).toContain("Unclear ownership");
+expect(copiedMarkdown).toContain("Choose report format");
+expect(copiedMarkdown).toContain("Responsible: Johan Larsson");
+expect(copiedMarkdown).toContain(
+  "This project needs attention because it has 1 task without owner, 1 high risk and 1 open decision."
+);
+
+expect(copiedMarkdown).toContain("## Attention Needed");
+expect(copiedMarkdown).toContain(
+  "- **Medium** — **1 task without owner** — Tasks without an owner can easily be missed or delayed."
+);
+expect(copiedMarkdown).toContain(
+  "- **High** — **1 high risk** — High risks should be reviewed and handled before they affect the project."
+);
+expect(copiedMarkdown).toContain(
+  "- **High** — **1 open decision** — Open decisions can block direction, scope or next steps."
+);
+
+expect(copiedMarkdown).toContain("## Recommended Next Step");
+expect(copiedMarkdown).toContain(
+  "**Link high risks to affected tasks**"
+);
+expect(copiedMarkdown).toContain(
+  "High risks are easier to manage when they are connected to the work they may affect. Link each high risk to a related task before reviewing the wider risk plan."
+);
+
+});
 });
