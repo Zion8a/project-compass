@@ -144,6 +144,7 @@ The current version includes:
 * Improved Project Health summary text
 * Attention Needed
 * Recommended Next Step
+* Traceability-based Recommended Next Step for high risks without linked tasks
 * Status Report
 * Markdown export
 * Responsibility model for tasks, risks and decisions
@@ -157,6 +158,7 @@ The current version includes:
 * Recommended Next Step in Markdown export
 * Project Health Score in Status Report and Markdown export
 * Playwright coverage for Recommended Next Step in Markdown export
+* Playwright coverage for traceability-based Recommended Next Step behavior
 * Playwright coverage for Project Health Score in Markdown export
 * Playwright scenario coverage for Stable, Needs attention and At risk
 * Form validation for project name, task title, risk title and decision title
@@ -243,11 +245,13 @@ Completed improvements so far include:
 * Recommended Next Step calculated from project signals
 * Recommended Next Step shown in Status Report
 * Recommended Next Step included in Markdown export
+* Traceability-based Recommended Next Step for high risks without linked tasks
 * Playwright test coverage for Recommended Next Step in Markdown export
+* Playwright test coverage for traceability-based Recommended Next Step behavior
 * Playwright test coverage for Project Health Score in Markdown export
 * Playwright scenario coverage for Stable, Needs attention and At risk
 
-This means the Status Report no longer only lists project information. It now helps explain the project situation, shows a simple project health signal and suggests what the project leader should do next.
+This means the Status Report no longer only lists project information. It now helps explain the project situation, shows a simple project health signal, highlights traceability gaps and suggests what the project leader should do next.
 
 ---
 
@@ -276,6 +280,7 @@ It demonstrates:
 * Project Health Score tested through Markdown export coverage
 * Project Health scenario tests for Stable, Needs attention and At risk
 * Recommended Next Step behavior tested with Playwright
+* Traceability-based Recommended Next Step tested with Playwright
 * Markdown export testing
 * Markdown export verification of project interpretation, health reasons, health score and recommended next step
 * Traceability regression through existing risk, decision, Project Map and Status Report tests
@@ -319,6 +324,7 @@ It demonstrates that I can:
 * Show a simple Project Health Score without pretending it is an exact performance metric
 * Test Project Health through multiple scenarios
 * Recommend a next project leadership action based on project data
+* Recommend traceability improvements when high risks are not linked to concrete work
 * Make missing responsibility visible directly in the user interface
 * Connect risks to concrete project work
 * Connect decisions to concrete project work
@@ -577,12 +583,15 @@ Project Compass can recommend a next project leadership action based on the acti
 The current Recommended Next Step logic prioritizes:
 
 * Blocked tasks
+* High risks without linked tasks
 * High risks
 * Open decisions
 * Missing ownership
 * Missing tasks
 * Missing members
 * Next checkpoint preparation when no urgent signals exist
+
+When a high risk is not connected to a related task, Project Compass recommends linking that risk to the concrete work it may affect. This strengthens the connection between risk management, traceability and project leadership.
 
 The recommendation is shown in:
 
@@ -638,7 +647,7 @@ The status report is intended to become the main communication artifact for a pr
 
 Risk-to-task and decision-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
 
-The Recommended Next Step helps the project leader understand what should happen next based on the current project signals.
+The Recommended Next Step helps the project leader understand what should happen next based on the current project signals, including when high risks should be connected to affected tasks.
 
 The Project Health Score gives the user a simple numerical signal that supports the health level and main reasons without pretending to be an exact performance metric.
 
@@ -819,6 +828,7 @@ project-compass
 │   ├── project-map-attention.spec.ts
 │   ├── project-members.spec.ts
 │   ├── project-setup-checklist.spec.ts
+│   ├── recommended-next-step-traceability.spec.ts
 │   ├── projects-overview.spec.ts
 │   ├── risk-responsibility.spec.ts
 │   ├── status-report-markdown.spec.ts
@@ -892,6 +902,7 @@ Manual testing has been used to verify:
 * Project Health scenario behavior
 * Project Health reasons
 * Recommended Next Step
+* Traceability-based Recommended Next Step
 * Project setup checklist
 * Markdown copy from Status Report
 * Risk-to-task linking in Risk View
@@ -937,6 +948,7 @@ tests/project-health-scenarios.spec.ts
 tests/project-map-attention.spec.ts
 tests/project-members.spec.ts
 tests/project-setup-checklist.spec.ts
+tests/recommended-next-step-traceability.spec.ts
 tests/projects-overview.spec.ts
 tests/risk-responsibility.spec.ts
 tests/status-report-markdown.spec.ts
@@ -974,6 +986,7 @@ Current automated test coverage includes:
 * Status Report Project Health reasons
 * Status Report Project Health Score
 * Status Report Recommended Next Step
+* Traceability-based Recommended Next Step for high risks without linked tasks
 * Project Health Score in Markdown export
 * Project Health scenario coverage for Stable, Needs attention and At risk
 * Recommended Next Step in Markdown export
@@ -1153,6 +1166,14 @@ Verifies that:
 * Projects with several high risks show reduced Project Health Score
 * Project Health reasons are shown for each scenario
 
+### Recommended Next Step traceability
+
+Verifies that:
+
+* A project with a high risk without a linked task shows a traceability-based recommendation
+* Status Report recommends linking high risks to affected tasks
+* The recommendation explains why high risks should be connected to concrete work
+
 ### Status report Markdown export
 
 Verifies that:
@@ -1254,6 +1275,12 @@ Run the Project Health scenario tests:
 npx playwright test tests/project-health-scenarios.spec.ts --project=chromium
 ```
 
+Run the Recommended Next Step traceability test:
+
+```bash
+npx playwright test tests/recommended-next-step-traceability.spec.ts --project=chromium
+```
+
 Run the status report Markdown test:
 
 ```bash
@@ -1272,6 +1299,7 @@ npx playwright test tests/decision-responsibility.spec.ts --project=chromium
 npx playwright test tests/project-map-attention.spec.ts --project=chromium
 npx playwright test tests/project-setup-checklist.spec.ts --project=chromium
 npx playwright test tests/project-health-scenarios.spec.ts --project=chromium
+npx playwright test tests/recommended-next-step-traceability.spec.ts --project=chromium
 npx playwright test tests/status-report-markdown.spec.ts --project=chromium
 npx playwright test tests/landing-page.spec.ts
 npx playwright test tests/main-flow.spec.ts --project=chromium
@@ -1400,6 +1428,7 @@ It demonstrates:
 * Showing Project Health reasons in a status report
 * Testing Project Health scenarios for Stable, Needs attention and At risk
 * Adding recommended next step logic based on project data
+* Testing traceability-based recommendations with Playwright
 * Testing generated project reports through clipboard-based Playwright tests
 * Testing Project Health Score through Markdown export
 * Extracting shared project insight logic
