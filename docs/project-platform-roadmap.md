@@ -1170,40 +1170,222 @@ Definition of Done:
 
 ## Phase 9 – QA Module
 
-Goal: make Project Compass stronger as a QA and test leadership portfolio case.
+Goal: make Project Compass stronger as a QA and test leadership portfolio case by adding a small, focused QA module that connects test cases to real project work.
 
-Focus areas:
+The goal is not to build a full test management system like Reqtest, TestRail or Jira.
 
-* test case module
-* bug or issue log
-* regression suite
-* test summary report
-* link test cases to tasks, goals or deliverables
-* include QA status in status report
+The goal is to add a simple QA feature that fits the identity of Project Compass: project clarity, responsibility, traceability and status.
 
-Suggested small steps:
+As a software testing student, I want this module to show how test cases can be connected to project work and summarized in a project status report.
 
-1. Define simple test case model.
-2. Add test case list.
-3. Add create test case form.
-4. Add test status.
-5. Add bug or issue log.
-6. Add regression suite marker.
-7. Add test summary section.
-8. Link test cases to project objects.
-9. Add QA summary to status report.
-10. Add Playwright tests for core QA flow.
-11. Update README with QA portfolio value.
-12. Commit and push.
+In simple terms:
 
-Definition of Done:
+I am building a small QA module that connects test cases to project work and summarizes the test situation in the project status report.
 
-* the app supports simple test leadership
-* test cases can be created and tracked
-* bugs or issues can be documented
-* test summary can be created
-* QA information can be included in the status report
-* documentation explains the QA purpose
+### Version 1.5 QA Module MVP
+
+The first QA module MVP should stay intentionally small.
+
+Scope:
+
+* Add test cases to the project data model.
+* Add a Test Cases page.
+* Allow the user to create a test case.
+* Allow the user to set test status:
+
+  * Not run
+  * Passed
+  * Failed
+  * Blocked
+* Allow the user to link a test case to a related task.
+* Show test cases in the Test Cases page.
+* Show a QA Summary in the Status Report.
+* Include QA Summary in the Markdown export.
+* Add one focused Playwright test for the core QA flow.
+
+Suggested first data model:
+
+```ts
+type ProjectTestCase = {
+  id: string;
+  title: string;
+  description?: string;
+  expectedResult?: string;
+  status: "not-run" | "passed" | "failed" | "blocked";
+  relatedTaskId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+```
+
+### Core user flow
+
+The first QA flow should be:
+
+1. User opens an active project.
+2. User goes to Test Cases.
+3. User creates a test case.
+4. User gives the test case a title.
+5. User optionally writes an expected result.
+6. User selects test status.
+7. User links the test case to a related task.
+8. Test case appears in the Test Cases list.
+9. Status Report shows QA Summary.
+10. Markdown export includes QA Summary.
+
+### QA Summary
+
+The first QA Summary should show simple project-level test information:
+
+* Total test cases
+* Passed test cases
+* Failed test cases
+* Blocked test cases
+* Not run test cases
+* Test cases linked to tasks
+* Test cases without linked tasks
+
+Example:
+
+```text
+QA Summary
+
+Total test cases: 5
+Passed: 2
+Failed: 1
+Blocked: 1
+Not run: 1
+Linked to tasks: 4
+Unlinked: 1
+```
+
+The Status Report may also show a short test case list:
+
+```text
+Test cases
+
+- Login validation – Passed – Related task: Build login form
+- Export markdown report – Failed – Related task: Improve status report
+- Risk linking – Not run – Related task: Add risk traceability
+```
+
+### Out of scope for the first QA module MVP
+
+The first version should not include:
+
+* Bug log
+* Regression suites
+* Test case priority
+* Test case owner
+* Test steps
+* Actual result
+* Automation status
+* Advanced filtering
+* Full test management workflow
+* Import/export of QA data
+* Complex QA dashboard
+
+These features may be useful later, but they would make the first QA module too large.
+
+The first goal is to prove the core idea:
+
+Test cases can be connected to project work and summarized in the project status report.
+
+### Suggested Playwright coverage
+
+Add one focused Playwright test:
+
+```text
+tests/test-cases.spec.ts
+```
+
+The test should verify the core QA flow:
+
+* User can create a project.
+* User can create a task.
+* User can open Test Cases.
+* User can create a test case.
+* User can link the test case to the task.
+* User can set test status.
+* Test case appears in the Test Cases list.
+* Status Report shows QA Summary.
+* Status Report shows the linked test case.
+* Markdown export includes QA Summary.
+
+The test should focus on the value chain:
+
+```text
+create task → create test case → link test case to task → show QA summary in report
+```
+
+### Definition of Done
+
+Version 1.5 QA Module MVP is done when:
+
+* Project data model supports test cases.
+* Test cases belong to the active project.
+* Test cases are saved in localStorage.
+* Reloading the browser does not remove test cases.
+* Test Cases page exists.
+* User can create a test case.
+* User can set test status.
+* User can link a test case to a related task.
+* Test Cases page shows the related task.
+* Status Report shows QA Summary.
+* Markdown export includes QA Summary.
+* One focused Playwright test verifies the core QA flow.
+* `npm run build` passes.
+* Relevant Playwright tests pass.
+* README is updated after the MVP is implemented.
+* Roadmap is updated after the MVP is implemented.
+* The feature is committed and pushed with a clear commit message.
+
+### Portfolio value
+
+This phase strengthens Project Compass as a software testing portfolio project.
+
+It shows that the project is not only a frontend app, but also a practical QA case.
+
+The QA module should demonstrate:
+
+* test design thinking
+* traceability between test cases and project work
+* test status reporting
+* project-level QA summary
+* status reporting for stakeholders
+* Playwright coverage of an important user flow
+* disciplined MVP scope
+
+The strongest portfolio message is:
+
+I built a small QA module that connects test cases to project work and summarizes the test situation in the project status report.
+
+Suggested implementation steps:
+
+1. Update the project data model with `testCases`.
+2. Add safe defaults for old projects without test cases.
+3. Add a Test Cases page.
+4. Add navigation to Test Cases.
+5. Add create test case form.
+6. Add test status selection.
+7. Add related task selection.
+8. Show test cases in a list.
+9. Add QA Summary to Status Report.
+10. Add QA Summary to Markdown export.
+11. Add `tests/test-cases.spec.ts`.
+12. Run build and focused regression tests.
+13. Update README.
+14. Commit and push.
+
+Suggested commit messages:
+
+* Plan QA module MVP
+* Add test case data model
+* Add test cases page
+* Link test cases to tasks
+* Add QA summary to status report
+* Test QA module core flow
+* Update README for QA module MVP
 
 ---
 
