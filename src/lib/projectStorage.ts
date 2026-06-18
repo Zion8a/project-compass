@@ -69,6 +69,19 @@ export type ProjectDecision = {
   updatedAt: string;
 };
 
+export type ProjectTestCaseStatus = "not-run" | "passed" | "failed" | "blocked";
+
+export type ProjectTestCase = {
+  id: string;
+  title: string;
+  description?: string;
+  expectedResult?: string;
+  status: ProjectTestCaseStatus;
+  relatedTaskId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -79,6 +92,7 @@ export type Project = {
   tasks: ProjectTask[];
   risks: ProjectRisk[];
   decisions: ProjectDecision[];
+  testCases: ProjectTestCase[];
   members: ProjectMember[];
 };
 
@@ -109,6 +123,7 @@ export function createProject(name: string, description?: string): Project {
     tasks: [],
     risks: [],
     decisions: [],
+    testCases: [],
     members: [],
   };
 }
@@ -133,7 +148,14 @@ export function loadProjectCompassState(): ProjectCompassState {
 
     return {
       activeProjectId: parsedState.activeProjectId ?? null,
-      projects: parsedState.projects,
+      projects: parsedState.projects.map((project) => ({
+        ...project,
+        tasks: project.tasks ?? [],
+        risks: project.risks ?? [],
+        decisions: project.decisions ?? [],
+        testCases: project.testCases ?? [],
+        members: project.members ?? [],
+      })),
     };
   } catch {
     return createEmptyState();
@@ -197,6 +219,11 @@ export function updateProject(
       project.id === updatedProject.id
         ? {
             ...updatedProject,
+            tasks: updatedProject.tasks ?? [],
+            risks: updatedProject.risks ?? [],
+            decisions: updatedProject.decisions ?? [],
+            testCases: updatedProject.testCases ?? [],
+            members: updatedProject.members ?? [],
             updatedAt: new Date().toISOString(),
           }
         : project

@@ -140,7 +140,7 @@ export function createExampleProject(): Project {
         updatedAt: now,
       },
     ],
-    decisions: [
+        decisions: [
       {
         id: crypto.randomUUID(),
         title: "Use Project Compass as portfolio case",
@@ -179,5 +179,6 @@ export function createExampleProject(): Project {
         updatedAt: now,
       },
     ],
+    testCases: [],
   };
 }
