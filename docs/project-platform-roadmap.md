@@ -35,10 +35,11 @@ The current MVP already includes:
 * Improved Project Health summary text
 * Recommended Next Step logic
 * Traceability-based Recommended Next Step for high risks without linked tasks
+* Traceability-based Recommended Next Step for open decisions without linked tasks
 * Recommended Next Step in Status Report and Markdown export
 * Project Health Score in Status Report and Markdown export
 * Project Health scenario tests for Stable, Needs attention and At risk
-* Playwright test coverage for traceability-based Recommended Next Step behavior
+* Playwright test coverage for traceability-based Recommended Next Step behavior for high risks and open decisions
 * Risk-to-task traceability
 * Decision-to-task traceability
 * Markdown status report export
@@ -57,7 +58,7 @@ This platform direction makes Project Compass more useful, more realistic and st
 
 Many small projects fail because the team does not lack effort, but clarity.
 
-The current version has moved beyond the original single-project MVP and now supports several saved projects, one active project, project members, responsibility, Attention Needed, Project Health, Project Health Score, traceability between project objects and recommended next steps in the Status Report.
+The current version has moved beyond the original single-project MVP and now supports several saved projects, one active project, project members, responsibility, Attention Needed, Project Health, Project Health Score, traceability between project objects and recommended next steps in the Status Report, including traceability-based recommendations for high risks and open decisions without linked tasks.
 
 The product should continue to solve the following problems:
 
@@ -424,6 +425,7 @@ The current logic prioritizes:
 * blocked tasks
 * high risks without linked tasks
 * high risks
+* open decisions without linked tasks
 * open decisions
 * missing ownership
 * missing tasks
@@ -431,6 +433,8 @@ The current logic prioritizes:
 * checkpoint preparation when no urgent signals exist
 
 When a high risk is not connected to a related task, Project Compass recommends linking that risk to the concrete work it may affect. This strengthens the connection between risk management, traceability and project leadership.
+
+When an open decision is not connected to a related task, Project Compass recommends linking that decision to the concrete work it affects. This strengthens decision follow-up, traceability and project leadership.
 
 The recommendation is currently shown in:
 
@@ -640,13 +644,14 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 * Blocked tasks are prioritized before other signals.
 * High risks without linked tasks are prioritized before general high risk review.
 * High risks are prioritized before open decisions.
+* Open decisions without linked tasks are prioritized before general open decision review.
 * Open decisions are prioritized before missing ownership.
 * Missing ownership is shown as a useful next action when relevant.
 * Stable projects receive a checkpoint-oriented recommendation.
 * The recommendation is shown in the Status Report.
 * The recommendation is included in the Markdown export.
 * Recommended Next Step behavior is covered by Playwright in the Status Report Markdown export test.
-* Traceability-based Recommended Next Step behavior is covered by a focused Playwright test.
+* Traceability-based Recommended Next Step behavior for high risks and open decisions is covered by a focused Playwright test.
 
 ### 6.10 Improved Status Report
 
@@ -666,6 +671,7 @@ As a QA-focused user, I want to add test cases, bugs and test summaries, so that
 * The status report includes decision-to-task links.
 * The status report includes Recommended Next Step.
 * The status report can recommend linking high risks to affected tasks.
+* The status report can recommend linking open decisions to affected tasks.
 * The Markdown export includes Project Health Score.
 * The report can be copied or exported as Markdown.
 * The report should be useful as a real project communication artifact.
@@ -752,6 +758,7 @@ Current important Playwright coverage includes:
 * show Project Health scenarios for Stable, Needs attention and At risk
 * show Recommended Next Step in Status Report
 * show traceability-based Recommended Next Step for high risks without linked tasks
+* show traceability-based Recommended Next Step for open decisions without linked tasks
 * show traceability in Project Map
 * show traceability in Status Report
 * generate status report
@@ -856,10 +863,11 @@ The goal is to cover important behavior and prevent regressions.
 * A project with blocked tasks recommends resolving blocked work.
 * A project with a high risk without a linked task recommends linking high risks to affected tasks.
 * A project with high risks recommends reviewing high risks.
+* A project with an open decision without a linked task recommends linking open decisions to affected tasks.
 * A project with open decisions recommends closing open decisions.
 * A project with missing ownership recommends assigning ownership.
 * A stable project recommends preparing the next checkpoint.
-* The traceability-based recommendation explains why high risks should be connected to concrete work.
+* The traceability-based recommendation explains why high risks and open decisions should be connected to concrete work.
 * Markdown export includes the same recommendation as the UI.
 
 #### Status Report
@@ -873,6 +881,7 @@ The goal is to cover important behavior and prevent regressions.
 * Status Report shows main Project Health reasons.
 * Status Report shows Recommended Next Step.
 * Status Report shows traceability-based Recommended Next Step when high risks are not linked to concrete work.
+* Status Report shows traceability-based Recommended Next Step when open decisions are not linked to affected tasks.
 * Status Report shows traceability.
 * Status Report gives a useful project overview.
 * Markdown export includes the same important project information.
@@ -896,6 +905,7 @@ Important risks:
 * Recommended Next Step is misleading or too generic
 * traceability-based recommendations do not appear when they should
 * high risks without linked tasks are not detected
+* open decisions without linked tasks are not detected
 * linked risks or decisions point to missing tasks
 * old objects without links break after model changes
 * old Playwright tests fail after UI changes
@@ -1035,6 +1045,7 @@ Implemented so far:
 * Status Report shows decision-to-task traceability ✅
 * Status Report shows a Recommended Next Step ✅
 * Status Report shows traceability-based Recommended Next Step for high risks without linked tasks ✅
+* Status Report shows traceability-based Recommended Next Step for open decisions without linked tasks ✅
 * Markdown export includes Project Health ✅
 * Markdown export includes Project Health Score ✅
 * Markdown export includes main Project Health reasons ✅
@@ -1042,7 +1053,7 @@ Implemented so far:
 * Markdown export includes traceability ✅
 * Markdown export includes Recommended Next Step ✅
 * Playwright verifies Recommended Next Step in the Markdown export ✅
-* Playwright verifies traceability-based Recommended Next Step behavior ✅
+* Playwright verifies traceability-based Recommended Next Step behavior for high risks and open decisions ✅
 * Playwright verifies Project Health Score in the Markdown export ✅
 * Playwright verifies Project Health scenarios for Stable, Needs attention and At risk ✅
 * README has been updated with Project Health recommendations ✅
@@ -1059,6 +1070,7 @@ Definition of Done:
 * the report shows a simple rule-based Project Health Score ✅
 * the report suggests a recommended next step ✅
 * the report can recommend traceability improvements when high risks are not linked to concrete work ✅
+* the report can recommend traceability improvements when open decisions are not linked to concrete work ✅
 * Markdown export works ✅
 * important report behavior is tested ✅
 
@@ -1066,7 +1078,7 @@ Implementation note:
 
 This phase is now a strong MVP. The Status Report no longer only lists project data. It interprets the project situation through Project Health, explains the main reasons behind that status, shows a simple Project Health Score and suggests a recommended next step based on project signals.
 
-The Status Report can now also recommend linking high risks to affected tasks when high risks are not connected to concrete work. This strengthens the connection between risk management, traceability and project leadership.
+The Status Report can now also recommend linking high risks and open decisions to affected tasks when they are not connected to concrete work. This strengthens the connection between risk management, decision follow-up, traceability and project leadership.
 
 This supports the core identity of Project Compass: helping users turn unclear work into a manageable project.
 
@@ -1267,17 +1279,17 @@ Definition of Done:
 
 ### 9.3 QA Risks
 
-| Risk                                                     | Impact                                               | Mitigation                                                               |
-| -------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| Important flows are only tested manually                 | Regressions may be missed                            | Add Playwright tests for critical flows                                  |
-| Tests do not match real user behavior                    | Low confidence                                       | Write tests around user journeys                                         |
-| Regression suite becomes too large                       | Hard to maintain                                     | Prioritize high-risk flows                                               |
-| Documentation is not updated                             | Portfolio value decreases                            | Update docs as part of Definition of Done                                |
-| Traceability is not tested after changes                 | Links may break silently                             | Include traceability in focused regression                               |
-| Project Health and recommendations are not tested        | Status logic may regress                             | Add scenario tests for core health and recommendation rules              |
-| Project Health Score is not tested                       | Score logic or export may regress                    | Verify score in the Status Report Markdown export test                   |
-| Project Health scenario behavior is not tested           | Health levels may regress silently                   | Verify Stable, Needs attention and At risk with focused Playwright tests |
-| Traceability-based recommendation behavior is not tested | Recommendations may stop supporting the product idea | Verify traceability-based recommendations with focused Playwright tests  |
+| Risk                                                     | Impact                                               | Mitigation                                                                                                |
+| -------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Important flows are only tested manually                 | Regressions may be missed                            | Add Playwright tests for critical flows                                                                   |
+| Tests do not match real user behavior                    | Low confidence                                       | Write tests around user journeys                                                                          |
+| Regression suite becomes too large                       | Hard to maintain                                     | Prioritize high-risk flows                                                                                |
+| Documentation is not updated                             | Portfolio value decreases                            | Update docs as part of Definition of Done                                                                 |
+| Traceability is not tested after changes                 | Links may break silently                             | Include traceability in focused regression                                                                |
+| Project Health and recommendations are not tested        | Status logic may regress                             | Add scenario tests for core health and recommendation rules                                               |
+| Project Health Score is not tested                       | Score logic or export may regress                    | Verify score in the Status Report Markdown export test                                                    |
+| Project Health scenario behavior is not tested           | Health levels may regress silently                   | Verify Stable, Needs attention and At risk with focused Playwright tests                                  |
+| Traceability-based recommendation behavior is not tested | Recommendations may stop supporting the product idea | Verify traceability-based recommendations for high risks and open decisions with focused Playwright tests |
 
 ### 9.4 Portfolio Risks
 
@@ -1382,6 +1394,8 @@ Example commit messages:
 * Test recommended next step in status report export
 * Recommend linking high risks to tasks
 * Test recommended next step traceability
+* Recommend linking open decisions to tasks
+* Test open decision traceability recommendation
 * Update README for traceability recommendation test
 * Update roadmap for traceability recommendation test
 * Update README for project health recommendations
@@ -1394,7 +1408,7 @@ Example commit messages:
 
 ## 11. Recommended Next Implementation Step
 
-Version 1.4 – Status Report and Project Health is now strong enough to be considered a solid MVP.
+Version 1.4 – Status Report and Project Health is now strong enough to be considered a solid portfolio MVP.
 
 Completed Version 1.4 improvements:
 
@@ -1409,29 +1423,24 @@ Completed Version 1.4 improvements:
 * Recommended Next Step logic has been added.
 * Recommended Next Step is shown in the Status Report.
 * Recommended Next Step is included in the Markdown export.
-* Recommended Next Step now recommends linking high risks to affected tasks when high risks are not connected to concrete work.
+* Recommended Next Step recommends linking high risks to affected tasks when high risks are not connected to concrete work.
+* Recommended Next Step recommends linking open decisions to affected tasks when open decisions are not connected to concrete work.
 * Playwright verifies Recommended Next Step in the Markdown export.
-* Playwright verifies traceability-based Recommended Next Step behavior.
+* Playwright verifies traceability-based Recommended Next Step behavior for high risks and open decisions.
 * README has been updated to describe Project Health reasons, Project Health Score, Project Health scenario tests, Recommended Next Step and traceability-based recommendation behavior.
+* The roadmap has been updated to describe open decision traceability recommendations.
 
 Current value:
 
 The Status Report now works more like a project leadership artifact. It does not only summarize tasks, risks, decisions and responsibility. It also explains the project situation, shows a simple health score, shows concrete health reasons and suggests what the project leader should do next.
 
-The report can also guide the project leader toward better traceability by recommending that high risks are linked to the concrete work they may affect.
+The report can also guide the project leader toward better traceability by recommending that high risks and open decisions are linked to the concrete work they may affect.
 
 Recommended next implementation step:
 
-Continue Version 1.4 by improving recommendations based on open decisions without linked tasks or missing goals and deliverables.
+Close Version 1.4 as a portfolio milestone after final verification, then start Version 1.5 – QA Module.
 
-Suggested next small steps:
-
-* Add recommended next steps based on open decisions without linked tasks.
-* Add recommended next steps based on missing goals or deliverables.
-* Review whether the Status Report screenshot should be updated.
-* Keep the model simple and understandable.
-
-Suggested checkpoint before the next Version 1.4 change:
+Suggested final Version 1.4 checkpoint:
 
 ```bash
 npm run build
@@ -1441,7 +1450,19 @@ npx playwright test tests/project-health-scenarios.spec.ts --project=chromium --
 npx playwright test tests/project-map-attention.spec.ts --project=chromium --workers=1
 ```
 
-If these checks pass, the next improvement can start from a clean baseline.
+If these checks pass, Version 1.4 can be treated as complete enough for portfolio presentation.
+
+Possible next phase:
+
+Start Version 1.5 by designing the smallest possible QA module MVP:
+
+* Test case model
+* Test case list
+* Create test case form
+* Test status
+* Link test case to task
+* QA summary in Status Report
+* Playwright test for the core QA flow
 
 ---
 
@@ -1468,7 +1489,8 @@ Use this checklist when testing Version 1.4 Status Report and Project Health imp
 * Does the report show decision-to-task links?
 * Does the report show a Recommended Next Step?
 * Does a high risk without a linked task recommend linking high risks to affected tasks?
-* Does the traceability-based recommendation explain why the risk should be connected to concrete work?
+* Does an open decision without a linked task recommend linking open decisions to affected tasks?
+* Does the traceability-based recommendation explain why the risk or decision should be connected to concrete work?
 * Does the recommended next step make sense for the project situation?
 
 ### Project Health scenarios
@@ -1506,6 +1528,7 @@ Use this checklist when testing Version 1.4 Status Report and Project Health imp
 * Does a project with high risks recommend reviewing risks?
 * Does a project with high risks without linked tasks recommend linking high risks to affected tasks?
 * Does a project with blocked tasks recommend resolving blocked work?
+* Does a project with open decisions without linked tasks recommend linking open decisions to affected tasks?
 * Does a project with open decisions recommend closing open decisions?
 * Does a project with missing ownership recommend assigning ownership?
 

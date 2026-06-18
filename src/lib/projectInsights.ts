@@ -183,8 +183,14 @@ export function getProjectHealth(
     (risk) => !risk.relatedTaskId
   ).length;
 
-  const openDecisionsCount = project.decisions.filter(
+    const openDecisions = project.decisions.filter(
     (decision) => decision.status === "open"
+  );
+
+  const openDecisionsCount = openDecisions.length;
+
+  const unlinkedOpenDecisionsCount = openDecisions.filter(
+    (decision) => !decision.relatedTaskId
   ).length;
 
   const score = getProjectHealthScore(attentionItems);
@@ -244,8 +250,14 @@ export function getRecommendedNextStep(
     (risk) => !risk.relatedTaskId
   ).length;
 
-  const openDecisionsCount = project.decisions.filter(
+    const openDecisions = project.decisions.filter(
     (decision) => decision.status === "open"
+  );
+
+  const openDecisionsCount = openDecisions.length;
+
+  const unlinkedOpenDecisionsCount = openDecisions.filter(
+    (decision) => !decision.relatedTaskId
   ).length;
 
   const itemsWithoutOwnerCount = attentionItems.filter(
@@ -269,10 +281,17 @@ export function getRecommendedNextStep(
     };
   }
 
-  if (highRisksCount > 0) {
+    if (highRisksCount > 0) {
     return {
       title: "Review high risks",
       text: "Review high risks and make sure each risk has a clear action, owner and follow-up plan.",
+    };
+  }
+
+  if (unlinkedOpenDecisionsCount > 0) {
+    return {
+      title: "Link open decisions to affected tasks",
+      text: "Open decisions are easier to follow up when they are connected to the work they affect. Link each open decision to a related task before closing or escalating the decision.",
     };
   }
 

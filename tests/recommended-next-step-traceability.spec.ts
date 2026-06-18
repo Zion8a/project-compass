@@ -96,4 +96,99 @@ test.describe("Recommended Next Step traceability", () => {
       )
     ).toBeVisible();
   });
+
+  test("recommends linking open decisions to affected tasks", async ({
+    page,
+  }) => {
+    await page.addInitScript((storedDate) => {
+      window.localStorage.setItem(
+        "project-compass-state",
+        JSON.stringify({
+          activeProjectId: "recommended-next-step-decision-traceability-test",
+          projects: [
+            {
+              id: "recommended-next-step-decision-traceability-test",
+              name: "Recommended Next Step Decision Traceability Test",
+              description:
+                "A project used to test decision traceability recommendations.",
+              purpose:
+                "Verify that open decisions are connected to affected work.",
+              desiredOutcome:
+                "The Status Report recommends linking open decisions to affected tasks.",
+              status: "in-progress",
+              createdAt: storedDate,
+              updatedAt: storedDate,
+              members: [
+                {
+                  id: "member-1",
+                  name: "Alex Tester",
+                  role: "QA Lead",
+                  responsibility: "Review project decisions and traceability.",
+                  comment: "",
+                  createdAt: storedDate,
+                  updatedAt: storedDate,
+                },
+              ],
+              goals: [],
+              deliverables: [],
+              tasks: [
+                {
+                  id: "task-1",
+                  title: "Choose release scope",
+                  description: "Define what should be included in the release.",
+                  status: "in-progress",
+                  priority: "medium",
+                  ownerId: "member-1",
+                  createdAt: storedDate,
+                  updatedAt: storedDate,
+                },
+              ],
+              risks: [],
+              decisions: [
+                {
+                  id: "decision-1",
+                  title: "Decide release scope",
+                  context:
+                    "The team needs to decide what should be included in the release.",
+                  decision: "",
+                  status: "open",
+                  ownerId: "member-1",
+                  createdAt: storedDate,
+                  updatedAt: storedDate,
+                },
+              ],
+            },
+          ],
+        })
+      );
+    }, baseDate);
+
+    await page.goto("/project-report");
+
+    await expect(
+      page.getByRole("heading", { name: /Status Report/ })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Project: Recommended Next Step Decision Traceability Test", {
+        exact: true,
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Recommended Next Step", { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", {
+        name: "Link open decisions to affected tasks",
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        "Open decisions are easier to follow up when they are connected to the work they affect. Link each open decision to a related task before closing or escalating the decision."
+      )
+    ).toBeVisible();
+  });
 });
