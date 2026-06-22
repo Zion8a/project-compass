@@ -47,6 +47,10 @@ const navItems = [
     label: "Decisions",
   },
   {
+    href: "/project-test-cases",
+    label: "Test Cases",
+  },
+  {
     href: "/project-report",
     label: "Status Report",
   },
