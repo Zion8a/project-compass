@@ -70,48 +70,51 @@ export default function ProjectTestCasesPage() {
 
   const activeProject = getActiveProject(state);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-    if (!activeProject) {
-      return;
-    }
-
-    if (!title.trim()) {
-      setError("Test case title is required.");
-      return;
-    }
-
-    const now = new Date().toISOString();
-
-    const newTestCase = {
-      id: crypto.randomUUID(),
-      title: title.trim(),
-      description: description.trim() || undefined,
-      expectedResult: expectedResult.trim() || undefined,
-      status,
-      relatedTaskId: relatedTaskId || undefined,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const updatedProject = {
-      ...activeProject,
-      testCases: [...activeProject.testCases, newTestCase],
-    };
-
-    const updatedState = updateProject(state, updatedProject);
-
-    saveProjectCompassState(updatedState);
-    setState(updatedState);
-
-    setTitle("");
-    setDescription("");
-    setExpectedResult("");
-    setStatus("not-run");
-    setRelatedTaskId("");
-    setError("");
+  if (!state || !activeProject) {
+    return;
   }
+
+  const currentState = state;
+  const currentProject = activeProject;
+
+  if (!title.trim()) {
+    setError("Test case title is required.");
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  const newTestCase = {
+    id: crypto.randomUUID(),
+    title: title.trim(),
+    description: description.trim() || undefined,
+    expectedResult: expectedResult.trim() || undefined,
+    status,
+    relatedTaskId: relatedTaskId || undefined,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const updatedProject = {
+    ...currentProject,
+    testCases: [...currentProject.testCases, newTestCase],
+  };
+
+  const updatedState = updateProject(currentState, updatedProject);
+
+  saveProjectCompassState(updatedState);
+  setState(updatedState);
+
+  setTitle("");
+  setDescription("");
+  setExpectedResult("");
+  setStatus("not-run");
+  setRelatedTaskId("");
+  setError("");
+}
 
   if (!activeProject) {
     return (
