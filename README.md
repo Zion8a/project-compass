@@ -145,6 +145,7 @@ The current version includes:
 * Attention Needed
 * Recommended Next Step
 * Traceability-based Recommended Next Step for high risks without linked tasks
+* Traceability-based Recommended Next Step for open decisions without linked tasks
 * Status Report
 * Markdown export
 * Responsibility model for tasks, risks and decisions
@@ -158,7 +159,7 @@ The current version includes:
 * Recommended Next Step in Markdown export
 * Project Health Score in Status Report and Markdown export
 * Playwright coverage for Recommended Next Step in Markdown export
-* Playwright coverage for traceability-based Recommended Next Step behavior
+* Playwright coverage for traceability-based Recommended Next Step behavior for high risks and open decisions
 * Playwright coverage for Project Health Score in Markdown export
 * Playwright scenario coverage for Stable, Needs attention and At risk
 * Form validation for project name, task title, risk title and decision title
@@ -246,8 +247,9 @@ Completed improvements so far include:
 * Recommended Next Step shown in Status Report
 * Recommended Next Step included in Markdown export
 * Traceability-based Recommended Next Step for high risks without linked tasks
+* Traceability-based Recommended Next Step for open decisions without linked tasks
 * Playwright test coverage for Recommended Next Step in Markdown export
-* Playwright test coverage for traceability-based Recommended Next Step behavior
+* Playwright test coverage for traceability-based Recommended Next Step behavior for high risks and open decisions
 * Playwright test coverage for Project Health Score in Markdown export
 * Playwright scenario coverage for Stable, Needs attention and At risk
 
@@ -280,7 +282,7 @@ It demonstrates:
 * Project Health Score tested through Markdown export coverage
 * Project Health scenario tests for Stable, Needs attention and At risk
 * Recommended Next Step behavior tested with Playwright
-* Traceability-based Recommended Next Step tested with Playwright
+* Traceability-based Recommended Next Step tested with Playwright for high risks and open decisions
 * Markdown export testing
 * Markdown export verification of project interpretation, health reasons, health score and recommended next step
 * Traceability regression through existing risk, decision, Project Map and Status Report tests
@@ -325,6 +327,7 @@ It demonstrates that I can:
 * Test Project Health through multiple scenarios
 * Recommend a next project leadership action based on project data
 * Recommend traceability improvements when high risks are not linked to concrete work
+* Recommend traceability improvements when open decisions are not linked to affected tasks
 * Make missing responsibility visible directly in the user interface
 * Connect risks to concrete project work
 * Connect decisions to concrete project work
@@ -585,6 +588,7 @@ The current Recommended Next Step logic prioritizes:
 * Blocked tasks
 * High risks without linked tasks
 * High risks
+* Open decisions without linked tasks
 * Open decisions
 * Missing ownership
 * Missing tasks
@@ -593,12 +597,14 @@ The current Recommended Next Step logic prioritizes:
 
 When a high risk is not connected to a related task, Project Compass recommends linking that risk to the concrete work it may affect. This strengthens the connection between risk management, traceability and project leadership.
 
+When an open decision is not connected to a related task, Project Compass recommends linking that decision to the work it affects. This makes decisions easier to follow up, improves traceability and helps the project leader understand why the decision matters.
+
 The recommendation is shown in:
 
 * Status Report
 * Markdown export
 
-This helps the Status Report become more than a summary. It gives the project leader a clear suggested next action.
+This helps the Status Report become more than a summary. It gives the project leader a clear suggested next action based on blocked work, risk, decisions, ownership and traceability.
 
 ### Shared project insight logic
 
@@ -647,7 +653,7 @@ The status report is intended to become the main communication artifact for a pr
 
 Risk-to-task and decision-to-task links are included in both the on-screen report and the Markdown export, making the report more useful as a project communication artifact.
 
-The Recommended Next Step helps the project leader understand what should happen next based on the current project signals, including when high risks should be connected to affected tasks.
+The Recommended Next Step helps the project leader understand what should happen next based on the current project signals, including when high risks or open decisions should be connected to affected tasks.
 
 The Project Health Score gives the user a simple numerical signal that supports the health level and main reasons without pretending to be an exact performance metric.
 
@@ -902,7 +908,7 @@ Manual testing has been used to verify:
 * Project Health scenario behavior
 * Project Health reasons
 * Recommended Next Step
-* Traceability-based Recommended Next Step
+* Traceability-based Recommended Next Step for high risks and open decisions
 * Project setup checklist
 * Markdown copy from Status Report
 * Risk-to-task linking in Risk View
@@ -987,6 +993,7 @@ Current automated test coverage includes:
 * Status Report Project Health Score
 * Status Report Recommended Next Step
 * Traceability-based Recommended Next Step for high risks without linked tasks
+* Traceability-based Recommended Next Step for open decisions without linked tasks
 * Project Health Score in Markdown export
 * Project Health scenario coverage for Stable, Needs attention and At risk
 * Recommended Next Step in Markdown export
@@ -1173,6 +1180,10 @@ Verifies that:
 * A project with a high risk without a linked task shows a traceability-based recommendation
 * Status Report recommends linking high risks to affected tasks
 * The recommendation explains why high risks should be connected to concrete work
+* A project with an open decision without a linked task shows a traceability-based recommendation
+* Status Report recommends linking open decisions to affected tasks
+* The recommendation explains why open decisions should be connected to the work they affect
+
 
 ### Status report Markdown export
 
@@ -1428,7 +1439,7 @@ It demonstrates:
 * Showing Project Health reasons in a status report
 * Testing Project Health scenarios for Stable, Needs attention and At risk
 * Adding recommended next step logic based on project data
-* Testing traceability-based recommendations with Playwright
+* Testing traceability-based recommendations for high risks and open decisions with Playwright
 * Testing generated project reports through clipboard-based Playwright tests
 * Testing Project Health Score through Markdown export
 * Extracting shared project insight logic
