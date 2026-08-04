@@ -156,9 +156,11 @@ test.describe("Projects overview", () => {
       projectCard.getByRole("heading", { name: "Attention needed" })
     ).toBeVisible();
 
-    await expect(projectCard.getByText("6 items")).toBeVisible();
+    await expect(projectCard.getByText("6 items", { exact: true })).toBeVisible();
 
-    await expect(projectCard.getByText("1 blocked task")).toBeVisible();
+    await expect(
+      projectCard.getByText("1 blocked task", { exact: true })
+    ).toBeVisible();
 
     await expect(
       projectCard.getByText(
@@ -166,7 +168,9 @@ test.describe("Projects overview", () => {
       )
     ).toBeVisible();
 
-    await expect(projectCard.getByText("1 task without owner")).toBeVisible();
+    await expect(
+      projectCard.getByText("1 task without owner", { exact: true })
+    ).toBeVisible();
 
     await expect(
       projectCard.getByText(
@@ -174,7 +178,9 @@ test.describe("Projects overview", () => {
       )
     ).toBeVisible();
 
-    await expect(projectCard.getByText("1 risk without owner")).toBeVisible();
+    await expect(
+      projectCard.getByText("1 risk without owner", { exact: true })
+    ).toBeVisible();
 
     await expect(
       projectCard.getByText(
@@ -182,9 +188,11 @@ test.describe("Projects overview", () => {
       )
     ).toBeVisible();
 
-    await expect(projectCard.getByText("+3 more attention items")).toBeVisible();
+    await expect(
+      projectCard.getByText("+3 more attention items", { exact: true })
+    ).toBeVisible();
 
-    await expect(projectCard.getByText("high").first()).toBeVisible();
-    await expect(projectCard.getByText("medium").first()).toBeVisible();
+    await expect(projectCard.getByText("high", { exact: true }).first()).toBeVisible();
+    await expect(projectCard.getByText("medium", { exact: true }).first()).toBeVisible();
   });
 });
