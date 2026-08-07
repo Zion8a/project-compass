@@ -545,10 +545,10 @@ AI Review #003 kan avslutas när:
 ## AI Review #004 – Versioned State Boundary and Safe Read Model
 
 **Startdatum:** 7 augusti 2026
-**Avslutad:** Ej avslutad
+**Avslutad:** 7 augusti 2026
 **Projekt:** Project Compass
 **AI-modell:** ChatGPT, GPT-5.6 Sol
-**Status:** Pågående
+**Status:** Avslutad
 
 ### Uppgift
 
@@ -782,9 +782,9 @@ Detta stärker Project Compass som portfolio-case genom att visa kvalitetstänka
 
 ### Status
 
-Pågående.
+Avslutad.
 
-AI Review #004 kan avslutas när:
+AI Review #004 avslutades efter att:
 
 - design-/implementationsdokumentet är slutgranskat,
 - AI Review #004 är slutgranskad,
