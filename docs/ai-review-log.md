@@ -1,4 +1,4 @@
-# AI Review Log
+﻿# AI Review Log
 
 ## AI Review #001 – Project Compass V1 Quality and Competency Map
 
@@ -540,4 +540,256 @@ AI Review #003 kan avslutas när:
 - dokumentens Markdown-format är verifierat,
 - beslutad kontrollnivå har genomförts,
 - dokumentändringarna är committade och pushade,
+- slutligt `git status` är clean.
+
+## AI Review #004 – Versioned State Boundary and Safe Read Model
+
+**Startdatum:** 7 augusti 2026
+**Avslutad:** Ej avslutad
+**Projekt:** Project Compass
+**AI-modell:** ChatGPT, GPT-5.6 Sol
+**Status:** Pågående
+
+### Uppgift
+
+Använda AI som stöd för att implementera och verifiera Data Unification steg 2:
+
+**Versioned State Boundary and Safe Read Model**
+
+Målet var att skapa en minimal, central, versionsmedveten och testbar state-gräns för `project-compass-state` innan bred migrering eller borttagning av legacy-data.
+
+Uppdraget omfattade:
+
+- verifiering av aktuell `ProjectCompassState`,
+- införande av central `schemaVersion`,
+- central klassificering av lagrad state,
+- säker hantering av missing, valid, legacy, invalid och unsupported version,
+- kontrollerad normalisering,
+- hantering av ogiltig `activeProjectId`,
+- skydd mot tyst överskrivning av trasig eller okänd data,
+- unit-teststöd,
+- relevanta Playwright-regressioner,
+- produktionsbuild,
+- dokumentation av kvarvarande risker.
+
+### AI:s bidrag
+
+AI användes för att:
+
+- bryta ned uppdraget i små testbara steg,
+- föreslå en minimal versionsmodell,
+- föreslå `PROJECT_COMPASS_STATE_VERSION = 1`,
+- föreslå ett explicit read-resultat med status, state, normaliseringsflagga och diagnostik,
+- identifiera behovet av en ren parserfunktion,
+- föreslå `parseProjectCompassState()`,
+- föreslå `readProjectCompassState()` som central localStorage-read boundary,
+- behålla `loadProjectCompassState()` som kompatibilitetsadapter för befintliga routes,
+- identifiera att versionslös state måste behandlas som legacy,
+- identifiera behovet av bakåtkompatibel normalisering av projektsamlingar,
+- identifiera risk med ogiltig `activeProjectId`,
+- identifiera en sekundär dataförlustrisk där en misslyckad läsning senare kunde följas av en save som skrev över rådata,
+- föreslå defensivt skydd även i `saveProjectCompassState()`,
+- föreslå Vitest som liten unit-testnivå,
+- avgränsa Vitest-konfigurationen så att Playwright-specifikationer inte körs som unit tests,
+- föreslå relevanta unit tests och regressionskontroller,
+- hjälpa till att dokumentera faktisk implementation, verifiering och kvarvarande risker.
+
+### Hur AI-resultatet granskades
+
+AI:s förslag accepterades inte som färdig lösning utan verifierades stegvis.
+
+Arbetssättet var:
+
+1. Inspektera faktisk kod.
+2. Formulera ett begränsat beteende.
+3. Skriva ett test före implementation när det var lämpligt.
+4. Bekräfta att testet föll av förväntad anledning.
+5. Implementera minsta nödvändiga förändring.
+6. Köra testet igen.
+7. Kontrollera TypeScript och produktionsbuild.
+8. Köra relevanta Playwright-regressioner.
+9. Jämföra resultatet med styrgruppens scope och säkerhetskrav.
+
+När ett PowerShell-block inte matchade faktisk filstruktur avbröts ändringen i stället för att tvingas igenom.
+
+En oavsiktligt skapad fil, `tatus --short`, identifierades genom `git status`, inspekterades innan borttagning och raderades först efter att innehållet verifierats som tidigare terminaloutput.
+
+### Accepterat
+
+- `schemaVersion` ska vara en del av `ProjectCompassState`.
+- Aktuell version ska definieras centralt.
+- Första aktuella versionen är `1`.
+- Versionslös state ska behandlas som `legacy`.
+- Okänd schemaVersion ska behandlas som `unsupported-version`.
+- Trasig JSON ska behandlas som `invalid`.
+- `parseProjectCompassState()` ska separera parsning och klassificering från localStorage-access.
+- `readProjectCompassState()` ska vara central localStorage-read boundary.
+- `loadProjectCompassState()` får fortsätta som kompatibilitetsadapter för att undvika bred route-refaktorering.
+- Saknade `tasks`, `risks`, `decisions`, `testCases` och `members` får normaliseras till tomma arrayer i minnet.
+- Samma bakåtkompatibla samlingsnormalisering ska gälla läsbar versionslös legacy-state.
+- Ogiltig `activeProjectId` i aktuell state får normaliseras till `null`.
+- Läsning får inte automatiskt skriva tillbaka normaliserad eller trasig data.
+- Befintlig `invalid` eller `unsupported-version` data ska skyddas även mot senare normal save.
+- `saveProjectCompassState()` ska blockera överskrivning av sådan rådata.
+- Vitest ska användas för små unit tests av state boundaryn.
+- Vitest ska endast inkludera `src/**/*.test.ts` och `src/**/*.test.tsx`.
+- Legacy-nycklar ska behållas.
+- Ingen bred migrering ska genomföras i detta steg.
+
+### Ändrat under arbetets gång
+
+- Den ursprungliga designen fokuserade främst på säker läsning. Under testningen identifierades att en kompatibilitetsfallback till tom state kunde följas av en senare save och därmed skapa indirekt dataförlust.
+- Lösningen utökades därför med en defensiv write boundary som kontrollerar befintlig raw state före skrivning.
+- Legacy-hanteringen utökades efter ett regressionstest som visade att den första implementationen inte normaliserade saknade projektsamlingar på samma sätt som den tidigare loadern.
+- `loadProjectCompassState()` ändrades från egen JSON-parsning och egen normalisering till att använda den centrala read boundaryn.
+- Unit-testkonfigurationen ändrades från Vitests standardupptäckt till explicit include-konfiguration efter att Vitest initialt försökte köra Playwright-filer.
+- `vitest.config.ts` ersattes med `vitest.config.mjs` efter en ESM/CommonJS-varning.
+- Ingen automatisk `npm audit fix` genomfördes trots dependency-audit findings, eftersom sådan dependency churn bedömdes ligga utanför uppdragets scope.
+
+### Avvisat
+
+- Att genomföra bred state-migrering i samma steg.
+- Att ta bort legacy-nycklar.
+- Att automatiskt skriva tillbaka versionslös legacy-state vid läsning.
+- Att tyst ersätta trasig JSON med tom state i localStorage.
+- Att skriva över data med okänd framtida schemaVersion.
+- Att automatiskt reparera brutna `ownerId`- eller `relatedTaskId`-relationer.
+- Att bygga full runtime-validering av varje nested fält och enum inom detta steg.
+- Att refaktorera samtliga routes till ett nytt read-resultat.
+- Att integrera QA-modulen, ändra Project Health, införa backend eller fleranvändarstöd.
+- Att köra `npm audit fix` som en sidoändring utan separat riskbedömning.
+
+### Hur resultatet verifierades
+
+Unit tests kördes med:
+
+`npm run test:unit`
+
+Slutligt verifierat unit-testresultat:
+
+- 13/13 tester passerade.
+
+Tester täcker:
+
+- current `schemaVersion` i tom state,
+- missing stored state,
+- malformed JSON,
+- versionslös legacy-state,
+- unknown schemaVersion,
+- valid current-version state,
+- normalisering av saknade projektsamlingar,
+- ogiltig `activeProjectId`,
+- att read failure inte skriver över raw data,
+- legacy-normalisering,
+- att save skriver state med aktuell schemaVersion,
+- att malformed raw data inte skrivs över,
+- att unsupported schemaVersion inte skrivs över.
+
+TypeScript kontrollerades med:
+
+`npx tsc --noEmit`
+
+Resultat:
+
+- inga nya TypeScript-fel från Data Unification steg 2,
+- tre redan existerande `implicit any`-fel kvarstår i `tests/project-health-scenarios.spec.ts`.
+
+Produktionsbuild kördes med:
+
+`npm run build`
+
+Resultat:
+
+- compiled successfully,
+- TypeScript i Next-build passerade,
+- 13/13 statiska sidor genererades.
+
+Relevanta Playwright-regressioner kördes:
+
+- `projects-overview.spec.ts`: 3/3 passerade,
+- `project-map-attention.spec.ts`: 1/1 passerade,
+- `status-report-markdown.spec.ts`: 1/1 passerade,
+- `recommended-next-step-traceability.spec.ts`: 2/2 passerade,
+- `task-responsibility.spec.ts`: 4/4 passerade,
+- `risk-responsibility.spec.ts`: 5/5 passerade,
+- `project-health-scenarios.spec.ts`: 3/3 passerade.
+
+Totalt i dessa riktade Playwright-körningar:
+
+- 19/19 tester passerade.
+Därefter kördes även hela Playwright-sviten i Chromium med en worker:
+
+`npx playwright test --project=chromium --workers=1`
+
+Resultat:
+
+- 32/32 tester passerade,
+- total körtid cirka 1,8 minuter.
+
+### Risk för falskt eller missvisande resultat
+
+- En grön unit-testsvit bevisar inte att varje möjlig historisk localStorage-struktur stöds.
+- Parsern använder medvetet begränsad runtime-validering och kan acceptera nested data som senare visar sig semantiskt felaktig.
+- TypeScript-casts kan skapa en falsk känsla av runtime-säkerhet om underliggande JSON inte motsvarar typen.
+- En kompatibilitetsfallback till tom state kan göra att UI:t ser tomt ut trots att skyddad invalid eller unsupported raw data fortfarande finns kvar.
+- `console.warn` gör fel synliga för utvecklare men är inte ett användargränssnitt för recovery.
+- Test-fixtures representerar inte nödvändigtvis all verklig legacy-data som kan finnas i användares localStorage.
+
+### Kvarvarande risker och antaganden
+
+- Runtime-valideringen validerar inte varje nested required field eller enumvärde.
+- Brutna `ownerId`, `relatedTaskId` och andra relationer repareras inte.
+- Versionless legacy-state identifieras genom avsaknad av `schemaVersion` och förekomst av en `projects`-array.
+- Full recovery-UX för invalid eller unsupported state finns inte.
+- Tre redan existerande TypeScript `implicit any`-fel finns kvar i `tests/project-health-scenarios.spec.ts`.
+- Dependency-audit rapporterade en low och fem high findings efter installation av Vitest.
+- Ingen legacy-nyckel har tagits bort.
+- Ingen permanent migration av Project Interview, tasks, risks eller decisions har genomförts.
+- Verklig användardata från tidigare versioner har inte migrerats inom detta uppdrag.
+
+### Informationssäkerhet
+
+Ingen hemlighet, autentiseringsuppgift eller känslig produktionsdata behövde delas med AI.
+
+Arbetet byggde på:
+
+- lokal produktionskod,
+- lokala testresultat,
+- lokal dokumentation,
+- terminaloutput,
+- syntetiska test-fixtures.
+
+Ingen verklig användares localStorage-data behövde exponeras.
+
+### Kompetensevidens
+
+Arbetet visar praktisk kompetens inom:
+
+- TypeScript-modellering,
+- versionshantering av klientstate,
+- defensiv datahantering,
+- riskbaserad testdesign,
+- test-driven utveckling i små steg,
+- unit testing med Vitest,
+- Playwright-regressionstestning,
+- bakåtkompatibilitet,
+- dataförlustanalys,
+- CI-/build-nära verifiering,
+- teknisk dokumentation,
+- AI-assisterad utveckling med mänsklig verifiering.
+
+Detta stärker Project Compass som portfolio-case genom att visa kvalitetstänkande kring data, migration och regression – inte enbart funktionsutveckling.
+
+### Status
+
+Pågående.
+
+AI Review #004 kan avslutas när:
+
+- design-/implementationsdokumentet är slutgranskat,
+- AI Review #004 är slutgranskad,
+- eventuell beslutad ytterligare verifiering är genomförd,
+- `git diff --check` är godkänd,
+- ändringarna är committade,
+- ändringarna är pushade till GitHub,
 - slutligt `git status` är clean.

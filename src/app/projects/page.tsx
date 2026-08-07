@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -6,6 +6,7 @@ import AppHeader from "@/components/AppHeader";
 import {
   addProject,
   createProject,
+  createEmptyState,
   loadProjectCompassState,
   Project,
   ProjectCompassState,
@@ -65,10 +66,7 @@ function getAttentionSeverityClasses(severity: "medium" | "high") {
 export default function ProjectsPage() {
   const router = useRouter();
 
-  const [state, setState] = useState<ProjectCompassState>({
-    activeProjectId: null,
-    projects: [],
-  });
+  const [state, setState] = useState<ProjectCompassState>(() => createEmptyState());
 
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");

@@ -1,4 +1,4 @@
-export type ProjectStatus =
+﻿export type ProjectStatus =
   | "not-started"
   | "in-progress"
   | "at-risk"
@@ -96,20 +96,196 @@ export type Project = {
   members: ProjectMember[];
 };
 
+export const PROJECT_COMPASS_STATE_VERSION = 1 as const;
+
 export type ProjectCompassState = {
+  schemaVersion: typeof PROJECT_COMPASS_STATE_VERSION;
   activeProjectId: string | null;
   projects: Project[];
 };
 
 export const PROJECT_COMPASS_STORAGE_KEY = "project-compass-state";
 
+export type ProjectCompassStateReadStatus =
+  | "missing"
+  | "valid"
+  | "legacy"
+  | "invalid"
+  | "unsupported-version";
+
+export type ProjectCompassStateReadResult = {
+  status: ProjectCompassStateReadStatus;
+  state: ProjectCompassState | null;
+  normalized: boolean;
+  diagnostics: string[];
+};
+
 export function createEmptyState(): ProjectCompassState {
   return {
+    schemaVersion: PROJECT_COMPASS_STATE_VERSION,
     activeProjectId: null,
     projects: [],
   };
 }
 
+export function parseProjectCompassState(
+  savedState: string | null
+): ProjectCompassStateReadResult {
+  if (!savedState) {
+    return {
+      status: "missing",
+      state: createEmptyState(),
+      normalized: false,
+      diagnostics: [],
+    };
+  }
+
+  let parsedState: unknown;
+
+  try {
+    parsedState = JSON.parse(savedState);
+  } catch {
+    return {
+      status: "invalid",
+      state: null,
+      normalized: false,
+      diagnostics: ["Stored state contains invalid JSON."],
+    };
+  }
+
+  if (
+    typeof parsedState === "object" &&
+    parsedState !== null &&
+    "schemaVersion" in parsedState &&
+    parsedState.schemaVersion !== PROJECT_COMPASS_STATE_VERSION
+  ) {
+    return {
+      status: "unsupported-version",
+      state: null,
+      normalized: false,
+      diagnostics: [
+        `Stored state uses unsupported schemaVersion ${String(
+          parsedState.schemaVersion
+        )}.`,
+      ],
+    };
+  }
+
+  if (
+    typeof parsedState === "object" &&
+    parsedState !== null &&
+    "schemaVersion" in parsedState &&
+    parsedState.schemaVersion === PROJECT_COMPASS_STATE_VERSION &&
+    "projects" in parsedState &&
+    Array.isArray(parsedState.projects)
+  ) {
+    const currentState = parsedState as {
+      schemaVersion: typeof PROJECT_COMPASS_STATE_VERSION;
+      activeProjectId?: unknown;
+      projects: Project[];
+    };
+
+    const diagnostics: string[] = [];
+
+    const normalizedProjects = currentState.projects.map((project) => {
+      const missingCollections = [
+        ["tasks", project.tasks],
+        ["risks", project.risks],
+        ["decisions", project.decisions],
+        ["testCases", project.testCases],
+        ["members", project.members],
+      ]
+        .filter(([, value]) => value === undefined)
+        .map(([name]) => name);
+
+      if (missingCollections.length > 0) {
+        diagnostics.push(
+          `Project ${project.id} normalized missing collections: ${missingCollections.join(", ")}.`
+        );
+      }
+
+      return {
+        ...project,
+        tasks: project.tasks ?? [],
+        risks: project.risks ?? [],
+        decisions: project.decisions ?? [],
+        testCases: project.testCases ?? [],
+        members: project.members ?? [],
+      };
+    });
+
+    let activeProjectId =
+      typeof currentState.activeProjectId === "string"
+        ? currentState.activeProjectId
+        : null;
+
+    if (
+      activeProjectId !== null &&
+      !normalizedProjects.some((project) => project.id === activeProjectId)
+    ) {
+      diagnostics.push(
+        `activeProjectId ${activeProjectId} does not reference an existing project and was normalized to null.`
+      );
+      activeProjectId = null;
+    }
+
+    return {
+      status: "valid",
+      state: {
+        schemaVersion: PROJECT_COMPASS_STATE_VERSION,
+        activeProjectId,
+        projects: normalizedProjects,
+      },
+      normalized: diagnostics.length > 0,
+      diagnostics,
+    };
+  }
+
+  if (
+    typeof parsedState === "object" &&
+    parsedState !== null &&
+    "projects" in parsedState &&
+    Array.isArray(parsedState.projects) &&
+    !("schemaVersion" in parsedState)
+  ) {
+    const legacyState = parsedState as {
+      activeProjectId?: unknown;
+      projects: Project[];
+    };
+
+    const normalizedLegacyProjects = legacyState.projects.map((project) => ({
+      ...project,
+      tasks: project.tasks ?? [],
+      risks: project.risks ?? [],
+      decisions: project.decisions ?? [],
+      testCases: project.testCases ?? [],
+      members: project.members ?? [],
+    }));
+
+    return {
+      status: "legacy",
+      state: {
+        schemaVersion: PROJECT_COMPASS_STATE_VERSION,
+        activeProjectId:
+          typeof legacyState.activeProjectId === "string"
+            ? legacyState.activeProjectId
+            : null,
+        projects: normalizedLegacyProjects,
+      },
+      normalized: true,
+      diagnostics: [
+        "Stored state has no schemaVersion and is treated as legacy state.",
+      ],
+    };
+  }
+
+  return {
+    status: "invalid",
+    state: null,
+    normalized: false,
+    diagnostics: ["Stored state has not been parsed yet."],
+  };
+}
 export function createProject(name: string, description?: string): Project {
   const now = new Date().toISOString();
 
@@ -128,48 +304,53 @@ export function createProject(name: string, description?: string): Project {
   };
 }
 
-export function loadProjectCompassState(): ProjectCompassState {
+export function readProjectCompassState(): ProjectCompassStateReadResult {
   if (typeof window === "undefined") {
-    return createEmptyState();
+    return {
+      status: "missing",
+      state: createEmptyState(),
+      normalized: false,
+      diagnostics: [],
+    };
   }
 
   const savedState = window.localStorage.getItem(PROJECT_COMPASS_STORAGE_KEY);
 
-  if (!savedState) {
-    return createEmptyState();
-  }
-
-  try {
-    const parsedState = JSON.parse(savedState) as ProjectCompassState;
-
-    if (!Array.isArray(parsedState.projects)) {
-      return createEmptyState();
-    }
-
-    return {
-      activeProjectId: parsedState.activeProjectId ?? null,
-      projects: parsedState.projects.map((project) => ({
-        ...project,
-        tasks: project.tasks ?? [],
-        risks: project.risks ?? [],
-        decisions: project.decisions ?? [],
-        testCases: project.testCases ?? [],
-        members: project.members ?? [],
-      })),
-    };
-  } catch {
-    return createEmptyState();
-  }
+  return parseProjectCompassState(savedState);
 }
+export function loadProjectCompassState(): ProjectCompassState {
+  const result = readProjectCompassState();
 
+  if (result.state) {
+    return result.state;
+  }
+
+  console.warn(
+    `Project Compass state could not be loaded (${result.status}): ${result.diagnostics.join(" ")}`
+  );
+
+  return createEmptyState();
+}
 export function saveProjectCompassState(state: ProjectCompassState): void {
   if (typeof window === "undefined") {
     return;
   }
 
+  const savedState = window.localStorage.getItem(PROJECT_COMPASS_STORAGE_KEY);
+  const existingState = parseProjectCompassState(savedState);
+
+  if (
+    existingState.status === "invalid" ||
+    existingState.status === "unsupported-version"
+  ) {
+    console.warn(
+      `Project Compass state was not saved because existing stored data is ${existingState.status}.`
+    );
+    return;
+  }
+
   window.localStorage.setItem(PROJECT_COMPASS_STORAGE_KEY, JSON.stringify(state));
 }
-
 export function getActiveProject(state: ProjectCompassState): Project | null {
   if (!state.activeProjectId) {
     return null;
@@ -204,6 +385,7 @@ export function addProject(
   project: Project
 ): ProjectCompassState {
   return {
+    ...state,
     activeProjectId: project.id,
     projects: [...state.projects, project],
   };

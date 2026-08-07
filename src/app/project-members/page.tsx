@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import {
   addMemberToProject,
   createProjectMember,
+  createEmptyState,
   getActiveProject,
   loadProjectCompassState,
   Project,
@@ -13,10 +14,7 @@ import {
 } from "@/lib/projectStorage";
 
 export default function ProjectMembersPage() {
-  const [state, setState] = useState<ProjectCompassState>({
-    activeProjectId: null,
-    projects: [],
-  });
+  const [state, setState] = useState<ProjectCompassState>(() => createEmptyState());
 
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [name, setName] = useState("");
