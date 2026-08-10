@@ -793,3 +793,237 @@ AI Review #004 avslutades efter att:
 - ändringarna är committade,
 - ändringarna är pushade till GitHub,
 - slutligt `git status` är clean.
+
+## AI Review #005 – Safe Task Legacy Migration Current Flow Verification
+
+**Startdatum:** 10 augusti 2026
+**Projekt:** Project Compass
+**AI-modell:** ChatGPT, GPT-5.6 Sol
+**Status:** Pågående – verifiering slutförd, väntar på styrgruppens granskning
+
+### Uppgift
+
+Använda AI som stöd för att verifiera Data Unification steg 3, del 1:
+
+**Safe Task Legacy Migration – Current Flow Verification**
+
+Målet var att verifiera den befintliga migreringen från:
+
+```text
+project-compass-tasks
+```
+
+till det aktiva projektets:
+
+```text
+project-compass-state
+```
+
+innan någon produktionskod för backup, rollback eller ny migrationslogik ändras.
+
+Uppdraget omfattade:
+
+- exakt source-read,
+- trigger och migrationsvillkor,
+- historisk legacy Task-modell,
+- aktuell `ProjectTask`-modell,
+- faktisk transformation fält för fält,
+- source-delete,
+- samspel med `saveProjectCompassState()`,
+- fel- och retry-beteende,
+- befintligt Vitest- och Playwright-skydd,
+- migrationsorakel,
+- riskrangordning,
+- ett minsta rekommenderat nästa tekniskt steg.
+
+### AI:s bidrag
+
+AI användes för att:
+
+- avgränsa kod- och testsökningar till relevanta filer,
+- rekonstruera legacy Task-modellen med Git-historik,
+- jämföra historisk source-modell med aktuell target-modell,
+- spåra kedjan från Workspace mount till source-delete,
+- analysera transformationsregler fält för fält,
+- identifiera destruktiva och irreversibla punkter,
+- analysera fel- och retry-beteende,
+- granska direkt och indirekt automatiserat testskydd,
+- definiera ett migrationsorakel,
+- rangordna verifierade risker,
+- dokumentera skillnaden mellan verifierade fakta och antaganden,
+- föreslå ett enda minsta nästa tekniskt steg utan att implementera det.
+
+### Hur AI-resultatet granskades
+
+AI:s slutsatser accepterades inte som facit.
+
+Verifieringen byggde stegvis på:
+
+1. aktuell produktionskod,
+2. aktuell TypeScript-modell,
+3. Git-historik,
+4. historisk task-writer,
+5. befintliga testfiler,
+6. dokumenterade produktregler,
+7. terminaloutput från direkta repository-sökningar.
+
+Genererade `.next`-artefakter användes inte som auktoritativ källa.
+
+Ingen produktionskod ändrades under verifieringen.
+
+### Accepterat
+
+Följande slutsatser accepterades efter kontroll mot faktisk kod:
+
+- legacy tasks läses från `project-compass-tasks`,
+- taskmigreringen körs i Workspace-sidans mount effect,
+- ett aktivt projekt måste kunna lösas innan legacy tasks ens läses,
+- migrering kräver att target-projektets `tasks` är tom och att minst en legacy task överlever transformationen,
+- verifierad historisk legacy Task innehöll `id`, `title`, `description`, `status` och valfri `ownerId`,
+- legacy-statusvärdena motsvarade dagens sex Workspace-statusvärden,
+- `createdAt` och `updatedAt` skapas vid migrering eftersom de inte fanns i verifierad legacy-modell,
+- `priority` finns i aktuell target-modell men har inte verifierats som del av den historiska produktgenererade legacy-källan,
+- mappern rekonstruerar taskobjekt och ignorerar fält den inte uttryckligen emitterar,
+- ogiltiga taskposter kan filtreras bort före target-write,
+- hela `project-compass-tasks` tas bort efter save-anropet när migrationsblocket körs,
+- `saveProjectCompassState()` returnerar `void`,
+- ingen target read-back sker före source-delete,
+- det finns ingen backup eller rollback i befintlig taskmigrering,
+- det finns inget direkt Vitest- eller Playwright-test för legacy-taskmigreringen.
+
+### Ändrat eller korrigerat efter verifiering
+
+Två tidigare slutsatser behövde preciseras.
+
+#### `priority`
+
+Tidigare dokumentation beskrev utebliven `priority`-mappning som ett konkret dataförlustscenario.
+
+Git-historiken visade att den verifierade legacy Task-typen precis före migreringen inte innehöll `priority`.
+
+Korrigerad slutsats:
+
+- mappern emitterar inte `priority`,
+- icke-kanonisk legacy-data med `priority` skulle tappa värdet,
+- men faktisk förlust av ett produktgenererat legacy-`priority` är inte verifierad.
+
+#### Blockerad save följd av source-delete
+
+En tidig analys utgick från att en redan `invalid` eller `unsupported-version` target normalt kunde nå save/delete-blocket.
+
+Fördjupad kontroll visade att:
+
+- `loadProjectCompassState()` då ger en tom fallback-state,
+- inget aktivt projekt kan lösas,
+- Workspace returnerar före taskmigreringen.
+
+Korrigerad slutsats:
+
+- normal initial invalid/unsupported target leder inte till task source-delete,
+- den strukturella risken kvarstår eftersom source-delete inte är kopplad till ett positivt save-resultat eller read-back,
+- risken blir relevant om target ändras mellan initial read och save eller om annan tyst save-blockering uppstår.
+
+### Starkaste verifierade risk
+
+Den starkaste direkt verifierade dataförlustrisken är en partiell migration:
+
+```text
+legacy-array innehåller både giltiga och avvisade poster
+→ avvisade poster filtreras bort
+→ minst en giltig task återstår
+→ giltiga tasks skrivs till target
+→ hela project-compass-tasks tas bort
+→ avvisade poster kan inte längre återställas från source
+```
+
+Detta är ett starkare verifierat fynd än den tidigare `priority`-hypotesen.
+
+### Testskydd
+
+Direkt Vitest-skydd för legacy-taskmigreringen saknas.
+
+Befintliga Playwright-tester navigerar till Workspace och exekverar sidan indirekt, men de seedar inte `project-compass-tasks`.
+
+De verifierar därför inte kedjan:
+
+```text
+legacy source
+→ parse
+→ transform
+→ target write
+→ source delete
+```
+
+### Migrationsorakel
+
+AI behandlades inte som migrationsorakel.
+
+Verifieringsunderlaget rangordnades i första hand som:
+
+```text
+historisk source-producer och writer
+→ aktuell target TypeScript-modell
+→ verifierade produktregler
+→ aktuell transformationskod
+→ Git-historik
+→ relevanta fixtures
+→ framtida direkta migrationstester
+```
+
+TypeScript-casts, aktuell mapper och gröna generella Workspace-tester behandlades inte som bevis för korrekt legacy-migrering i sig.
+
+### Rekommenderat nästa tekniskt steg
+
+Inget nytt migrationsbeteende implementerades.
+
+Minsta rekommenderade nästa steg är att, efter styrgruppens godkännande, lägga till ett direkt Playwright-characterization test för den kanoniska legacy-task happy path.
+
+Testet bör verifiera bevarande av verifierade legacyfält, skapade timestamps, target-persistens efter reload och source-delete på den lyckade kanoniska vägen.
+
+### Kvarvarande risker och antaganden
+
+- Partiellt giltig legacy-data kan förlora avvisade poster.
+- Ingen backup eller rollback finns.
+- Source-delete saknar explicit koppling till verifierat target-resultat.
+- Icke-kanoniska fält kan tappas.
+- Legacy-data kan bli kvar om target redan innehåller tasks.
+- Misslyckad source-delete kan lämna stale eller duplicerad legacy-data.
+- Fel i legacy-source hanteras huvudsakligen tyst.
+- Ingen direkt migrationsregression finns ännu.
+
+### Informationssäkerhet
+
+Ingen hemlighet, autentiseringsuppgift eller verklig användares localStorage-data behövde delas med AI.
+
+Arbetet byggde på:
+
+- lokal produktionskod,
+- lokal Git-historik,
+- lokala testfiler,
+- lokal dokumentation,
+- terminaloutput.
+
+### Kompetensevidens
+
+Arbetet visar praktisk kompetens inom:
+
+- riskbaserad migrationsanalys,
+- historisk kodanalys med Git,
+- TypeScript-modelljämförelse,
+- dataförlustanalys,
+- runtime- kontra compile-time-validering,
+- testgap-analys,
+- retry- och failure-mode-analys,
+- migrationsorakel,
+- QA-dokumentation,
+- AI-assisterad analys med mänsklig verifiering.
+
+### Status
+
+Pågående.
+
+Verifieringsdelen av AI Review #005 är genomförd.
+
+Ingen produktionskod för taskmigrering, backup eller rollback har ändrats.
+
+AI Review #005 väntar på styrgruppens granskning och beslut om nästa tekniska steg.
