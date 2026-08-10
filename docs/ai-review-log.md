@@ -1027,3 +1027,147 @@ Verifieringsdelen av AI Review #005 är genomförd.
 Ingen produktionskod för taskmigrering, backup eller rollback har ändrats.
 
 AI Review #005 väntar på styrgruppens granskning och beslut om nästa tekniska steg.
+
+### Uppdatering – Data Unification steg 3, del 2
+
+**Delsteg:** Canonical Legacy Task Characterization Test
+**Datum:** 10 augusti 2026
+**Status:** Characterization-test implementerat och grönt mot oförändrad produktionskod
+
+Styrgruppen godkände efter del 1 ett enda begränsat nästa steg: att skapa ett direkt Playwright-characterization test för den kanoniska legacy-task happy path.
+
+Ingen produktionskod fick ändras.
+
+#### Testfil och testnamn
+
+Ny testfil:
+
+`tests/task-legacy-migration.spec.ts`
+
+Test:
+
+`Legacy task migration characterization > migrates one canonical legacy task into the active project`
+
+#### Hur fixturen härleddes
+
+Fixturen byggdes från det migrationsorakel som verifierades i del 1.
+
+Source-kontraktet hämtades från den historiskt verifierade legacy Task-modellen precis före att migreringen infördes:
+
+- `id`
+- `title`
+- `description`
+- `status`
+- valfri `ownerId`
+
+Inga moderna source-fält som `priority`, `createdAt` eller `updatedAt` lades till i legacy-tasken.
+
+Target-state byggdes enligt den aktuella `ProjectCompassState`-modellen:
+
+- `schemaVersion: 1`
+- giltigt `activeProjectId`
+- ett existerande aktivt projekt
+- tom `tasks`-array
+- övriga obligatoriska collections
+- en faktisk medlem vars id motsvarar legacy-taskens `ownerId`
+
+Statusvärdet `review` valdes medvetet i legacy-tasken.
+
+Det gör status-preservation synlig eftersom mapperns fallback är `backlog`. Ett grönt test kan därför inte råka dölja en felaktig statusmappning genom samma värde som default.
+
+#### Exakt seedad legacy-task
+
+Legacy-källan `project-compass-tasks` innehöll exakt en task med:
+
+- `id`: `legacy-task-1`
+- `title`: `Verify legacy migration`
+- `description`: `Preserve the canonical legacy task fields during migration.`
+- `status`: `review`
+- `ownerId`: `member-legacy-owner`
+
+Motsvarande medlem fanns i målprojektets `members` med id:
+
+`member-legacy-owner`
+
+#### Assertions
+
+Testet verifierar att:
+
+- Workspace öppnas,
+- target-projektets task-array blir exakt 1,
+- `id` är oförändrat,
+- `title` är oförändrat,
+- `description` är oförändrat,
+- `status` är oförändrat,
+- `ownerId` är oförändrat,
+- `createdAt` har skapats som en icke-tom string,
+- `updatedAt` har skapats som en icke-tom string,
+- `project-compass-tasks` har tagits bort,
+- sidan kan reloadas,
+- exakt en migrerad task finns kvar efter reload,
+- taskens id fortfarande är `legacy-task-1`,
+- legacy-keyn fortfarande saknas efter reload.
+
+Tidsfälten verifieras inte mot ett exakt timestamp-värde. Testet verifierar endast det kontrakt som characterization-testet behöver bevisa: att båda fälten har skapats som icke-tomma strängar.
+
+#### Faktisk Playwright-körning
+
+Kommando:
+
+`npx playwright test tests/task-legacy-migration.spec.ts --project=chromium --workers=1`
+
+Faktiskt resultat:
+
+- 1 test kördes
+- 1 test passerade
+- körtid: 23.8 sekunder
+
+Testet passerade mot oförändrad produktionskod.
+
+#### Vad testet nu bevisar
+
+Testet ger ett exekverbart baseline-oracle för den befintliga kanoniska happy path-migreringen.
+
+Det bevisar att en historiskt representativ canonical legacy-task kan migreras från `project-compass-tasks` till det aktiva projektets `tasks`, att de verifierade legacy-fälten bevaras, att target-timestamps skapas, att resultatet persisterar efter reload och att legacy-source tas bort på denna lyckade väg.
+
+#### Vad testet inte bevisar
+
+Testet bevisar inte:
+
+- mixed valid/invalid records,
+- partiell record-filtrering,
+- source-retention vid misslyckad migration,
+- backup,
+- rollback,
+- read-back före source-delete,
+- beteende när target redan innehåller tasks,
+- malformed legacy JSON,
+- non-canonical extra fält,
+- concurrent localStorage-förändring,
+- risk- eller decisionsmigrering.
+
+Det ska därför behandlas som ett characterization-test för nuvarande canonical happy path, inte som bevis för att migrationslösningen som helhet är säker.
+
+#### AI-antaganden och korrigeringar
+
+Ingen ny produktionslogik antogs eller konstruerades av AI.
+
+En viktig testdesignfråga var seedningen vid reload. `page.addInitScript()` användes medvetet inte för legacy-fixturen, eftersom ett init-script skulle kunna seeda om `project-compass-tasks` vid reload och därmed förstöra verifieringen av one-time migration och source-delete.
+
+I stället etablerades browser-origin först, localStorage seedades en gång med `page.evaluate()`, Workspace öppnades och den senare reloaden skedde utan ny seedning.
+
+Detta beslut härleddes från testets faktiska syfte, inte från ett antaget implementationskrav.
+
+#### Ändrade filer efter testkörningen
+
+Efter den gröna Playwright-körningen visade `git status --short` endast:
+
+`?? tests/task-legacy-migration.spec.ts`
+
+Ingen produktionsfil var ändrad.
+
+#### Status för AI Review #005
+
+AI Review #005 förblir Pågående tills styrgruppen har granskat återrapporteringen från Data Unification steg 3, del 2.
+
+Ingen produktionskod för migration, backup, rollback eller source-delete har ändrats.
