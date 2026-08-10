@@ -1373,3 +1373,230 @@ AI Review #005 förblir **Pågående**.
 Ingen produktionskod i `loadLegacyTasks()`, migrationsvillkoret, `saveProjectCompassState()`, source-delete, backup, rollback, read-back, risks eller decisions har ändrats.
 
 Nästa produktionsändring får inte påbörjas innan styrgruppen har granskat återrapporteringen från Data Unification steg 3, del 3.
+
+### Uppdatering – Data Unification steg 3, del 4
+
+**Delsteg:** Atomic Legacy Task Admission – RED → GREEN
+**Datum:** 10 augusti 2026
+**Status:** Minimal produktionsändring implementerad och riktad RED → GREEN-verifiering genomförd
+
+Styrgruppen godkände Data Unification steg 3, del 3 och beslutade därefter om den första produktionskodändringen inom Safe Task Legacy Migration Slice.
+
+Målet var strikt begränsat till den verifierade admission-/filterrisken:
+
+> Om någon source-record inte kan accepteras för migration ska hela taskmigreringen avbrytas. Target ska inte delvis uppdateras och `project-compass-tasks` ska lämnas oförändrad.
+
+#### Tidigare beteende
+
+Före ändringen reducerade `loadLegacyTasks()` source med ett filter innan transformeringen:
+
+`.filter((task) => typeof task.title === "string" && task.title.trim())`
+
+Det gjorde att en mixed source kunde reduceras till endast de giltiga posterna. Om minst en giltig task återstod fortsatte migrationen, target uppdaterades och hela `project-compass-tasks` togs bort.
+
+Del 3 reproducerade exakt detta:
+
+- två source-records,
+- en invalid whitespace-only title filtrerades bort,
+- den giltiga posten migrerades,
+- hela legacy-source raderades.
+
+Det gav verifierad risk för tyst partiell dataförlust.
+
+#### Vald minsta produktionsändring
+
+Endast `src/app/project-board/page.tsx` ändrades.
+
+I `loadLegacyTasks()` lades en admission-kontroll in direkt efter array-kontrollen:
+
+    if (
+      parsedTasks.some(
+        (task) => typeof task.title !== "string" || !task.title.trim()
+      )
+    ) {
+      return [];
+    }
+
+Det innebär att hela migrationen avbryts om minst en source-record saknar en användbar title.
+
+Ingen ändring gjordes i:
+
+- migrationsvillkoret,
+- `saveProjectCompassState()`,
+- target-write,
+- `localStorage.removeItem("project-compass-tasks")`,
+- backup,
+- rollback,
+- read-back,
+- risks,
+- decisions,
+- Project Interview,
+- övriga storage-flöden.
+
+#### Nytt beteende
+
+Om alla source-records har en `title` som är en string och fortfarande innehåller något efter `trim()` fortsätter den befintliga canonical migrationen.
+
+Om minst en record inte uppfyller denna regel returnerar `loadLegacyTasks()` en tom lista innan någon delmängd transformeras.
+
+Då:
+
+- startar ingen migration,
+- target lämnas oförändrat,
+- ingen giltig source-record delmigreras,
+- target-write nås inte,
+- source-delete nås inte,
+- hela originalet i `project-compass-tasks` lämnas kvar.
+#### RED → GREEN-verifiering
+
+Före produktionsändringen gav det riktade Playwright-testet:
+
+- canonical characterization: GREEN,
+- mixed valid/invalid safety: RED.
+
+Mixed-testet failade med:
+
+`Atomic migration must leave target tasks empty when any source record is invalid`
+
+Förväntad target-längd var `0`.
+
+Observerad target-längd var `1`.
+
+Observerad legacy-source var `null`.
+
+Detta var RED-baselinen för del 4.
+
+Efter den minimala produktionsändringen kördes:
+
+`npx playwright test tests/task-legacy-migration.spec.ts --project=chromium --workers=1`
+
+Faktiskt resultat:
+
+- 2 tester kördes,
+- 2 tester passerade,
+- total körtid: 23.5 sekunder.
+
+Resultatet blev därför:
+
+- canonical characterization: GREEN → GREEN,
+- mixed valid/invalid safety: RED → GREEN.
+
+#### Observerad mixed-source state efter ändringen
+
+Safety-testet loggade efter migrationsförsöket:
+
+`targetTasks: []`
+
+Legacy-source fanns fortfarande kvar som den ursprungliga JSON-strängen.
+
+`legacyRecords` innehöll fortfarande båda original-recordsen:
+
+1. `legacy-task-valid`,
+2. `legacy-task-invalid` med whitespace-only title.
+
+Det visar att GREEN-resultatet uppstod av rätt anledning:
+
+- target var faktiskt tomt,
+- den giltiga posten delmigrerades inte,
+- `project-compass-tasks` fanns kvar,
+- original-source var oförändrad,
+- båda source-recordsen fanns kvar.
+
+Det gröna resultatet berodde alltså inte på samma timingproblem som upptäcktes och korrigerades i del 3.
+
+#### Canonical happy path efter ändringen
+
+Det befintliga characterization-testet:
+
+`migrates one canonical legacy task into the active project`
+
+passerade fortsatt.
+
+Det verifierar fortfarande att en helt accepterbar canonical source:
+
+- migreras,
+- bevarar verifierade legacy-fält,
+- får target-timestamps,
+- persisterar efter reload,
+- inte dupliceras,
+- får legacy-source borttagen på lyckad canonical migration.
+
+#### AI-förslag och avgränsning
+
+AI föreslog den lokala admission-kontrollen i `loadLegacyTasks()`.
+
+Ingen större refaktorering bedömdes nödvändig för att lösa det verifierade RED-scenariot.
+
+Följande infördes därför inte:
+
+- generellt migrationsframework,
+- separat full runtime-validator,
+- full validering av alla fälttyper,
+- nytt `saveProjectCompassState()`-kontrakt,
+- explicit save-success-resultat,
+- read-back före source-delete,
+- backup,
+- rollback,
+- ändring av canonical source-delete,
+- risks-migrering,
+- decisions-migrering,
+- Project Interview-migrering,
+- bred storage-refaktorering.
+
+AI:s förslag används inte som bevis för att migrationen är säker.
+
+Verifieringsunderlaget är den faktiska produktionsdiffen, Playwright-testerna och observerad lagrad data.
+#### Kvarvarande risker
+
+Del 4 löser endast den verifierade partial-record/admission-risken för den beslutade title-regeln.
+
+Följande risker är fortfarande kvar och har inte lösts av denna ändring:
+
+- source-delete saknar verifierad read-back,
+- `saveProjectCompassState()` ger inget explicit success-resultat,
+- backup saknas,
+- rollback saknas,
+- malformed legacy JSON ligger utanför detta RED → GREEN-bevis,
+- non-array legacy-data ligger utanför detta RED → GREEN-bevis,
+- enum- och schema-drift är inte fullständigt validerad,
+- existing-target scenario är fortfarande separat,
+- source-delete failure är inte löst,
+- relationer är inte runtime-validerade,
+- övriga legacy-migreringar har inte förändrats eller säkrats av detta steg.
+
+Det får därför inte hävdas att taskmigreringen nu är generellt säker.
+
+Det som är verifierat är att den specifika tysta partiella dataförlustrisken från mixed valid/invalid records enligt den beslutade title-admission-regeln nu blockeras.
+
+#### Ändrade filer
+
+Efter den gröna Playwright-körningen visade:
+
+`git status --short`
+
+endast:
+
+`M src/app/project-board/page.tsx`
+
+Testfilen ändrades inte för att få GREEN.
+
+Efter denna dokumentationsuppdatering ska endast följande filer vara ändrade:
+
+- produktionskod: `src/app/project-board/page.tsx`
+- dokumentation: `docs/ai-review-log.md`
+- test: ingen ändring i del 4
+
+#### Status för AI Review #005
+
+AI Review #005 förblir **Pågående**.
+
+Verifieringsunderlaget för del 4 är:
+
+- den tidigare reproducerade RED-körningen,
+- den faktiska minimala produktionsdiffen,
+- GREEN-körningen efter ändringen,
+- observerad target-state,
+- observerad oförändrad legacy-source,
+- fortsatt grönt canonical characterization-test.
+
+Ingen ytterligare produktionsändring inom Data Unification steg 3 får påbörjas innan del 4 har återrapporterats och granskats av Road to AI-Native Quality Engineer 2028 – styrgruppen/roadmapen.

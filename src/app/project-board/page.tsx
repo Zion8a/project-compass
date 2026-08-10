@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -77,6 +77,14 @@ function loadLegacyTasks(): ProjectTask[] {
     if (!Array.isArray(parsedTasks)) {
       return [];
     }
+
+    if (
+  parsedTasks.some(
+    (task) => typeof task.title !== "string" || !task.title.trim()
+  )
+) {
+  return [];
+}
 
     const now = new Date().toISOString();
 
