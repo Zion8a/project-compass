@@ -157,4 +157,133 @@ test.describe("Legacy task migration characterization", () => {
       )
     ).toBeNull();
   });
+
+  test("aborts migration and preserves the complete legacy source when one record is invalid", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const originalLegacyRecords = [
+      {
+        id: "legacy-task-valid",
+        title: "Keep this legacy task",
+        description:
+          "This canonical legacy task must not be partially migrated.",
+        status: "review",
+        ownerId: "member-legacy-owner",
+      },
+      {
+        id: "legacy-task-invalid",
+        title: "   ",
+        description:
+          "This record is invalid because its title contains only whitespace.",
+        status: "planned",
+        ownerId: "member-legacy-owner",
+      },
+    ];
+
+    const originalLegacySource = JSON.stringify(originalLegacyRecords);
+
+    await page.evaluate(
+      ({ legacySource }) => {
+        window.localStorage.clear();
+
+        const storedDate = "2026-08-10T10:00:00.000Z";
+        const memberId = "member-legacy-owner";
+
+        window.localStorage.setItem(
+          "project-compass-state",
+          JSON.stringify({
+            schemaVersion: 1,
+            activeProjectId: "mixed-legacy-task-project",
+            projects: [
+              {
+                id: "mixed-legacy-task-project",
+                name: "Mixed Legacy Task Safety Test",
+                description:
+                  "A project used to verify atomic legacy task migration.",
+                status: "in-progress",
+                createdAt: storedDate,
+                updatedAt: storedDate,
+                tasks: [],
+                risks: [],
+                decisions: [],
+                testCases: [],
+                members: [
+                  {
+                    id: memberId,
+                    name: "Legacy Task Owner",
+                    role: "QA Lead",
+                    responsibility: "Own the seeded legacy tasks.",
+                    createdAt: storedDate,
+                    updatedAt: storedDate,
+                  },
+                ],
+              },
+            ],
+          })
+        );
+
+        window.localStorage.setItem(
+          "project-compass-tasks",
+          legacySource
+        );
+      },
+      { legacySource: originalLegacySource }
+    );
+
+    await page.goto("/project-board");
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace", exact: true })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText("Project: Mixed Legacy Task Safety Test", {
+        exact: true,
+      })
+    ).toBeVisible();
+
+    const observedMigrationState = await page.evaluate(() => {
+      const savedState = window.localStorage.getItem(
+        "project-compass-state"
+      );
+
+      const state = savedState ? JSON.parse(savedState) : null;
+      const activeProject = state?.projects?.find(
+        (project: { id: string }) =>
+          project.id === "mixed-legacy-task-project"
+      );
+
+      const legacySource = window.localStorage.getItem(
+        "project-compass-tasks"
+      );
+
+      return {
+        targetTasks: activeProject?.tasks ?? [],
+        legacySource,
+        legacyRecords: legacySource ? JSON.parse(legacySource) : null,
+      };
+    });
+
+    console.log(
+      "Observed mixed legacy migration state:",
+      JSON.stringify(observedMigrationState, null, 2)
+    );
+
+    expect(
+      observedMigrationState.targetTasks,
+      "Atomic migration must leave target tasks empty when any source record is invalid"
+    ).toHaveLength(0);
+
+    expect(
+      observedMigrationState.legacySource,
+      "Original legacy source must remain byte-for-byte unchanged when migration aborts"
+    ).toBe(originalLegacySource);
+
+    expect(
+      observedMigrationState.legacyRecords,
+      "Both original legacy records must remain available after an aborted migration"
+    ).toEqual(originalLegacyRecords);
+  });
 });

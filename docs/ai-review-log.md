@@ -1171,3 +1171,205 @@ Ingen produktionsfil var ändrad.
 AI Review #005 förblir Pågående tills styrgruppen har granskat återrapporteringen från Data Unification steg 3, del 2.
 
 Ingen produktionskod för migration, backup, rollback eller source-delete har ändrats.
+
+### Uppdatering – Data Unification steg 3, del 3
+
+**Delsteg:** Mixed Legacy Task Safety Test – RED
+**Datum:** 10 augusti 2026
+**Status:** Safety-test implementerat och reproducerar verifierad risk som rött test mot oförändrad produktionskod
+
+Styrgruppen beslutade att nästa steg efter canonical characterization-testet skulle vara ett enda safety/regression-test för den högst prioriterade verifierade risken: en legacy-source som innehåller både migrerbara och icke-migrerbara records.
+
+Ingen produktionskod fick ändras.
+
+#### Beslutad säkerhetsregel
+
+Det framtida migrationskravet är atomiskt:
+
+> Om alla source-records inte kan migreras säkert ska migrationen avbrytas. Target ska inte delvis uppdateras och originalet i `project-compass-tasks` ska bevaras oförändrat.
+
+Detta är safety-testets testorakel.
+
+#### Testfil och testnamn
+
+Testet lades till i befintlig fil:
+
+`tests/task-legacy-migration.spec.ts`
+
+Nytt test:
+
+`Legacy task migration characterization > aborts migration and preserves the complete legacy source when one record is invalid`
+
+Canonical characterization-testet behölls i samma fil och ändrades inte i sitt beteende.
+
+#### Exakt testfixture
+
+Target-state seedades som en giltig aktuell `project-compass-state` med:
+
+- `schemaVersion: 1`
+- `activeProjectId: mixed-legacy-task-project`
+- aktivt projekt med id `mixed-legacy-task-project`
+- projektstatus `in-progress`
+- tom `tasks`-array
+- tomma `risks`, `decisions` och `testCases`
+- medlem med id `member-legacy-owner`
+
+Legacy-källan `project-compass-tasks` seedades med exakt två records.
+
+Record 1 – canonical giltig legacy-task:
+
+- `id`: `legacy-task-valid`
+- `title`: `Keep this legacy task`
+- `description`: `This canonical legacy task must not be partially migrated.`
+- `status`: `review`
+- `ownerId`: `member-legacy-owner`
+
+Record 2 – invalid enligt faktisk nuvarande filterlogik:
+
+- `id`: `legacy-task-invalid`
+- `title`: tre whitespace-tecken
+- `description`: `This record is invalid because its title contains only whitespace.`
+- `status`: `planned`
+- `ownerId`: `member-legacy-owner`
+
+#### Hur invalid recorden härleddes från faktisk kod
+
+Nuvarande `loadLegacyTasks()` filtrerar records med:
+
+`.filter((task) => typeof task.title === "string" && task.title.trim())`
+
+En title som endast innehåller whitespace är därför en string men ger ett tomt resultat efter `trim()` och filtreras bort.
+
+Den invalid recorden är alltså inte ett påhittat felcase utan härledd direkt från dagens verifierade parser-/filterlogik.
+
+#### Förväntat resultat
+
+Safety-testet uttrycker framtida önskat beteende:
+
+- target-projektets `tasks` ska fortfarande vara tom,
+- den giltiga source-tasken ska inte delmigreras,
+- `project-compass-tasks` ska finnas kvar,
+- båda original-recordsen ska finnas kvar,
+- legacy-source ska vara byte-for-byte oförändrad.
+
+Eftersom dagens kod tidigare verifierats filtrera bort ogiltiga records, migrera kvarvarande giltiga records och därefter ta bort legacy-source, förväntades detta test bli rött.
+
+#### Testimplementation och synkroniseringskorrigering
+
+Första körningen av safety-testet blev oväntat grön.
+
+Observerad state visade då:
+
+- target `tasks`: `[]`
+- legacy-source: kvar
+- båda source-records: kvar oförändrade
+
+Detta stämde inte med den verifierade migrationskoden.
+
+Orsaken identifierades som ett test-synkroniseringsproblem. Testet väntade endast på rubriken `Workspace`, som renderas innan komponentens `useEffect()` nödvändigtvis har hunnit läsa och behandla localStorage.
+
+Ett AI-förslag att tolka den första gröna körningen som att nuvarande kod redan uppfyllde safety-kravet avvisades indirekt genom fortsatt verifiering mot faktisk produktionskod.
+
+Den faktiska renderingen verifierades och testet uppdaterades därför endast med en UI-signal som sätts efter att active project har laddats:
+
+`Project: Mixed Legacy Task Safety Test`
+
+Safety-oraklet, fixturen och assertions ändrades inte för att tvinga fram ett rött resultat.
+
+En första placering av denna väntan råkade hamna i canonical-testet. Det gav ett testfel av fel anledning och korrigerades. Därefter placerades väntan endast i safety-testet.
+
+#### Faktisk Playwright-körning
+
+Kommando:
+
+`npx playwright test tests/task-legacy-migration.spec.ts --project=chromium --workers=1`
+
+Slutligt faktiskt resultat:
+
+- 2 tester kördes
+- 1 test passerade
+- 1 test failade
+- total körtid: 20.0 sekunder
+
+Canonical characterization-testet passerade fortsatt.
+
+Safety-testet blev rött som förväntat.
+
+#### Exakt röd assertion
+
+Den första safety-assertionen som failade var:
+
+`Atomic migration must leave target tasks empty when any source record is invalid`
+
+Förväntat:
+
+`targetTasks.length === 0`
+
+Observerat:
+
+`targetTasks.length === 1`
+
+Den migrerade target-tasken var den canonical giltiga source-recorden:
+
+- `id`: `legacy-task-valid`
+- `title`: `Keep this legacy task`
+- `description`: `This canonical legacy task must not be partially migrated.`
+- `status`: `review`
+- `ownerId`: `member-legacy-owner`
+
+Dagens kod skapade dessutom `createdAt` och `updatedAt`.
+
+#### Observerad target-state
+
+Efter dagens migration innehöll target exakt en task: den giltiga source-recorden.
+
+Den invalid recorden hade filtrerats bort och migrerades inte.
+
+Detta reproducerar den verifierade partiella migrationen.
+
+#### Observerad legacy-source
+
+Efter dagens migration var:
+
+`project-compass-tasks = null`
+
+Även `legacyRecords` var därför `null`.
+
+Det innebär att hela legacy-source hade raderats efter att endast den giltiga posten migrerats.
+
+Den invalid source-recorden gick därmed förlorad.
+
+#### Varför det röda testet är korrekt evidens
+
+Det röda testet beror inte på felaktig fixture, syntaxfel eller testsetup.
+
+Failure-message matchar exakt det beslutade safety-oraklet:
+
+- target uppdaterades partiellt trots en invalid source-record,
+- original-source raderades,
+- migrationen var inte atomisk.
+
+Detta är därför reproducerbar automatiserad evidens för den risk som identifierades i Data Unification steg 3, del 1.
+
+Det röda testet ska nu behållas som regression/safety-orakel inför kommande minsta produktionsändring.
+
+#### Ändrade filer vid detta delsteg
+
+Efter den röda Playwright-körningen visade `git status --short` endast:
+
+`M tests/task-legacy-migration.spec.ts`
+
+Ingen produktionskod var ändrad.
+
+Efter denna dokumentationsuppdatering ska endast följande två filer vara ändrade:
+
+- `tests/task-legacy-migration.spec.ts`
+- `docs/ai-review-log.md`
+
+#### Status för AI Review #005
+
+AI Review #005 förblir **Pågående**.
+
+Ingen produktionskod i `loadLegacyTasks()`, migrationsvillkoret, `saveProjectCompassState()`, source-delete, backup, rollback, read-back, risks eller decisions har ändrats.
+
+Nästa produktionsändring får inte påbörjas innan styrgruppen har granskat återrapporteringen från Data Unification steg 3, del 3.
