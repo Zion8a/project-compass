@@ -1784,3 +1784,431 @@ Del 6 verifierar att ett enkelt boolean-kontrakt räcker för att eliminera den 
 Project Board använder ännu inte resultatet.
 
 Ingen ytterligare ändring i taskmigrationens control flow får påbörjas innan Del 6 har återrapporterats och granskats av Road to AI-Native Quality Engineer 2028 – styrgruppen/roadmapen.
+### Uppdatering – Data Unification steg 3, del 7
+
+**Delsteg:** Save-Failure Fault Injection – RED → GREEN
+**Datum:** 11 augusti 2026
+**Status:** Explicit save-failure verifierad med deterministisk fault injection och caller control flow korrigerad RED → GREEN
+
+Styrgruppen godkände efter Del 6 nästa steg inom Safe Task Legacy Migration Slice.
+
+Syftet var att verifiera om taskmigrationens caller faktiskt respekterade det nya boolean-kontraktet från `saveProjectCompassState()`.
+
+Säkerhetsregeln var:
+
+> `project-compass-tasks` får endast tas bort om `saveProjectCompassState(updatedState) === true`.
+
+Det skulle dessutom observeras om runtime/UI fortsatte att presentera migrationen som lyckad trots att target-persistence misslyckades.
+
+#### Teststrategi
+
+Ett lokalt och deterministiskt Playwright-test lades till i:
+
+`tests/task-legacy-migration.spec.ts`
+
+Test:
+
+`Legacy task migration characterization > preserves legacy source when target save returns false`
+
+Ingen produktions-seam, dependency injection, generell storage-wrapper eller migrationsservice infördes.
+
+Fault injection implementerades test-only via `page.addInitScript()` och `Storage.prototype.getItem`.
+
+Injektionen kopplades till faktisk storage-sekvens:
+
+```text
+initial project-compass-state read
+→ valid
+
+project-compass-tasks read
+→ legacy-source-read
+
+nästa project-compass-state read
+→ one-shot malformed payload
+→ saveProjectCompassState(...) returnerar false
+```
+
+Den byggde inte på ett hårdkodat antal `getItem()`-anrop.
+
+En trace lades till för att verifiera exakt när faulten träffade.
+
+#### Första testobservationen – falskt GREEN på grund av timing
+
+Den första versionen av testet observerade persistence och UI för tidigt.
+
+Trace visade då endast:
+
+```text
+read:project-compass-state
+read:project-compass-tasks
+legacy-source-read
+```
+
+`FAULT-INJECTED` hade ännu inte inträffat.
+
+Testet var därför inte ett giltigt bevis för save-failure-beteendet.
+
+Detta klassificerades som ett testdesign-/synkroniseringsproblem, inte som ett produktresultat.
+
+Testet justerades därför till att vänta på den semantiska händelsen:
+
+```text
+FAULT-INJECTED
+```
+
+innan persistence, legacy-source och runtime/UI observerades.
+
+Ingen godtycklig timeout eller hårdkodad read-count användes.
+
+#### Verifierad RED
+
+Efter korrekt synkronisering blev faktisk trace:
+
+```text
+read:project-compass-state
+read:project-compass-current-project
+read:project-compass-state
+read:project-compass-tasks
+legacy-source-read
+read:project-compass-state
+FAULT-INJECTED
+read:project-compass-state
+read:project-compass-tasks
+```
+
+Applikationen loggade:
+
+```text
+Project Compass state was not saved because existing stored data is invalid.
+```
+
+Det verifierade att fault injection träffade save-time state-read och att `saveProjectCompassState(updatedState)` tog `false`-vägen.
+
+Observerat persistent target:
+
+```text
+persistedTargetTasks: []
+```
+
+Den migrerade tasken skrevs alltså inte till `project-compass-state`.
+
+Observerad legacy-source:
+
+```text
+legacySource: null
+legacyRecords: null
+```
+
+Legacy-source hade alltså ändå raderats.
+
+Testet blev RED på safety-assertionen:
+
+```text
+Original legacy source must remain byte-for-byte unchanged when target save returns false
+```
+
+Samtidigt observerades:
+
+```text
+migratedTaskVisible: true
+```
+
+Det innebar att caller-problemet var bredare än den ursprungliga hypotesen.
+
+Den första hypotesen var:
+
+```text
+source-delete måste villkoras av save-resultatet
+```
+
+RED visade istället att både cleanup och runtime-state låg på fel sida om commit-gränsen.
+
+Faktiskt failure mode var:
+
+```text
+target persistence:
+misslyckad
+
+legacy source:
+raderad
+
+runtime/UI:
+migrerad task visas
+```
+
+#### Förändrat testorakel
+
+Efter RED blev det verifierade failure-contractet:
+
+```text
+save === false
+→ persistent target får inte innehålla migrerad task
+→ legacy-source ska finnas kvar byte-for-byte
+→ migrerad runtime-state får inte presenteras som lyckad
+```
+
+Detta är ett exempel på att testresultatet förändrade den föreslagna implementationen.
+
+En lösning som endast hade villkorat:
+
+```ts
+localStorage.removeItem("project-compass-tasks");
+```
+
+hade inte varit tillräcklig.
+
+#### Kontroll av om enkelt `return` räckte
+
+Den omgivande `useEffect`-funktionen granskades innan produktionsändringen.
+
+Runtime-state initieras som:
+
+```ts
+const [activeProject, setActiveProject] = useState<Project | null>(null);
+const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
+const [tasks, setTasks] = useState<ProjectTask[]>([]);
+```
+
+Den normala initialiseringen till redan laddad `currentActiveProject` sker efter migrationsblocket.
+
+Ett enkelt:
+
+```ts
+if (!saved) {
+  return;
+}
+```
+
+hade därför lämnat Project Board i ett tomt/o initierat runtime-läge.
+
+Minimal lösning behövde explicit återapplicera redan laddad pre-migration-state.
+
+#### Minimal GREEN-produktionsändring
+
+Endast taskmigrationens aktuella control flow i:
+
+`src/app/project-board/page.tsx`
+
+ändrades.
+
+Tidigare:
+
+```ts
+saveProjectCompassState(updatedState);
+localStorage.removeItem("project-compass-tasks");
+
+setActiveProject(updatedActiveProject);
+setProjectMembers(updatedActiveProject?.members ?? []);
+setTasks(updatedActiveProject?.tasks ?? []);
+
+return;
+```
+
+Efter ändringen:
+
+```ts
+const saved = saveProjectCompassState(updatedState);
+
+if (!saved) {
+  setActiveProject(currentActiveProject);
+  setProjectMembers(currentActiveProject.members);
+  setTasks(currentActiveProject.tasks);
+  return;
+}
+
+localStorage.removeItem("project-compass-tasks");
+
+setActiveProject(updatedActiveProject);
+setProjectMembers(updatedActiveProject?.members ?? []);
+setTasks(updatedActiveProject?.tasks ?? []);
+
+return;
+```
+
+Detta är inte en rollbackmekanism.
+
+Ingen kopia av persistent state skapades.
+
+Den redan laddade `currentActiveProject` används endast för att lämna runtime/UI i samma pre-migration-läge när persistence avbryts.
+
+#### GREEN-verifiering
+
+Efter ändringen gav samma fault-injection-test:
+
+```text
+Storage read trace:
+read:project-compass-state
+read:project-compass-current-project
+read:project-compass-state
+read:project-compass-tasks
+legacy-source-read
+read:project-compass-state
+FAULT-INJECTED
+read:project-compass-state
+read:project-compass-tasks
+legacy-source-read
+```
+
+Observerat resultat:
+
+```text
+persistedTargetTasks: []
+legacy source: original payload kvar
+legacy records: original record kvar
+migratedTaskVisible: false
+```
+
+Testresultat:
+
+```text
+1 passed
+```
+
+Save-failure safety gick därmed:
+
+```text
+RED → GREEN
+```
+
+#### Riktad regression efter GREEN
+
+Canonical legacy migration:
+
+```text
+migrates one canonical legacy task into the active project
+```
+
+Resultat:
+
+```text
+GREEN → GREEN
+```
+
+Mixed valid/invalid admission safety:
+
+```text
+aborts migration and preserves the complete legacy source when one record is invalid
+```
+
+Resultat:
+
+```text
+GREEN → GREEN
+```
+
+#### Final Verification Gate
+
+Efter riktad GREEN-verifiering genomfördes projektets lokala slutport.
+
+Full Vitest:
+
+```text
+Test Files  1 passed (1)
+Tests       13 passed (13)
+```
+
+De två stderr-meddelandena för `invalid` och `unsupported-version` var förväntade observationer från save-boundary-testerna.
+
+Production build:
+
+```text
+Compiled successfully
+Finished TypeScript
+Generating static pages: 13/13
+```
+
+Builden var GREEN.
+
+Full Chromium Playwright-suite:
+
+```text
+35 passed
+0 failed
+0 skipped
+```
+
+Observerade warnings var Next.js Fast Refresh full reload-meddelanden samt den avsiktliga browser-warningen från fault-injection-testet:
+
+```text
+Project Compass state was not saved because existing stored data is invalid.
+```
+
+Inga nya funktionella failures observerades.
+
+`git diff --check` gav ingen output.
+
+Slutporten var därmed lokalt GREEN.
+
+#### AI-förslag som avvisades eller nedgraderades
+
+Under AI Review #005 förändrades flera hypoteser efter kontroll mot faktisk kod och testresultat.
+
+Misstänkt `priority`-förlust nedgraderades efter verifiering av den historiska legacy Task-modellen.
+
+Backup och rollback diskuterades men infördes inte eftersom verifierad evidens inte motiverade dem.
+
+Read-back infördes inte eftersom det inte behövdes för den verifierade kontraktsluckan.
+
+En generell storage-seam eller migrationsabstraktion infördes inte.
+
+Första implementationstanken var att endast villkora source-delete.
+
+RED-testet visade att detta hade varit otillräckligt eftersom även runtime-state applicerades efter misslyckad persistence.
+
+Fault injection användes medvetet som ett white-box-test av en verifierad control-flow-risk.
+
+Det dokumenterades inte som ett reproducerat normalt användarflöde eller som bevis för en naturligt förekommande race condition.
+
+#### Kvalitetsmodell efter Del 7
+
+Den verifierade taskmigrationens commit-gräns är nu:
+
+```text
+prepare migration
+↓
+attempt persistence
+↓
+FALSE
+→ behåll legacy-source
+→ behåll pre-migration runtime
+→ abort
+
+TRUE
+→ cleanup legacy-source
+→ applicera migrerad runtime
+```
+
+Denna modell är begränsad till den canonical task-legacy-migration som omfattas av denna slice.
+
+Den innebär inte att samtliga Project Compass-migreringar är verifierat säkra.
+
+Risks, decisions och Project Interview är fortfarande separata och obevisade migrationsområden.
+
+### Slutstatus – AI Review #005
+
+**Status: Stängd – 11 augusti 2026**
+
+AI Review #005 stängs efter genomförd verifiering, RED → GREEN-arbete och lokal Final Verification Gate.
+
+Reviewen visar ett evidensdrivet AI-arbetssätt där AI-förslag kontinuerligt kontrollerades mot:
+
+* faktisk produktionskod,
+* TypeScript-modeller,
+* Git-historik,
+* existerande testskydd,
+* riktade characterization- och safety-tester,
+* faktisk terminaloutput,
+* observerad persistent state,
+* observerad legacy-source,
+* observerat runtime/UI-beteende,
+* full lokal regression.
+
+AI-resultat accepterades inte som facit.
+
+Hypoteser som inte höll mot evidens nedgraderades eller avvisades.
+
+Testoraklet förändrades när RED-testet visade ett bredare caller-problem än den första implementationstanken.
+
+Den lokala slutporten är GREEN för Safe Task Legacy Migration Slice.
+
+Slutlig stängning av själva Data Unification steg 3-slicen kräver fortfarande GREEN GitHub Actions efter commit och push.

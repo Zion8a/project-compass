@@ -144,7 +144,15 @@ export default function ProjectBoardPage() {
       const updatedState = updateProject(platformState, migratedProject);
       const updatedActiveProject = getActiveProject(updatedState);
 
-      saveProjectCompassState(updatedState);
+      const saved = saveProjectCompassState(updatedState);
+
+      if (!saved) {
+        setActiveProject(currentActiveProject);
+        setProjectMembers(currentActiveProject.members);
+        setTasks(currentActiveProject.tasks);
+        return;
+      }
+
       localStorage.removeItem("project-compass-tasks");
 
       setActiveProject(updatedActiveProject);

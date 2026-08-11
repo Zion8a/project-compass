@@ -286,4 +286,216 @@ test.describe("Legacy task migration characterization", () => {
       "Both original legacy records must remain available after an aborted migration"
     ).toEqual(originalLegacyRecords);
   });
+      test("preserves legacy source when target save returns false", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const originalLegacyRecords = [
+      {
+        id: "legacy-task-save-failure",
+        title: "Preserve source on save failure",
+        description:
+          "This task must remain recoverable when target persistence is rejected.",
+        status: "review",
+        ownerId: "member-legacy-owner",
+      },
+    ];
+
+    const originalLegacySource = JSON.stringify(originalLegacyRecords);
+
+    await page.evaluate(
+      ({ legacySource }) => {
+        window.localStorage.clear();
+
+        const storedDate = "2026-08-11T13:00:00.000Z";
+        const memberId = "member-legacy-owner";
+
+        window.localStorage.setItem(
+          "project-compass-state",
+          JSON.stringify({
+            schemaVersion: 1,
+            activeProjectId: "save-failure-project",
+            projects: [
+              {
+                id: "save-failure-project",
+                name: "Save Failure Migration Test",
+                description:
+                  "A project used to verify caller safety when target save returns false.",
+                status: "in-progress",
+                createdAt: storedDate,
+                updatedAt: storedDate,
+                tasks: [],
+                risks: [],
+                decisions: [],
+                testCases: [],
+                members: [
+                  {
+                    id: memberId,
+                    name: "Legacy Task Owner",
+                    role: "QA Lead",
+                    responsibility: "Own the seeded legacy task.",
+                    createdAt: storedDate,
+                    updatedAt: storedDate,
+                  },
+                ],
+              },
+            ],
+          })
+        );
+
+        window.localStorage.setItem(
+          "project-compass-tasks",
+          legacySource
+        );
+      },
+      { legacySource: originalLegacySource }
+    );
+
+    await page.addInitScript(() => {
+      const originalGetItem = Storage.prototype.getItem;
+
+      let legacyTaskSourceRead = false;
+      let saveFailureInjected = false;
+
+      (
+        window as typeof window & {
+          __storageReadTrace?: string[];
+        }
+      ).__storageReadTrace = [];
+
+      Storage.prototype.getItem = function (key: string) {
+        const trace = (
+          window as typeof window & {
+            __storageReadTrace?: string[];
+          }
+        ).__storageReadTrace!;
+
+        trace.push(`read:${key}`);
+
+        if (key === "project-compass-tasks") {
+          const value = originalGetItem.call(this, key);
+
+          if (value !== null) {
+            legacyTaskSourceRead = true;
+            trace.push("legacy-source-read");
+          }
+
+          return value;
+        }
+
+        if (
+          key === "project-compass-state" &&
+          legacyTaskSourceRead &&
+          !saveFailureInjected
+        ) {
+          saveFailureInjected = true;
+          trace.push("FAULT-INJECTED");
+          return "{broken-json";
+        }
+
+        return originalGetItem.call(this, key);
+      };
+    });
+
+    await page.goto("/project-board");
+
+    await expect(
+      page.getByRole("heading", { name: "Workspace", exact: true })
+    ).toBeVisible();
+
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (
+              window as typeof window & {
+                __storageReadTrace?: string[];
+              }
+            ).__storageReadTrace?.includes("FAULT-INJECTED") ?? false
+        )
+      )
+      .toBe(true);
+
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve());
+          });
+        })
+    );
+
+    const observedFailureState = await page.evaluate(() => {
+      const savedState = window.localStorage.getItem(
+        "project-compass-state"
+      );
+
+      const state = savedState ? JSON.parse(savedState) : null;
+      const activeProject = state?.projects?.find(
+        (project: { id: string }) =>
+          project.id === "save-failure-project"
+      );
+
+      const legacySource = window.localStorage.getItem(
+        "project-compass-tasks"
+      );
+
+      return {
+        persistedTargetTasks: activeProject?.tasks ?? [],
+        legacySource,
+        legacyRecords: legacySource ? JSON.parse(legacySource) : null,
+      };
+    });
+
+    const migratedTaskVisible = await page
+      .getByText("Preserve source on save failure", { exact: true })
+      .isVisible();
+
+    const storageReadTrace = await page.evaluate(
+      () =>
+        (
+          window as typeof window & {
+            __storageReadTrace?: string[];
+          }
+        ).__storageReadTrace ?? []
+    );
+
+    console.log(
+      "Storage read trace:",
+      JSON.stringify(storageReadTrace, null, 2)
+    );
+
+    console.log(
+      "Observed save-failure migration state:",
+      JSON.stringify(
+        {
+          ...observedFailureState,
+          migratedTaskVisible,
+        },
+        null,
+        2
+      )
+    );
+
+    expect(
+      observedFailureState.persistedTargetTasks,
+      "Failed target save must not appear as a persisted migration"
+    ).toHaveLength(0);
+
+    expect(
+      observedFailureState.legacySource,
+      "Original legacy source must remain byte-for-byte unchanged when target save returns false"
+    ).toBe(originalLegacySource);
+
+    expect(
+      observedFailureState.legacyRecords,
+      "Original legacy records must remain recoverable when target save returns false"
+    ).toEqual(originalLegacyRecords);
+
+    expect(
+      migratedTaskVisible,
+      "Failed target save must not be presented as a successful runtime migration"
+    ).toBe(false);
+  });
 });
