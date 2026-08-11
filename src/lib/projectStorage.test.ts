@@ -236,7 +236,9 @@ describe("Project Compass state boundary", () => {
       },
     });
 
-    saveProjectCompassState(createEmptyState());
+    const result = saveProjectCompassState(createEmptyState());
+
+expect(result).toBe(true);
 
     expect(setItem).toHaveBeenCalledWith(
       PROJECT_COMPASS_STORAGE_KEY,
@@ -261,7 +263,9 @@ describe("Project Compass state boundary", () => {
       },
     });
 
-    saveProjectCompassState(createEmptyState());
+    const result = saveProjectCompassState(createEmptyState());
+
+expect(result).toBe(false);
 
     expect(getItem).toHaveBeenCalledWith(PROJECT_COMPASS_STORAGE_KEY);
     expect(setItem).not.toHaveBeenCalled();
@@ -284,7 +288,9 @@ describe("Project Compass state boundary", () => {
       },
     });
 
-    saveProjectCompassState(createEmptyState());
+    const result = saveProjectCompassState(createEmptyState());
+
+expect(result).toBe(false);
 
     expect(getItem).toHaveBeenCalledWith(PROJECT_COMPASS_STORAGE_KEY);
     expect(setItem).not.toHaveBeenCalled();

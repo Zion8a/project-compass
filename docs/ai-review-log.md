@@ -1600,3 +1600,187 @@ Verifieringsunderlaget för del 4 är:
 - fortsatt grönt canonical characterization-test.
 
 Ingen ytterligare produktionsändring inom Data Unification steg 3 får påbörjas innan del 4 har återrapporterats och granskats av Road to AI-Native Quality Engineer 2028 – styrgruppen/roadmapen.
+### Uppdatering – Data Unification steg 3, del 6
+
+**Delsteg:** Explicit Save Result Contract – RED → GREEN
+**Datum:** 11 augusti 2026
+**Status:** Minimalt boolean-kontrakt implementerat och verifierat RED → GREEN
+
+Styrgruppen godkände Data Unification steg 3, del 5 och beslutade att nästa steg skulle begränsas till den verifierade kontraktsluckan i `saveProjectCompassState()`.
+
+Del 5 hade visat att:
+
+* `saveProjectCompassState()` returnerade `void`,
+* funktionen kunde avstå från skrivning vid `invalid` eller `unsupported-version`,
+* detta skedde utan exception,
+* callern kunde därför inte skilja en genomförd save från en silent no-op,
+* kast från `localStorage.setItem()` propagerade redan och stoppade exekveringen före efterföljande source-delete,
+* ett deterministiskt race-test för state-förändring mellan initial read och save-time read inte kunde motiveras utan artificiell test-seam.
+
+Den beslutade förändringen var därför att göra save-resultatet explicit med minsta möjliga kontrakt.
+
+#### Tidigare kontrakt
+
+Tidigare signatur:
+
+`saveProjectCompassState(state: ProjectCompassState): void`
+
+Det innebar att callern inte fick något explicit besked om huruvida `localStorage.setItem(...)` faktiskt hade genomförts.
+
+Vid `invalid` eller `unsupported-version` loggade funktionen en warning och returnerade utan skrivning, men detta var inte observerbart via returvärdet.
+
+#### Nytt kontrakt
+
+Ny signatur:
+
+`saveProjectCompassState(state: ProjectCompassState): boolean`
+
+Kontraktet är nu:
+
+* `true` när `localStorage.setItem(...)` faktiskt har genomförts,
+* `false` när funktionen avstår från skrivning,
+* `false` när `window` saknas,
+* storage-exceptions fångas inte utan fortsätter att propagera.
+
+Ingen read-back eller separat persistensverifiering infördes i detta steg.
+
+#### RED-verifiering
+
+Tre befintliga tester i:
+
+`src/lib/projectStorage.test.ts`
+
+utökades med returvärdesassertioner.
+
+Kontrakten uttrycktes som:
+
+* normal giltig save ska returnera `true`,
+* malformed befintlig state ska returnera `false`,
+* unsupported-version ska returnera `false`.
+
+Befintliga assertions om `getItem()` och `setItem()` behölls.
+
+Mot den tidigare `void`-implementationen blev samtliga tre tester RED av förväntad anledning:
+
+`expected undefined to be true`
+
+respektive:
+
+`expected undefined to be false`
+
+Resultat:
+
+* 3 failed
+* 10 passed
+* 13 tests totalt
+
+RED verifierade alltså exakt den avsedda kontraktsluckan och inte någon annan regression.
+
+#### Minsta produktionsändring
+
+Endast `src/lib/projectStorage.ts` ändrades i produktionskod.
+
+Ändringen bestod av:
+
+* returtyp `void` → `boolean`,
+* `return false` när `window` saknas,
+* `return false` vid `invalid`,
+* `return false` vid `unsupported-version`,
+* `return true` direkt efter genomförd `localStorage.setItem(...)`.
+
+Ingen `try/catch` lades till.
+
+Ingen ändring gjordes i:
+
+* `src/app/project-board/page.tsx`,
+* taskmigrationens control flow,
+* source-delete,
+* read-back,
+* backup,
+* rollback,
+* risks,
+* decisions,
+* Project Interview.
+
+#### GREEN-verifiering
+
+Efter den minimala produktionsändringen kördes:
+
+`npx vitest run src/lib/projectStorage.test.ts`
+
+Resultat:
+
+* 1 testfil passed
+* 13 tests passed
+* 0 failed
+
+Save-result contract verifierades därmed:
+
+**RED → GREEN**
+
+#### TypeScript-kontroll
+
+Följande kördes:
+
+`npx tsc --noEmit`
+
+Kontrollen rapporterade tre TypeScript-fel i:
+
+`tests/project-health-scenarios.spec.ts`
+
+Felen gäller implicit `any` för parametrarna:
+
+* `page`
+* `project`
+* `storedProject`
+
+Inga TypeScript-fel rapporterades i:
+
+* `src/lib/projectStorage.ts`
+* `src/lib/projectStorage.test.ts`
+
+Felen ligger utanför den ändrade koden och åtgärdades inte inom denna slice.
+
+Eftersom någon full TypeScript-baseline inte kördes före Del 6 beskrivs de inte som bevisat pre-existing, endast som projektövergripande TypeScript-fel utanför den aktuella diffen.
+
+#### Varför boolean valdes
+
+Ett enkelt boolean-kontrakt valdes eftersom den verifierade luckan var begränsad:
+
+callern kunde inte skilja genomförd save från save som avstod.
+
+Ett mer avancerat resultatobjekt hade inte gett verifierat mervärde i detta steg.
+
+Read-back infördes inte eftersom inget sådant behov hade verifierats.
+
+Exceptions används inte som normal control flow för `invalid` eller `unsupported-version`.
+
+Transaktion, backup och rollback infördes inte eftersom de inte behövs för att lösa den aktuella kontraktsluckan.
+
+AI-förslag som hade utökat lösningen till generella persistensprotokoll, transaktionslogik eller migrationsframework hade därför varit större än den verifierade risken motiverade.
+
+#### Vad Del 6 ännu inte löser
+
+Taskmigrationens caller använder ännu inte boolean-resultatet.
+
+Project Board gör fortfarande i princip:
+
+`saveProjectCompassState(updatedState);`
+
+följt av:
+
+`localStorage.removeItem("project-compass-tasks");`
+
+Del 6 gör alltså persistensutfallet observerbart, men ändrar ännu inte migrationsflödets beslut om source-delete.
+
+Detta ligger uttryckligen utanför scope för Del 6 och kräver nytt styrgruppsbeslut.
+
+#### Status för AI Review #005
+
+AI Review #005 förblir **Pågående**.
+
+Del 6 verifierar att ett enkelt boolean-kontrakt räcker för att eliminera den tidigare silent-no-op-luckan i save-funktionens API utan att införa read-back, backup, rollback eller generell migrationsarkitektur.
+
+Project Board använder ännu inte resultatet.
+
+Ingen ytterligare ändring i taskmigrationens control flow får påbörjas innan Del 6 har återrapporterats och granskats av Road to AI-Native Quality Engineer 2028 – styrgruppen/roadmapen.

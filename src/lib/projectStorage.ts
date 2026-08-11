@@ -331,9 +331,11 @@ export function loadProjectCompassState(): ProjectCompassState {
 
   return createEmptyState();
 }
-export function saveProjectCompassState(state: ProjectCompassState): void {
+export function saveProjectCompassState(
+  state: ProjectCompassState
+): boolean {
   if (typeof window === "undefined") {
-    return;
+    return false;
   }
 
   const savedState = window.localStorage.getItem(PROJECT_COMPASS_STORAGE_KEY);
@@ -346,10 +348,15 @@ export function saveProjectCompassState(state: ProjectCompassState): void {
     console.warn(
       `Project Compass state was not saved because existing stored data is ${existingState.status}.`
     );
-    return;
+    return false;
   }
 
-  window.localStorage.setItem(PROJECT_COMPASS_STORAGE_KEY, JSON.stringify(state));
+  window.localStorage.setItem(
+    PROJECT_COMPASS_STORAGE_KEY,
+    JSON.stringify(state)
+  );
+
+  return true;
 }
 export function getActiveProject(state: ProjectCompassState): Project | null {
   if (!state.activeProjectId) {
