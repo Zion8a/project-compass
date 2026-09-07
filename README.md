@@ -215,12 +215,21 @@ GitHub Actions currently runs on pushes and pull requests to `master`.
 
 The current workflow:
 
-* Installs dependencies and Playwright browsers
+* Installs dependencies
+* Runs the Vitest unit suite with `npm run test:unit`
+* Installs Playwright browsers
 * Runs the landing-page test across the configured browser projects
 * Runs the main-flow test in Chromium
+* Runs `tests/task-legacy-migration.spec.ts` in Chromium
 * Uploads the Playwright HTML report as an artifact
 
-The current CI workflow does **not** yet run the complete Playwright suite, the Vitest suite or `npm run build`.
+The current CI workflow does **not** run:
+
+* The complete Playwright suite
+* `npm run build`
+* Full cross-browser regression for all test files
+
+The CI scope is intentionally focused. It protects the current unit-level storage boundary checks, the landing page, the main user flow in Chromium and the legacy task migration scenarios without turning every push into a full regression run.
 
 ### Test commands
 
